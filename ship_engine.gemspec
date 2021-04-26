@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require_relative 'lib/shipengine/version'
+require_relative 'lib/ship_engine/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = 'shipengine'
+  spec.name          = 'ship_engine'
   spec.version       = ShipEngine::VERSION
   spec.authors       = ['Seth Silesky']
   spec.email         = ['seth.silesky@gmail.com']
