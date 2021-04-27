@@ -4,25 +4,21 @@ on: [push, pull_request]
 
 jobs:
   ci:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        # Due to https://github.com/actions/runner/issues/849, we have to use quotes for '3.0'
+        ruby: [2.5, 2.7, "3.0"]
     name: Build / Lint / Test
-    runs-on: ubuntu-latest
-
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
-      - name: Set up Ruby
-        uses: actions/setup-ruby@v1
+      - name: Set up Ruby and Build
+        uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 2.6
-      - uses: actions/cache@v2
-        with:
-          path: vendor/bundle
-          key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-gems-
-      - name: Install
-        run: |
-          gem install bundler
-          bundle install --jobs 4 --retry 3
+          ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true # runs 'bundle install' and caches installed gems automatically
       - name: Lint
         run: bundle exec rake lint
       - name: Test
