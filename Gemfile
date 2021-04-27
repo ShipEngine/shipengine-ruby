@@ -7,11 +7,11 @@ group :development do
 end
 
 group :test do
-  gem 'minitest', '~> 5.0'
+  gem 'minitest'
   gem 'simplecov', require: false
 end
 
 group :test, :development do
-  gem 'rake', '~> 13.0'
-  gem 'rubocop', '~> 1.13', require: false
+  gem 'rake'
+  gem 'rubocop', require: false
 end
