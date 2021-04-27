@@ -11,8 +11,8 @@ Gem::Specification.new do |spec|
   spec.license       = 'Apache-2.0'
   spec.files = Dir['*.{md,txt}', '{lib}/**/*']
   spec.require_paths = ['lib']
-  spec.required_ruby_version = '>= 2.5'
+  spec.required_ruby_version = '>= 2.6'
 
-  spec.add_runtime_dependency 'rest-client', '~> 2.0.2'
   spec.add_runtime_dependency 'json', '~> 1.8'
+  spec.add_runtime_dependency 'rest-client', '~> 2.0.2'
 end
