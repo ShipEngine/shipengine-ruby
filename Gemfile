@@ -15,3 +15,5 @@ group :test, :development do
   gem 'rake'
   gem 'rubocop', require: false
 end
+
+gemspec

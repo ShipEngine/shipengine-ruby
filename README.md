@@ -7,6 +7,8 @@ The Official Ruby SDK for ShipEngine
 - `minitest` over `rspec` since minitest seems to be more much popular than rspec for OSS
 - `rubocop`
 - Supporting Ruby 2.6 (2.5 is no longer supported by Ruby as of March 2021).
+- `faraday` for http since it's the most popular library, and it is used by Twilio.
+- committing `Gemfile.lock` per the guidance here: https://github.com/rubygems/rubygems/issues/3372
 
 ## Installation
 
