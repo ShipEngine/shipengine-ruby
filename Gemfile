@@ -12,6 +12,5 @@ end
 
 group :test, :development do
   gem 'rake', '~> 13.0'
-  gem 'reek', require: false
   gem 'rubocop', '~> 1.13', require: false
 end

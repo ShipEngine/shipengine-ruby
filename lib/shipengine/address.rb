@@ -1,4 +1,4 @@
-require 'ship_engine/client'
+require 'shipengine/client'
 
 # ActiveRecord
 module ShipEngine

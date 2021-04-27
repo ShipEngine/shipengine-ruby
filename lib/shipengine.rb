@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'ship_engine/version'
+require 'shipengine/version'
 
 module ShipEngine
   # configure object

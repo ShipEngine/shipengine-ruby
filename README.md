@@ -1,4 +1,4 @@
-ship_engine-ruby
+shipengine-ruby
 
 # Decisions
 
