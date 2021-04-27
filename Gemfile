@@ -13,6 +13,8 @@ end
 
 group :test, :development do
   gem 'rake'
+  gem 'reek', require: false
+  gem 'pry'
   gem 'rubocop', require: false
 end
 

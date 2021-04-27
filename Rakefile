@@ -18,4 +18,13 @@ RuboCop::RakeTask.new(:fix) do |t|
   t.options = ['--auto-correct']
 end
 
+desc 'Open an irb (or pry) session preloaded with this gem'
+task :repl do
+  require 'pry'
+  gem_name = 'shipengine'
+  sh %(pry -I lib -r #{gem_name})
+rescue LoadError => _e
+  sh %(irb -I lib -r #{gem_name})
+end
+
 task default: :test
