@@ -11,4 +11,5 @@ shipengine-ruby
 ## Commands
 
 - Run tests: `rake test`
+- Lint: `rake lint`
 - Autoformat: `bundle exec rubocop -A`

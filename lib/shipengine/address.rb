@@ -1,6 +1,7 @@
+# frozen_string_literal: true
+
 require 'shipengine/client'
 
-# ActiveRecord
 module ShipEngine
   class Package
     def track
