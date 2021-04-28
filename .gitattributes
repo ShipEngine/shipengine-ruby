@@ -1,0 +1,11 @@
+* -text
+*.gemspec text
+*.md text
+*.rb text
+*.yml text
+.gitattributes text
+.gitignore text
+.ruby-version text
+Gemfile text
+LICENSE text
+Rakefile text
