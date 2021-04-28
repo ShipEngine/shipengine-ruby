@@ -4,10 +4,13 @@ source 'https://rubygems.org'
 
 group :development do
   gem 'solargraph', require: false
+  gem 'guard'
+  gem 'guard-minitest'
 end
 
 group :test do
   gem 'minitest'
+  gem 'minitest-reporters'
   gem 'simplecov', require: false
 end
 

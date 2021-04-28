@@ -14,4 +14,5 @@ Gem::Specification.new do |spec|
   spec.required_ruby_version = '>= 2.6'
 
   spec.add_runtime_dependency 'faraday', '~> 1.4.1'
+  spec.add_runtime_dependency 'faraday_middleware'
 end
