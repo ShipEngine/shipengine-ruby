@@ -16,13 +16,13 @@ module ShipEngine
     end
 
     def assert_no_platform_errors(response)
-      puts response.inspect
-      status = response.status
-      error = response.body['error'] || {}
-      status == 400 and
-        raise ShipEngine::Exceptions::ValidationError, error['message'] || status.to_s
-      status >= 401 and
-        raise ShipEngine::Exceptions::ShipEngineError, error['message'] || status.to_s
+      # puts response.inspect
+      body = response.body
+      error = body['error'] || {}
+      data = error['data']
+      return unless data
+        raise ShipEngine::Exceptions::ShipEngineErrorDetailed.new(body['id'], error['message'], data) unless data.nil?
+      end
     end
 
     # create jsonrpc request has
