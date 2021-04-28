@@ -6,7 +6,7 @@ module ShipEngine
   class PlatformClient
     attr_accessor :connection
 
-    def initialize(api_key:, base_url: 'https://platform.shipengine.com/v1', adapter: Faraday.default_adapter)
+    def initialize(api_key:, base_url: 'https://simengine.herokuapp.com/jsonrpc', adapter: Faraday.default_adapter)
       @connection = Faraday.new(url: base_url) do |f|
         f.request :json, :retry
         f.headers = { 'Content-Type' => 'application/json', 'API-Key' => api_key }
@@ -15,16 +15,46 @@ module ShipEngine
       end
     end
 
-    def make_request(method:, route:, body: nil, params: nil)
-      method_lc = method.downcase.to_sym
-      data = method_lc == :get ? params : body
-      response = @connection.send(method_lc, route, data)
+    def assert_no_platform_errors(response)
+      puts response.inspect
+      status = response.status
+      error = response.body['error'] || {}
+      status == 400 and
+        raise ShipEngine::Exceptions::ValidationError, error['message'] || status.to_s
+      status >= 401 and
+        raise ShipEngine::Exceptions::ShipEngineError, error['message'] || status.to_s
+    end
+
+    # create jsonrpc request has
+    def create_jsonrpc_request_body(method, params)
+      {
+        jsonrpc: '2.0',
+        id: '123',
+        method: method,
+        params: params
+      }
+    end
+
+    def make_request(method, params)
+      response = @connection.send(:post, nil, create_jsonrpc_request_body(method, params))
+      assert_no_platform_errors(response)
       response.body
-
-
+    # throw an error if status code is 400 or above.
     # Faraday does not throw errors for 400s -- only 500s!
     rescue Faraday::Error => e
       raise ShipEngine::Exceptions::ShipEngineError, e.message
+    end
+
+    def validate_address(address)
+      make_request('address/validate', { address: address })
+    end
+
+    def track_package_by_id(package_id)
+      make_request('package/track', { package_id: package_id })
+    end
+
+    def track_package_by_tracking_number(tracking_number, carrier_code)
+      make_request('package/track', { tracking_number: tracking_number, carrier_code: carrier_code })
     end
   end
 end
