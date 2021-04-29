@@ -1,6 +1,6 @@
 require 'test_helper'
 
-describe 'validate address' do
+describe 'Validate Address' do
   it 'Should successfully validate an address' do
     # client = ::ShipEngine::Client.new(api_key: 'abc123')
     # valid_address = {

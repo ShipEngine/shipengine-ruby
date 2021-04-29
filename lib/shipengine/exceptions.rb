@@ -11,12 +11,15 @@ module ShipEngine
 
     # 400 error, or other "user exceptions"
     class ShipEngineErrorDetailed < ShipEngineError
-      def initialize(request_id, message, data)
+      attr_reader :request_id, :message, :source, :type, :code
+
+      def initialize(request_id, message, source, type, code)
         super(message)
         @request_id = request_id
-        @source = data['source']
-        @type = data['type']
-        @code = data['code']
+        @message = message  # super with attribute reader seems odd
+        @source = source
+        @type = type
+        @code = code
       end
     end
   end

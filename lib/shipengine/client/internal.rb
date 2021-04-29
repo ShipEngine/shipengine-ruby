@@ -3,7 +3,7 @@
 require 'faraday_middleware'
 
 module ShipEngine
-  class PlatformClient
+  class InternalClient
     attr_accessor :connection
 
     def initialize(api_key:, base_url: 'https://simengine.herokuapp.com/jsonrpc', adapter: Faraday.default_adapter)
@@ -15,18 +15,17 @@ module ShipEngine
       end
     end
 
-    def assert_no_platform_errors(response)
-      # puts response.inspect
-      body = response.body
-      error = body['error'] || {}
-      data = error['data']
-      return unless data
-        raise ShipEngine::Exceptions::ShipEngineErrorDetailed.new(body['id'], error['message'], data) unless data.nil?
+    def assert_shipengine_rpc_success(body)
+      error, request_id = body.values_at('error', 'request_id')
+      if error
+        message, data = error.values_at('message', 'data')
+        source, type, code = data.values_at('source', 'type', 'code')
+        raise ShipEngine::Exceptions::ShipEngineErrorDetailed.new(request_id, message, source, type, code)
       end
     end
 
     # create jsonrpc request has
-    def create_jsonrpc_request_body(method, params)
+    def build_jsonrpc_request_body(method, params)
       {
         jsonrpc: '2.0',
         id: '123',
@@ -36,11 +35,13 @@ module ShipEngine
     end
 
     def make_request(method, params)
-      response = @connection.send(:post, nil, create_jsonrpc_request_body(method, params))
-      assert_no_platform_errors(response)
-      response.body
-    # throw an error if status code is 400 or above.
-    # Faraday does not throw errors for 400s -- only 500s!
+      response = @connection.send(:post, nil, build_jsonrpc_request_body(method, params))
+      body = response.body
+      assert_shipengine_rpc_success(body)
+
+      body
+      # throw an error if status code is 400 or above.
+      # Faraday does not throw errors for 400s -- only 500s!
     rescue Faraday::Error => e
       raise ShipEngine::Exceptions::ShipEngineError, e.message
     end

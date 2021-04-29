@@ -16,6 +16,7 @@ The Official Ruby SDK for ShipEngine
 
 ## Commands
 
-- Run tests: `rake test`
+- Run tests once: `rake test`
+- Run tests on change: `guard`
 - Lint: `rake lint`
 - Autoformat: `rake fix`
