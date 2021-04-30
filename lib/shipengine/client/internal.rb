@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'faraday_middleware'
+require 'shipengine/utils/request_id'
 
 module ShipEngine
   class InternalClient
@@ -28,7 +29,7 @@ module ShipEngine
     def build_jsonrpc_request_body(method, params)
       {
         jsonrpc: '2.0',
-        id: '123',
+        id: ShipEngine::Utils.generate_request_id,
         method: method,
         params: params
       }
@@ -50,12 +51,8 @@ module ShipEngine
       make_request('address/validate', { address: address })
     end
 
-    def track_package_by_id(package_id)
-      make_request('package/track', { package_id: package_id })
-    end
-
-    def track_package_by_tracking_number(tracking_number, carrier_code)
-      make_request('package/track', { tracking_number: tracking_number, carrier_code: carrier_code })
+    def track_package(package_id: nil, tracking_number: nil, carrier_code: nil)
+      make_request('package/track', { package_id: package_id, tracking_number: tracking_number, carrier_code: carrier_code })
     end
   end
 end

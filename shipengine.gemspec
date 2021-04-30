@@ -15,4 +15,5 @@ Gem::Specification.new do |spec|
 
   spec.add_runtime_dependency 'faraday', '~> 1.4.1'
   spec.add_runtime_dependency 'faraday_middleware'
+  spec.add_runtime_dependency 'base58'
 end

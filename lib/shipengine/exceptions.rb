@@ -16,7 +16,7 @@ module ShipEngine
       def initialize(request_id, message, source, type, code)
         super(message)
         @request_id = request_id
-        @message = message  # super with attribute reader seems odd
+        @message = message
         @source = source
         @type = type
         @code = code
