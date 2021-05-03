@@ -8,6 +8,9 @@ module ShipEngine
     attr_accessor :connection
 
     def initialize(api_key:, base_url: 'https://simengine.herokuapp.com/jsonrpc', adapter: Faraday.default_adapter)
+      assert_param_exists('api_key', api_key)
+      assert_param_exists('base_url', base_url)
+
       @connection = Faraday.new(url: base_url) do |f|
         f.request :json, :retry
         f.headers = { 'Content-Type' => 'application/json', 'API-Key' => api_key }
@@ -16,14 +19,28 @@ module ShipEngine
       end
     end
 
-    def assert_shipengine_rpc_success(body)
-      error, request_id = body.values_at('error', 'request_id')
-      if error
-        message, data = error.values_at('message', 'data')
-        source, type, code = data.values_at('source', 'type', 'code')
-        raise ShipEngine::Exceptions::ShipEngineErrorDetailed.new(request_id, message, source, type, code)
-      end
+
+    def make_request(method, params)
+      response = @connection.send(:post, nil, build_jsonrpc_request_body(method, params))
+      body = response.body
+      assert_shipengine_rpc_success(body)
+
+      body
+
+    # throw an error if status code is 500 or above.
+    rescue Faraday::Error => e
+      raise ShipEngine::Exceptions::ShipEngineError, e.message
     end
+
+    def validate_address(address)
+      make_request('address/validate', { address: address })
+    end
+
+    def track_package(package_id: nil, tracking_number: nil, carrier_code: nil)
+      make_request('package/track', { package_id: package_id, tracking_number: tracking_number, carrier_code: carrier_code })
+    end
+
+    private
 
     # create jsonrpc request has
     def build_jsonrpc_request_body(method, params)
@@ -35,24 +52,17 @@ module ShipEngine
       }
     end
 
-    def make_request(method, params)
-      response = @connection.send(:post, nil, build_jsonrpc_request_body(method, params))
-      body = response.body
-      assert_shipengine_rpc_success(body)
-
-      body
-      # throw an error if status code is 400 or above.
-      # Faraday does not throw errors for 400s -- only 500s!
-    rescue Faraday::Error => e
-      raise ShipEngine::Exceptions::ShipEngineError, e.message
+    def assert_shipengine_rpc_success(body)
+      error, request_id = body.values_at('error', 'request_id')
+      if error
+        message, data = error.values_at('message', 'data')
+        source, type, code = data.values_at('source', 'type', 'code')
+        raise ShipEngine::Exceptions::ShipEngineErrorDetailed.new(request_id, message, source, type, code)
+      end
     end
 
-    def validate_address(address)
-      make_request('address/validate', { address: address })
-    end
-
-    def track_package(package_id: nil, tracking_number: nil, carrier_code: nil)
-      make_request('package/track', { package_id: package_id, tracking_number: tracking_number, carrier_code: carrier_code })
+    def assert_param_exists(name, value)
+      raise ::ShipEngine::Exceptions::InvalidParams, "#{name} cannot be nil or empty" if value.nil? || value == ''
     end
   end
 end

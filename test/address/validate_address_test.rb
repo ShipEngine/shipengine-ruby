@@ -10,7 +10,7 @@ describe 'Validate Address' do
       state_province: 'TX',
       country_code: 'US'
     }
-    success_request = client.address.validate(valid_address)
+    success_request = client.validate_address(valid_address)
     assert success_request
   end
 end

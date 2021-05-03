@@ -21,6 +21,8 @@ module ShipEngine
       # @param [String]  tracking_number - e.g 1Z9999999999999999
       # @return [ShipEngine::Domain::TrackPackageResult]
       def track_by_number(tracking_number, carrier_code)
+        raise ::ShipEngine::Exceptions::InvalidParams.new(nil, 'No tracking number') unless tracking_number
+
         @internal_client.track_package(tracking_number: tracking_number, carrier_code: carrier_code)
       end
     end

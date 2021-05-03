@@ -22,5 +22,12 @@ module ShipEngine
         @code = code
       end
     end
+
+    # 400 error, or other "user exceptions"
+    class InvalidParams < ShipEngineErrorDetailed
+      def initialize(message)
+        super(nil, message, 'shipengine', 'validation', 'invalid_field_value')
+      end
+    end
   end
 end
