@@ -1,7 +1,7 @@
+require 'shipengine/exceptions/error_code'
+
 module ShipEngine
   module Exceptions
-    #  standard class - network connection error / internal server error /etc
-
     class ShipEngineError < StandardError
       def initialize(message_or_messages)
         message = message_or_messages.is_a?(Array) ? message_or_messages.join('\n') : message_or_messages
@@ -26,7 +26,17 @@ module ShipEngine
     # 400 error, or other "user exceptions"
     class InvalidParams < ShipEngineErrorDetailed
       def initialize(message)
-        super(nil, message, 'shipengine', 'validation', 'invalid_field_value')
+        super(nil, message, 'shipengine', 'validation', ErrorCode.get(:INVALID_FIELD_VALUE))
+      end
+    end
+
+
+    class FieldValueRequired < ShipEngineErrorDetailed
+      def self.assert_field_exists(field_name, value)
+        raise self.new(field_name) if value.nil? || value == ''
+      end
+      def initialize(missing_item)
+        super(nil, "#{missing_item} must specified.", 'shipengine', 'validation', ErrorCode.get(:FIELD_VALUE_REQUIRED))
       end
     end
   end

@@ -2,14 +2,15 @@
 
 require 'faraday_middleware'
 require 'shipengine/utils/request_id'
+require 'shipengine/exceptions'
 
 module ShipEngine
   class InternalClient
     attr_accessor :connection
 
     def initialize(api_key:, base_url: 'https://simengine.herokuapp.com/jsonrpc', adapter: Faraday.default_adapter)
-      assert_param_exists('api_key', api_key)
-      assert_param_exists('base_url', base_url)
+      Exceptions::FieldValueRequired.assert_field_exists('A ShipEngine API key', api_key)
+      Exceptions::FieldValueRequired.assert_field_exists('base_url', base_url)
 
       @connection = Faraday.new(url: base_url) do |f|
         f.request :json, :retry
@@ -59,10 +60,6 @@ module ShipEngine
         source, type, code = data.values_at('source', 'type', 'code')
         raise ShipEngine::Exceptions::ShipEngineErrorDetailed.new(request_id, message, source, type, code)
       end
-    end
-
-    def assert_param_exists(name, value)
-      raise ::ShipEngine::Exceptions::InvalidParams, "#{name} cannot be nil or empty" if value.nil? || value == ''
     end
   end
 end
