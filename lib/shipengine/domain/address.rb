@@ -9,6 +9,7 @@ module ShipEngine
       def initialize(internal_client)
         @internal_client = internal_client
       end
+
       def validate(address)
         @internal_client.validate_address(address)
       end

@@ -20,7 +20,6 @@ module ShipEngine
       end
     end
 
-
     def make_request(method, params)
       response = @connection.send(:post, nil, build_jsonrpc_request_body(method, params))
       body = response.body
@@ -34,11 +33,13 @@ module ShipEngine
     end
 
     def validate_address(address)
-      make_request('address/validate', { address: address })
+      params = { address: address }
+      make_request('address/validate', params)
     end
 
     def track_package(package_id: nil, tracking_number: nil, carrier_code: nil)
-      make_request('package/track', { package_id: package_id, tracking_number: tracking_number, carrier_code: carrier_code })
+      params = { package_id: package_id, tracking_number: tracking_number, carrier_code: carrier_code }
+      make_request('package/track', params)
     end
 
     private
@@ -55,11 +56,11 @@ module ShipEngine
 
     def assert_shipengine_rpc_success(body)
       error, request_id = body.values_at('error', 'request_id')
-      if error
-        message, data = error.values_at('message', 'data')
-        source, type, code = data.values_at('source', 'type', 'code')
-        raise ShipEngine::Exceptions::ShipEngineErrorDetailed.new(request_id, message, source, type, code)
-      end
+      return nil unless error
+
+      message, data = error.values_at('message', 'data')
+      source, type, code = data.values_at('source', 'type', 'code')
+      raise ShipEngine::Exceptions::ShipEngineErrorDetailed.new(request_id, message, source, type, code)
     end
   end
 end

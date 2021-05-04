@@ -3,9 +3,9 @@
 source 'https://rubygems.org'
 
 group :development do
-  gem 'solargraph', require: false
   gem 'guard'
   gem 'guard-minitest'
+  gem 'solargraph', require: false
 end
 
 group :test do
@@ -15,9 +15,9 @@ group :test do
 end
 
 group :test, :development do
+  gem 'pry'
   gem 'rake'
   gem 'reek', require: false
-  gem 'pry'
   gem 'rubocop', require: false
 end
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'test_helper'
 
 describe 'Internal client test' do
@@ -15,15 +17,18 @@ describe 'Internal client test' do
   end
 
   describe 'Errors' do
+    def assert_api_key_error(e)
+      assert e.source == 'shipengine'
+      assert e.type == 'validation'
+      assert e.code == 'field_value_required'
+      assert e.message == 'A ShipEngine API key must be specified.'
+    end
 
     it 'Should throw a validation error if no api_key passed during instantiation' do
       _ = ::ShipEngine::InternalClient.new(api_key: nil)
       raise 'force fail'
     rescue ShipEngine::Exceptions::FieldValueRequired => e
-      assert e.source == 'shipengine'
-      assert e.type == 'validation'
-      assert e.code == ShipEngine::Exceptions::ErrorCode.get(:FIELD_VALUE_REQUIRED)
-      assert e.message == 'A ShipEngine API key must specified.'
+      assert_api_key_error(e)
     else
       raise 'force fail'
     end
@@ -31,7 +36,7 @@ describe 'Internal client test' do
       _ = ::ShipEngine::InternalClient.new(api_key: nil)
       raise 'force fail'
     rescue ShipEngine::Exceptions::FieldValueRequired => e
-      assert e.message.is_a?(String)
+      assert_api_key_error(e)
     else
       raise 'force fail'
     end
