@@ -22,8 +22,13 @@ module ShipEngine
       @address.validate(address)
     end
 
-    def track_package_by_number(number, carrier_code)
-      @package.track_by_number(number, carrier_code)
+    def track_package_by_id(package_id)
+      @package.track_by_id(package_id)
     end
+
+    def track_package_by_tracking_number(number, carrier_code)
+      @package.track_by_tracking_number(number, carrier_code)
+    end
+
   end
 end
