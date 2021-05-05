@@ -3,6 +3,7 @@
 require 'faraday_middleware'
 require 'shipengine/utils/request_id'
 require 'shipengine/exceptions'
+require 'shipengine/version'
 
 module ShipEngine
   class InternalClient
@@ -14,7 +15,12 @@ module ShipEngine
 
       @connection = Faraday.new(url: base_url) do |f|
         f.request :json, :retry
-        f.headers = { 'Content-Type' => 'application/json', 'API-Key' => api_key }
+        f.headers = {
+          'Content-Type' => 'application/json',
+          'Accept' => 'application/json',
+          'API-Key' => api_key,
+          'User-Agent' => "shipengine-ruby/#{VERSION} (#{RUBY_PLATFORM})"
+        }
         f.response :json, content_type: /\bjson$/
         f.adapter adapter
       end
