@@ -2,9 +2,10 @@
 
 require 'test_helper'
 
+base_url = 'https://simengine.herokuapp.com/jsonrpc'
 describe 'Internal client test' do
   it 'Should make a request' do
-    client = ShipEngine::InternalClient.new(api_key: 'abc123')
+    client = ShipEngine::InternalClient.new(api_key: 'abc123', base_url: base_url)
     params = { address: {
       street: ['501 Crawford St'],
       cityLocality: 'Houston',
@@ -24,8 +25,8 @@ describe 'Internal client test' do
       assert err.message == 'A ShipEngine API key must be specified.'
     end
 
-    it 'Should throw a validation error if no api_key passed during instantiation' do
-      _ = ShipEngine::InternalClient.new(api_key: nil)
+    it 'Should throw a validation error if api_key is nil during instantiation' do
+      _ = ShipEngine::InternalClient.new(api_key: nil, base_url: base_url)
       raise 'force fail'
     rescue ShipEngine::Exceptions::FieldValueRequired => e
       assert_api_key_error(e)
@@ -33,7 +34,7 @@ describe 'Internal client test' do
       raise 'force fail'
     end
     it 'Should throw a validation error if api_key is empty string during instantiation' do
-      _ = ShipEngine::InternalClient.new(api_key: nil)
+      _ = ShipEngine::InternalClient.new(api_key: '', base_url: base_url)
       raise 'force fail'
     rescue ShipEngine::Exceptions::FieldValueRequired => e
       assert_api_key_error(e)

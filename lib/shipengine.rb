@@ -9,10 +9,21 @@ require 'shipengine/version'
 require 'shipengine/exceptions'
 
 module ShipEngine
+  class Configuration
+    attr_accessor :api_key, :retries, :base_url
+    def initialize(api_key:, retries: nil)
+      @api_key = api_key
+      @retries = retries
+      @base_url = 'https://simengine.herokuapp.com/jsonrpc'
+    end
+  end
+
+
   class Client
-    # make domain modules public
-    def initialize(api_key:)
-      internal_client = InternalClient.new(api_key: api_key)
+    attr_accessor :configuration
+    def initialize(api_key:, retries: nil)
+      @configuration = Configuration.new(api_key: api_key, retries: retries)
+      internal_client = InternalClient.new(api_key: @configuration.api_key,  retries: @configuration.retries, base_url: @configuration.base_url)
       @address = Domain::Address.new(internal_client)
       @package = Domain::Package.new(internal_client)
     end

@@ -18,7 +18,7 @@ group :test, :development do
   gem 'pry'
   gem 'rake'
   gem 'reek', require: false
-  gem 'rubocop', require: false
+  gem 'rubocop'
 end
 
 gemspec

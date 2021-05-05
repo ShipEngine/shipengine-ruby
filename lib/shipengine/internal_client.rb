@@ -7,18 +7,23 @@ require 'shipengine/version'
 
 module ShipEngine
   class InternalClient
-    attr_accessor :connection
+    attr_reader :connection
+    attr_accessor :api_key, :base_url
 
-    def initialize(api_key:, base_url: 'https://simengine.herokuapp.com/jsonrpc', adapter: Faraday.default_adapter)
-      Exceptions::FieldValueRequired.assert_field_exists('A ShipEngine API key', api_key)
+    def initialize(api_key:, retries: 0, base_url:, adapter: Faraday.default_adapter)
+      @api_key = api_key
+      @base_url = base_url
+
+      # TODO: move to configuration class
+      Exceptions::FieldValueRequired.assert_field_exists('A ShipEngine API key', @api_key)
       Exceptions::FieldValueRequired.assert_field_exists('base_url', base_url)
 
-      @connection = Faraday.new(url: base_url) do |f|
-        f.request :json, :retry
+      @connection = Faraday.new do |f|
+        f.request :json
+        f.request :retry, {max: retries}
         f.headers = {
           'Content-Type' => 'application/json',
           'Accept' => 'application/json',
-          'API-Key' => api_key,
           'User-Agent' => "shipengine-ruby/#{VERSION} (#{RUBY_PLATFORM})"
         }
         f.response :json, content_type: /\bjson$/
@@ -27,7 +32,8 @@ module ShipEngine
     end
 
     def make_request(method, params)
-      response = @connection.send(:post, nil, build_jsonrpc_request_body(method, params))
+      additional_headers = {'API-Key' => api_key}
+      response = @connection.post(@base_url, build_jsonrpc_request_body(method, params), additional_headers)
       body = response.body
       assert_shipengine_rpc_success(body)
 
