@@ -5,9 +5,9 @@ require 'test_helper'
 describe 'Validate Address' do
   it 'Should successfully validate an address' do
     client = ::ShipEngine::Client.new(api_key: 'abc123')
-    client.validate_address(
+    success_request = client.validate_address(
       street: ['501 Crawford St'],
-      city_locality:  'Houston',
+      city_locality: 'Houston',
       postal_code: '77002',
       state_province: 'TX',
       country_code: 'US'
@@ -18,7 +18,7 @@ describe 'Validate Address' do
     client = ::ShipEngine::InternalClient.new(api_key: 'abc123')
     client.validate_address(
       street: ['Invalid request'],
-      city_locality:  'Houston',
+      city_locality: 'Houston',
       postal_code: '77002',
       state_province: 'TX',
       country_code: 'US'

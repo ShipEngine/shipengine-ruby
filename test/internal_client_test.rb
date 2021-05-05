@@ -7,12 +7,12 @@ describe 'Internal client test' do
     client = ShipEngine::InternalClient.new(api_key: 'abc123')
     params = { address: {
       street: ['501 Crawford St'],
-      city_locality: 'Houston',
-      postal_code: '77002',
-      state_province: 'TX',
-      country_code: 'US'
+      cityLocality: 'Houston',
+      postalCode: '77002',
+      stateProvince: 'TX',
+      countryCode: 'US'
     } }
-    success_request = client.make_request('address/validate', params)
+    success_request = client.make_request('address.validate.v1', params)
     assert success_request
   end
 

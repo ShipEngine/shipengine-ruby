@@ -40,12 +40,12 @@ module ShipEngine
 
     def validate_address(address)
       params = { address: address }
-      make_request('address/validate', params)
+      make_request('address.validate.v1', params)
     end
 
     def track_package(package_id: nil, tracking_number: nil, carrier_code: nil)
       params = { package_id: package_id, tracking_number: tracking_number, carrier_code: carrier_code }
-      make_request('package/track', params)
+      make_request('package.track.v1', params)
     end
 
     private
