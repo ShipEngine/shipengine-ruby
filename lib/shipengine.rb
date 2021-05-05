@@ -12,21 +12,21 @@ module ShipEngine
   class Client
     # make domain modules public
     def initialize(api_key:)
-      internal_client = ShipEngine::InternalClient.new(api_key: api_key)
-      @address = ShipEngine::Domain::Address.new(internal_client)
-      @package = ShipEngine::Domain::Package.new(internal_client)
+      internal_client = InternalClient.new(api_key: api_key)
+      @address = Domain::Address.new(internal_client)
+      @package = Domain::Package.new(internal_client)
     end
 
-    def validate_address(address)
-      @address.validate(address)
+    def validate_address(**args)
+      @address.validate(**args)
     end
 
-    def track_package_by_id(package_id)
-      @package.track_by_id(package_id)
+    def track_package_by_id(**args)
+      @package.track_by_id(**args)
     end
 
-    def track_package_by_tracking_number(number, carrier_code)
-      @package.track_by_tracking_number(number, carrier_code)
+    def track_package_by_tracking_number(**args)
+      @package.track_by_tracking_number(**args)
     end
   end
 end
