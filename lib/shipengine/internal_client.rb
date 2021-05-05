@@ -8,19 +8,20 @@ require 'shipengine/version'
 module ShipEngine
   class InternalClient
     attr_reader :connection
-    attr_accessor :api_key, :base_url
+    attr_accessor :api_key, :base_url, :retries
 
-    def initialize(api_key:, retries: 0, base_url:, adapter: Faraday.default_adapter)
+    def initialize(api_key:, retries: nil, base_url: nil, adapter: Faraday.default_adapter)
       @api_key = api_key
-      @base_url = base_url
+      @retries = retries || 0
+      @base_url = base_url || 'https://simengine.herokuapp.com/jsonrpc'
 
-      # TODO: move to configuration class
+
       Exceptions::FieldValueRequired.assert_field_exists('A ShipEngine API key', @api_key)
-      Exceptions::FieldValueRequired.assert_field_exists('base_url', base_url)
+      Exceptions::FieldValueRequired.assert_field_exists('base_url', @base_url)
 
       @connection = Faraday.new do |f|
         f.request :json
-        f.request :retry, {max: retries}
+        f.request :retry, {max: @retries}
         f.headers = {
           'Content-Type' => 'application/json',
           'Accept' => 'application/json',

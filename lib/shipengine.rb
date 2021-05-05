@@ -11,10 +11,10 @@ require 'shipengine/exceptions'
 module ShipEngine
   class Configuration
     attr_accessor :api_key, :retries, :base_url
-    def initialize(api_key:, retries: nil)
+    def initialize(api_key:, retries: nil, base_url: nil)
       @api_key = api_key
       @retries = retries
-      @base_url = 'https://simengine.herokuapp.com/jsonrpc'
+      @base_url = base_url
     end
   end
 
