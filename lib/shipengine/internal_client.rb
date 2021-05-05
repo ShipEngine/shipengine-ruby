@@ -29,7 +29,7 @@ module ShipEngine
 
     # throw an error if status code is 500 or above.
     rescue Faraday::Error => e
-      raise ShipEngine::Exceptions::ShipEngineError, e.message
+      raise Exceptions::ShipEngineError, e.message
     end
 
     def validate_address(address)
@@ -48,7 +48,7 @@ module ShipEngine
     def build_jsonrpc_request_body(method, params)
       {
         jsonrpc: '2.0',
-        id: ShipEngine::Utils.generate_request_id,
+        id: Utils::RequestId.create,
         method: method,
         params: params
       }
@@ -60,7 +60,7 @@ module ShipEngine
 
       message, data = error.values_at('message', 'data')
       source, type, code = data.values_at('source', 'type', 'code')
-      raise ShipEngine::Exceptions::ShipEngineErrorDetailed.new(request_id, message, source, type, code)
+      raise Exceptions::ShipEngineErrorDetailed.new(request_id, message, source, type, code)
     end
   end
 end

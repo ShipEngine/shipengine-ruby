@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'shipengine/client/internal'
-
 module ShipEngine
   module Domain
     class Address
