@@ -21,7 +21,7 @@ RuboCop::RakeTask.new(:lint) do |t|
 end
 
 RuboCop::RakeTask.new(:fix) do |t|
-  t.options = ['--auto-correct']
+  t.options = ['--auto-correct-all']
 end
 
 task :default do
