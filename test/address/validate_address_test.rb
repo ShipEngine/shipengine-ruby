@@ -15,15 +15,15 @@ describe 'Validate Address' do
     assert success_request
   end
   it 'should propgate server errors if params are invalid' do
-    client = ::ShipEngine::InternalClient.new(api_key: 'abc123')
+    client = ::ShipEngine::Client.new(api_key: 'abc123')
     client.validate_address(
-      street: ['Invalid request'],
+      street: nil,
       city_locality: 'Houston',
       postal_code: '77002',
       state_province: 'TX',
-      country_code: 'US'
+      country_code: nil
     )
-  rescue ShipEngine::Exceptions::ShipEngineErrorDetailed => e
+  rescue ShipEngine::Exceptions::ShipEngineError => e
     assert e.source.is_a?(String)
     assert e.type.is_a?(String)
     assert e.code.is_a?(String)

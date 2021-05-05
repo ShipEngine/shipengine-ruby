@@ -15,13 +15,14 @@ module ShipEngine
       # @param [String] country_code - e.g. 'US'
       # @return [ShipEngine::Domain::Address::ValidateAddressResult]
       def validate(street:, country_code:, city_locality: nil, state_province: nil, postal_code: nil)
-        @internal_client.validate_address({
-                                            street: street,
-                                            cityLocality: city_locality,
-                                            stateProvince: state_province,
-                                            postalCode: postal_code,
-                                            countryCode: country_code
-                                          })
+        address_params =  {
+          street: street,
+          cityLocality: city_locality,
+          stateProvince: state_province,
+          postalCode: postal_code,
+          countryCode: country_code
+        }
+        @internal_client.make_request('address.validate.v1', {address: address_params})
       end
     end
   end

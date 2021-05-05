@@ -14,7 +14,7 @@ module ShipEngine
       def track_by_id(package_id)
         ::ShipEngine::Exceptions::FieldValueRequired.assert_field_exists(package_id, 'A package id')
 
-        @internal_client.track_package(package_id: package_id)
+        @internal_client.make_request('package.track.v1', { packageId: package_id })
       end
 
       # @param [String] carrier_code - e.g. UPS
@@ -24,7 +24,7 @@ module ShipEngine
         ::ShipEngine::Exceptions::FieldValueRequired.assert_field_exists(tracking_number, 'A tracking number')
         ::ShipEngine::Exceptions::FieldValueRequired.assert_field_exists(carrier_code, 'A carrier code')
 
-        @internal_client.track_package(tracking_number: tracking_number, carrier_code: carrier_code)
+        @internal_client.make_request('package.track.v1', { trackingNumber: tracking_number, carrierCode: carrier_code })
       end
     end
   end

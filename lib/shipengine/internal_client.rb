@@ -38,16 +38,6 @@ module ShipEngine
       raise Exceptions::ShipEngineError, e.message
     end
 
-    def validate_address(address)
-      params = { address: address }
-      make_request('address.validate.v1', params)
-    end
-
-    def track_package(package_id: nil, tracking_number: nil, carrier_code: nil)
-      params = { package_id: package_id, tracking_number: tracking_number, carrier_code: carrier_code }
-      make_request('package.track.v1', params)
-    end
-
     private
 
     # create jsonrpc request has
@@ -66,7 +56,7 @@ module ShipEngine
 
       message, data = error.values_at('message', 'data')
       source, type, code = data.values_at('source', 'type', 'code')
-      raise Exceptions::ShipEngineErrorDetailed.new(request_id, message, source, type, code)
+      raise Exceptions::ShipEngineError.new(request_id, message, source, type, code)
     end
   end
 end

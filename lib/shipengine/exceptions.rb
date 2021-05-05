@@ -4,15 +4,8 @@ require_relative 'exceptions/error_code'
 
 module ShipEngine
   module Exceptions
-    class ShipEngineError < StandardError
-      def initialize(message_or_messages)
-        message = message_or_messages.is_a?(Array) ? message_or_messages.join('\n') : message_or_messages
-        super(message)
-      end
-    end
-
     # 400 error, or other "user exceptions"
-    class ShipEngineErrorDetailed < ShipEngineError
+    class ShipEngineError < StandardError
       attr_reader :request_id, :message, :source, :type, :code
 
       def initialize(request_id, message, source, type, code)
@@ -26,13 +19,13 @@ module ShipEngine
     end
 
     # 400 error, or other "user exceptions"
-    class InvalidParams < ShipEngineErrorDetailed
+    class InvalidParams < ShipEngineError
       def initialize(message)
         super(nil, message, 'shipengine', 'validation', Exceptions::ErrorCode.get(:INVALID_FIELD_VALUE))
       end
     end
 
-    class FieldValueRequired < ShipEngineErrorDetailed
+    class FieldValueRequired < ShipEngineError
       def self.assert_field_exists(field_name, value)
         raise self, field_name if value.nil? || value == ''
       end
