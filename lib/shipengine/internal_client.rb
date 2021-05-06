@@ -7,28 +7,36 @@ require 'shipengine/version'
 
 module ShipEngine
   class InternalClient
-    attr_reader :connection, :configuration
+    attr_reader :configuration
 
-    def initialize(configuration, adapter: Faraday.default_adapter)
-      configuration.validate()
+    def initialize(configuration)
       @configuration = configuration
+    end
 
-      @connection = Faraday.new do |f|
+    def create_connection(configuration)
+      retries = configuration.retries
+      base_url = configuration.base_url
+      api_key = configuration.api_key
+
+      Faraday.new(url: base_url) do |f|
         f.request :json
-        f.request :retry, {max: @retries}
+        f.request :retry, { max: retries }
         f.headers = {
+          'API-Key' => api_key,
           'Content-Type' => 'application/json',
           'Accept' => 'application/json',
           'User-Agent' => "shipengine-ruby/#{VERSION} (#{RUBY_PLATFORM})"
         }
         f.response :json, content_type: /\bjson$/
-        f.adapter adapter
+        f.adapter Faraday.default_adapter
       end
     end
 
-    def make_request(method, params)
-      additional_headers = {'API-Key' => @configuration.api_key}
-      response = @connection.post(@configuration.base_url, build_jsonrpc_request_body(method, params), additional_headers)
+    def make_request(method, params, options = {})
+      api_key, base_url, retries = options.values_at(:api_key, :base_url, :retries)
+      config_with_overrides = @configuration.merge(api_key: api_key, base_url: base_url, retries: retries)
+      connection = create_connection(config_with_overrides)
+      response = connection.send(:post, nil, build_jsonrpc_request_body(method, params))
       body = response.body
       assert_shipengine_rpc_success(body)
       body
