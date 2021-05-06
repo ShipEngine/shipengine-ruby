@@ -7,17 +7,11 @@ require 'shipengine/version'
 
 module ShipEngine
   class InternalClient
-    attr_reader :connection
-    attr_accessor :api_key, :base_url, :retries
+    attr_reader :connection, :configuration
 
-    def initialize(api_key:, retries: nil, base_url: nil, adapter: Faraday.default_adapter)
-      @api_key = api_key
-      @retries = retries || 0
-      @base_url = base_url || 'https://simengine.herokuapp.com/jsonrpc'
-
-
-      Exceptions::FieldValueRequired.assert_field_exists('A ShipEngine API key', @api_key)
-      Exceptions::FieldValueRequired.assert_field_exists('base_url', @base_url)
+    def initialize(configuration, adapter: Faraday.default_adapter)
+      configuration.validate()
+      @configuration = configuration
 
       @connection = Faraday.new do |f|
         f.request :json
@@ -33,11 +27,10 @@ module ShipEngine
     end
 
     def make_request(method, params)
-      additional_headers = {'API-Key' => api_key}
-      response = @connection.post(@base_url, build_jsonrpc_request_body(method, params), additional_headers)
+      additional_headers = {'API-Key' => @configuration.api_key}
+      response = @connection.post(@configuration.base_url, build_jsonrpc_request_body(method, params), additional_headers)
       body = response.body
       assert_shipengine_rpc_success(body)
-
       body
 
     # throw an error if status code is 500 or above.

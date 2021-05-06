@@ -21,8 +21,10 @@ module ShipEngine
           stateProvince: state_province,
           postalCode: postal_code,
           countryCode: country_code
-        }
+        }.compact
+
         @internal_client.make_request('address.validate.v1', {address: address_params})
+
       end
     end
   end
