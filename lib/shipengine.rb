@@ -55,8 +55,8 @@ module ShipEngine
       @address.validate(address, options)
     end
 
-    def track_package_by_id(**args)
-      @package.track_by_id(**args)
+    def track_package_by_id(package_id)
+      @package.track_by_id(package_id)
     end
 
     def track_package_by_tracking_number(**args)
