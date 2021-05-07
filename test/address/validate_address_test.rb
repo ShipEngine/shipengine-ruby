@@ -1,42 +1,51 @@
 # frozen_string_literal: true
 
 require 'test_helper'
+require 'shipengine'
+
+def assert_api_key_error(err)
+  assert_equal 'shipengine', err.source
+  assert_equal 'validation', err.type
+  assert_equal :field_value_required, err.code
+  assert_equal 'A ShipEngine API key must be specified.', err.message
+end
+
+exceptions = ::ShipEngine::Exceptions
+
+def assert_error_message(error_class, expected_message = nil, &block)
+  err = assert_raises error_class, &block
+  assert_match(/#{expected_message}/, err.message) unless expected_message.nil?
+  err
+end
 
 describe 'Validate Address' do
-  def assert_api_key_error(err)
-    assert_equal err.source, 'shipengine'
-    assert_equal err.type, 'validation'
-    assert_equal err.code, 'field_value_required'
-    assert_equal err.message, 'A ShipEngine API key must be specified.'
-  end
-  it 'Should throw a validation error if api_key is nil during instantiation' do
-    ShipEngine::Client.new(api_key: nil)
-    raise 'force fail 1'
-  rescue ShipEngine::Exceptions::FieldValueRequired => e
-    assert_api_key_error(e)
-  else
-    raise 'force fail 2'
-  end
-  it 'I should be able to override an API Key (or any method) after instantiation' do
-    client = ShipEngine::Client.new(api_key: 'myapikey123')
+  describe 'Configuration' do
+    it 'Should throw a validation error if api_key is nil during instantiation' do
+      err = assert_error_message(exceptions::FieldValueRequired) do
+        ::ShipEngine::Client.new(api_key: nil)
+      end
+      assert_api_key_error(err)
+    end
 
-    client.configuration.api_key = nil
+    it 'I should be able to override an API Key (or any method) after instantiation' do
+      err = assert_error_message(exceptions::FieldValueRequired) do
+        client = ShipEngine::Client.new(api_key: 'myapikey123')
+        client.configuration.api_key = nil
+        client.validate_address({ street: ['city'], country_code: 'US', postal_code: '02215' })
+      end
+      assert_api_key_error(err)
+    end
 
-    client.validate_address({ street: ['city'], country_code: 'US', postal_code: '02215' })
-    raise 'force fail 1'
-  rescue ::ShipEngine::Exceptions::FieldValueRequired => e
-    # should throw an error since api key is nil
-    assert_api_key_error(e)
-  else
-    raise 'force fail 2'
+    it 'I should be able to override an API Key as an options argument' do
+      client = ShipEngine::Client.new(api_key: 'my_api_key_1')
+      client.configuration.api_key = 'my_api_key_2'
+      client.validate_address(
+        { street: ['city'], country_code: 'US', postal_code: '02215' },
+        { api_key: 'my_final_api_key' }
+      )
+    end
   end
-  it 'I should be able to override an API Key as an options argument' do
-    client = ShipEngine::Client.new(api_key: 'my_api_key_1')
-    client.configuration.api_key = 'my_api_key_2'
-    client.validate_address({ street: ['city'], country_code: 'US', postal_code: '02215' }, { api_key: 'my_final_api_key' })
-    # TODO:
-    # expect api_key to be 'my_final_api_key'
-  end
+
   it 'Should successfully validate an address' do
     client = ::ShipEngine::Client.new(api_key: 'abc123')
     success_request = client.validate_address({
@@ -48,21 +57,21 @@ describe 'Validate Address' do
                                               })
     assert success_request
   end
-  it 'should propgate server errors if params are invalid' do
-    client = ::ShipEngine::Client.new(api_key: 'abc123')
-    client.validate_address(
-      street: nil,
-      city_locality: 'Houston',
-      postal_code: '77002',
-      state_province: 'TX',
-      country_code: nil
-    )
-  rescue ShipEngine::Exceptions::ShipEngineError => e
-    assert e.source.is_a?(String)
-    assert e.type.is_a?(String)
-    assert e.code.is_a?(String)
-    assert e.message.is_a?(String)
-  else
-    raise 'force fail'
+
+  it 'should propgate server errors if server response has error' do
+    err = assert_error_message(exceptions::ShipEngineError) do
+      client = ::ShipEngine::Client.new(api_key: 'abc123')
+      client.validate_address(
+        street: nil,
+        city_locality: 'Houston',
+        postal_code: '77002',
+        state_province: 'TX',
+        country_code: nil
+      )
+    end
+    assert_equal ShipEngine::Exceptions::ErrorCode.get(:INVALID_FIELD_VALUE), err.code
+    assert_equal 'shipengine', err.source
+    assert_equal 'validation', err.type
+    assert err.message.is_a?(String)
   end
 end

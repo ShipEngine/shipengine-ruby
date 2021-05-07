@@ -9,16 +9,47 @@ module ShipEngine
   class InternalClient
     attr_reader :configuration
 
+    # @param [::ShipEngine::Configuration] configuration
     def initialize(configuration)
       @configuration = configuration
     end
 
+    # @param [String] method - address.validate.v1
+    # @param [Hash | Array] params - {street: "123 main street", ...}
+    # @param [Hash] opts - options
+    # @option opts [String] :api_key
+    # @option opts [String] :base_url
+    # @option opts [Number] :retries
+    # @return body of the shipengine rpc request, or throws error.
+    def make_request(method, params, opts = { api_key: nil, base_url: nil, retries: nil, timeout: nil })
+      api_key, base_url, retries, timeout = opts.values_at(:api_key, :base_url, :retries, :timeout)
+      config_with_overrides = @configuration.merge(api_key: api_key, base_url: base_url, retries: retries, timeout: timeout)
+      connection = create_connection(config_with_overrides)
+
+      response = connection.post do |req|
+        req.body = build_jsonrpc_request_body(method, params)
+      end
+
+      body = response.body
+
+      assert_shipengine_rpc_success(body)
+
+      body
+    # throw an error if status code is 500 or above.
+    rescue Faraday::Error => e
+      raise Exceptions::UnspecifiedError, e.message
+    end
+
+    private
+
+    # @param [::ShipEngine::Configuration] configuration
+    # @return [::Faraday::Connection]
     def create_connection(configuration)
       retries = configuration.retries
       base_url = configuration.base_url
       api_key = configuration.api_key
-
-      Faraday.new(url: base_url) do |f|
+      timeout = configuration.timeout
+      Faraday.new(url: base_url, request: { timeout: timeout }) do |f|
         f.request :json
         f.request :retry, { max: retries }
         f.headers = {
@@ -27,26 +58,11 @@ module ShipEngine
           'Accept' => 'application/json',
           'User-Agent' => "shipengine-ruby/#{VERSION} (#{RUBY_PLATFORM})"
         }
+
         f.response :json, content_type: /\bjson$/
         f.adapter Faraday.default_adapter
       end
     end
-
-    def make_request(method, params, options = {})
-      api_key, base_url, retries = options.values_at(:api_key, :base_url, :retries)
-      config_with_overrides = @configuration.merge(api_key: api_key, base_url: base_url, retries: retries)
-      connection = create_connection(config_with_overrides)
-      response = connection.send(:post, nil, build_jsonrpc_request_body(method, params))
-      body = response.body
-      assert_shipengine_rpc_success(body)
-      body
-
-    # throw an error if status code is 500 or above.
-    rescue Faraday::Error => e
-      raise Exceptions::ShipEngineError, e.message
-    end
-
-    private
 
     # create jsonrpc request has
     def build_jsonrpc_request_body(method, params)
@@ -59,6 +75,8 @@ module ShipEngine
     end
 
     def assert_shipengine_rpc_success(body)
+      raise Exceptions::UnspecifiedError, 'no body found, http error?' unless body.is_a?(Hash)
+
       error, request_id = body.values_at('error', 'request_id')
       return nil unless error
 

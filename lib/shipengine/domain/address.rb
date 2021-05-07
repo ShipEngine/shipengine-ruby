@@ -1,6 +1,52 @@
 # frozen_string_literal: true
 
 module ShipEngine
+  class AddressValidationMessage
+    attr_reader :type, :code, :message
+
+    # @param type [:info" | :warning | :error"]
+    # @param code [String] = e.g. "suite_missing"
+    def initialize(type:, code:, message:)
+      @type = type
+      @code = code
+      @message = message
+    end
+  end
+
+  # @type [Numeric] foo
+  class AddressValidationResult
+    attr_reader :valid, :normalized_address, :errors, :warnings, :info
+
+    # @param [Boolean] valid <description>
+    # @param [NormalizedAddress] normalized_address <description>
+    # @param [AddressValidationMessage] errors <description>
+    # @param [AddressValidationMessage] warnings <description>
+    # @param [AddressValidationMessage] info <description>
+    def initialize(valid:, normalized_address:, errors:, warnings:, info:)
+      @valid = valid
+      @errors = errors
+      @info = info
+      @normalized_address = normalized_address
+      @warnings = warnings
+    end
+  end
+
+  class NormalizedAddress
+    attr_reader :street, :name, :company, :phone, :city_locality, :state_province, :postal_code, :country_code, :residential
+
+    def initialize(street:, name:, company:, phone:, city_locality:, state_province:, postal_code:, country_code:, residential:)
+      @street = street
+      @name = name
+      @company = company
+      @phone = phone
+      @city_locality = city_locality
+      @state_province = state_province
+      @postal_code = postal_code
+      @country_code = country_code
+      @residential = residential
+    end
+  end
+
   module Domain
     class Address
       # @param [ShipEngine::InternalClient] internal_client

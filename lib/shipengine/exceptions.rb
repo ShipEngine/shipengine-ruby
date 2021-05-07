@@ -9,12 +9,20 @@ module ShipEngine
       attr_reader :request_id, :message, :source, :type, :code
 
       def initialize(request_id, message, source, type, code)
+        code = Exceptions::ErrorCode.get_by_str(code) if code.is_a?(String)
+
         super(message)
         @request_id = request_id
         @message = message
         @source = source
         @type = type
         @code = code
+      end
+    end
+
+    class UnspecifiedError < ShipEngineError
+      def initialize(message)
+        super(nil, message, 'shipengine', 'client_side', Exceptions::ErrorCode.get(:UNSPECIFIED))
       end
     end
 
