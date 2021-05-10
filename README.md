@@ -18,10 +18,9 @@ The Official Ruby SDK for ShipEngine
 
 ## Commands
 
-- Run tests once: `rake test`
 - Run tests on change: `guard`
 - Lint: `rake lint`
-- Autoformat: `rake fix`
+- Format / autofix lint errors: `rake fix`
 
 
 ## Repl Development
@@ -29,7 +28,7 @@ The Official Ruby SDK for ShipEngine
 > guard
 [1] guard(main)> require 'shipengine'
 => true
-[2]> client = ShipEngine::Client.new(api_key: "abc1234")
+[2]> client = ShipEngine::Client.new(api_key: "foo123")
 #<ShipEngine::Client:0x00007f87d72d7d08
  @address=
   #<ShipEngine::Domain::Address:0x00007f87d72d7bf0
@@ -37,11 +36,11 @@ The Official Ruby SDK for ShipEngine
     #<ShipEngine::InternalClient:0x00007f87d72d7c18
      @configuration=
       #<ShipEngine::Configuration:0x00007f87d72d7c90
-       @api_key="abc1234",
-       @base_url="https://simengine.herokuapp.com/jsonrpc",
+       @api_key="foo123",
+       @base_url="https://foo.com/jsonrpc",
        @retries=0,
        @timeout=60>>>
        ....
-[3]> client.track_package_by_id("pkg_abcde123456")
+[3]> client.track_package_by_id("pkg_foo123")
 ...
 ```

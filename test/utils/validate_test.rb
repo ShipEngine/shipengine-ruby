@@ -5,6 +5,7 @@ require 'test_helper'
 require 'shipengine/utils/validate'
 require 'shipengine/exceptions'
 
+
 def assert_error_message(error_class, expected_message = nil, &block)
   err = assert_raises error_class, &block
   assert_match(/#{expected_message}/, err.message) unless expected_message.nil?

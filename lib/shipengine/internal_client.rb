@@ -4,6 +4,18 @@ require 'faraday_middleware'
 require 'shipengine/utils/request_id'
 require 'shipengine/exceptions'
 require 'shipengine/version'
+require 'logger'
+
+class ShipEngineErrorLogger
+ def self.log(data)
+    logger = Logger.new(STDERR)
+    logger.error(data)
+  end
+  def self.invariant(msg, data)
+    ShipEngineErrorLogger.log("INVARIANT Err: #{msg}")
+    self.log(data)
+  end
+end
 
 module ShipEngine
   class InternalClient
@@ -13,6 +25,7 @@ module ShipEngine
     def initialize(configuration)
       @configuration = configuration
     end
+
 
     # @param [String] method - address.validate.v1
     # @param [Hash | Array] params - {street: "123 main street", ...}
@@ -32,12 +45,11 @@ module ShipEngine
 
       body = response.body
 
-      assert_shipengine_rpc_success(body)
+
+      assert_shipengine_rpc_success(response)
 
       body
     # throw an error if status code is 500 or above.
-    rescue Faraday::Error => e
-      raise Exceptions::UnspecifiedError, e.message
     end
 
     private
@@ -59,7 +71,7 @@ module ShipEngine
           'User-Agent' => "shipengine-ruby/#{VERSION} (#{RUBY_PLATFORM})"
         }
 
-        f.response :json, content_type: /\bjson$/
+        f.response :json
         f.adapter Faraday.default_adapter
       end
     end
@@ -74,8 +86,14 @@ module ShipEngine
       }
     end
 
-    def assert_shipengine_rpc_success(body)
-      raise Exceptions::UnspecifiedError, 'no body found, http error?' unless body.is_a?(Hash)
+    def assert_shipengine_rpc_success(response)
+      body = response.body
+
+      if !body.is_a?(Hash)
+        # this should not happen
+        ShipEngineErrorLogger.invariant('response body is NOT a hash', [status: response.status, body: response.body])
+        raise Exceptions::UnspecifiedError, response
+      end
 
       error, request_id = body.values_at('error', 'request_id')
       return nil unless error
