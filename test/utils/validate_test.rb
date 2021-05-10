@@ -16,14 +16,14 @@ exceptions = ShipEngine::Exceptions
 describe 'Assertion testing' do
   field_name = 'my_field'
   it 'should validate an array of strings' do
-    assert_error_message(exceptions::InvalidParams, "#{field_name} must be an Array.") do
+    assert_error_message(exceptions::InvalidFieldValue, "#{field_name} must be an Array.") do
       validate.array_of_str(field_name, 'not_a_string_array')
     end
   end
 
   it 'should validate a hash' do
     validate.hash(field_name, { name: 'hash' })
-    assert_error_message(exceptions::InvalidParams, 'must be Hash.') do
+    assert_error_message(exceptions::InvalidFieldValue, 'must be Hash.') do
       validate.hash(field_name, 'foo')
     end
 
@@ -35,7 +35,7 @@ describe 'Assertion testing' do
   it 'should validate a non-whitespace-string' do
     validate.non_whitespace_str(field_name, 'hello')
     validate.non_whitespace_str(field_name, ' hello ')
-    assert_error_message(exceptions::InvalidParams, 'cannot be all whitespace.') do
+    assert_error_message(exceptions::InvalidFieldValue, 'cannot be all whitespace.') do
       validate.non_whitespace_str(field_name, '  ')
       validate.non_whitespace_str(field_name, '')
     end

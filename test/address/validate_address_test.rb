@@ -69,7 +69,7 @@ describe 'Validate Address' do
         country_code: nil
       )
     end
-    assert_equal ShipEngine::Exceptions::ErrorCode.get(:INVALID_FIELD_VALUE), err.code
+    assert_equal exceptions::ErrorCode.get(:INVALID_FIELD_VALUE), err.code
     assert_equal 'shipengine', err.source
     assert_equal 'validation', err.type
     assert err.message.is_a?(String)
