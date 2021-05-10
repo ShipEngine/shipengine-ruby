@@ -52,12 +52,12 @@ module ShipEngine
 
         def non_neg_int(field, value)
           int(field, value)
-          raise Exceptions::InvalidFieldValue, "#{field} must be zero or greater." unless value > -1
+          raise Exceptions::InvalidFieldValue, "#{field} must be zero or greater." unless value >= 0
         end
 
         def positive_int(field, value)
           non_neg_int(field, value)
-          raise Exceptions::InvalidFieldValue, "#{field} must be greater than zero." unless value.positive?
+          raise Exceptions::InvalidFieldValue, "#{field} must be greater than zero." unless value > 0
         end
 
         def array(field, value)

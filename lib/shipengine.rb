@@ -35,7 +35,7 @@ module ShipEngine
     def validate
       Utils::Validate.str('A ShipEngine API key', @api_key)
       Utils::Validate.str('Base URL', @base_url)
-      Utils::Validate.number('Retries', @retries)
+      Utils::Validate.non_neg_int('Retries', @retries)
       Utils::Validate.positive_int('Timeout', @timeout)
     end
   end
