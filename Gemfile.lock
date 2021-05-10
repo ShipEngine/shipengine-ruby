@@ -2,8 +2,8 @@ PATH
   remote: .
   specs:
     shipengine (0.1.0)
-      base58
-      faraday (~> 1.4.1)
+      base58 (~> 0.2)
+      faraday (~> 1.4)
       faraday_middleware
 
 GEM

@@ -7,13 +7,14 @@ require 'shipengine/version'
 require 'logger'
 
 class ShipEngineErrorLogger
- def self.log(data)
-    logger = Logger.new(STDERR)
+  def self.log(data)
+    logger = Logger.new($stderr)
     logger.error(data)
   end
+
   def self.invariant(msg, data)
     ShipEngineErrorLogger.log("INVARIANT Err: #{msg}")
-    self.log(data)
+    log(data)
   end
 end
 
@@ -25,7 +26,6 @@ module ShipEngine
     def initialize(configuration)
       @configuration = configuration
     end
-
 
     # @param [String] method - address.validate.v1
     # @param [Hash | Array] params - {street: "123 main street", ...}
@@ -45,11 +45,10 @@ module ShipEngine
 
       body = response.body
 
-
       assert_shipengine_rpc_success(response)
 
       body
-    # throw an error if status code is 500 or above.
+      # throw an error if status code is 500 or above.
     end
 
     private
@@ -89,7 +88,7 @@ module ShipEngine
     def assert_shipengine_rpc_success(response)
       body = response.body
 
-      if !body.is_a?(Hash)
+      unless body.is_a?(Hash)
         # this should not happen
         ShipEngineErrorLogger.invariant('response body is NOT a hash', [status: response.status, body: response.body])
         raise Exceptions::UnspecifiedError, response

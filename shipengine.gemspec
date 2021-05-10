@@ -13,7 +13,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ['lib']
   spec.required_ruby_version = '>= 2.6'
 
-  spec.add_runtime_dependency 'base58'
-  spec.add_runtime_dependency 'faraday', '~> 1.4.1'
+  spec.add_runtime_dependency 'base58', '~> 0.2'
+  spec.add_runtime_dependency 'faraday', '~> 1.4'
   spec.add_runtime_dependency 'faraday_middleware'
 end

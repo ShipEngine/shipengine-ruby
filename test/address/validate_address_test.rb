@@ -19,16 +19,15 @@ describe 'Validate Address' do
   end
 
   it 'should propgate server errors if server response has error' do
-
     client = ::ShipEngine::Client.new(api_key: 'abc123')
     err = assert_raises exceptions::ShipEngineError do
       client.validate_address({
-        street: nil,
-        city_locality: 'Houston',
-        postal_code: '77002',
-        state_province: 'TX',
-        country_code: nil
-      })
+                                street: nil,
+                                city_locality: 'Houston',
+                                postal_code: '77002',
+                                state_province: 'TX',
+                                country_code: nil
+                              })
     end
     assert_equal exceptions::ErrorCode.get(:INVALID_FIELD_VALUE), err.code
     assert_equal 'shipengine', err.source

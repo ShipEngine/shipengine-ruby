@@ -12,16 +12,16 @@ end
 
 describe 'Internal Client Tests' do
   after do
-   WebMock.reset!
+    WebMock.reset!
   end
 
   base_url = 'https://simengine.herokuapp.com/jsonrpc'
   describe 'Configuration' do
     it 'Should throw a validation error if api_key is nil during instantiation' do
-        err = assert_raises ShipEngine::Exceptions::FieldValueRequired do
-          ShipEngine::Client.new(api_key: nil)
-        end
-        assert_api_key_error(err)
+      err = assert_raises ShipEngine::Exceptions::FieldValueRequired do
+        ShipEngine::Client.new(api_key: nil)
+      end
+      assert_api_key_error(err)
     end
     it 'should have header: API-Key if api-key passed during initialization' do
       stub = stub_request(:post, base_url)
@@ -63,7 +63,6 @@ describe 'Internal Client Tests' do
 
       # the global configuration should not be mutated
       assert_equal client.configuration.api_key, 'bar'
-
     end
   end
 end

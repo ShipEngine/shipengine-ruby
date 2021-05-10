@@ -13,15 +13,14 @@ module ShipEngine
     end
   end
 
-  # @type [Numeric] foo
   class AddressValidationResult
     attr_reader :valid, :normalized_address, :errors, :warnings, :info
 
-    # @param [Boolean] valid <description>
-    # @param [NormalizedAddress] normalized_address <description>
-    # @param [AddressValidationMessage] errors <description>
-    # @param [AddressValidationMessage] warnings <description>
-    # @param [AddressValidationMessage] info <description>
+    # @param [Boolean] valid
+    # @param [NormalizedAddress] normalized_address
+    # @param [AddressValidationMessage] errors
+    # @param [AddressValidationMessage] warnings
+    # @param [AddressValidationMessage] info
     def initialize(valid:, normalized_address:, errors:, warnings:, info:)
       @valid = valid
       @errors = errors
@@ -32,8 +31,17 @@ module ShipEngine
   end
 
   class NormalizedAddress
-    attr_reader :street, :name, :company, :phone, :city_locality, :state_province, :postal_code, :country_code, :residential
+    attr_reader :street, :name, :company, :phone, :city_locality, :state_province, :postal_code, :country_code
 
+    # @param [Array<String>] street - e.g. ["123 FAKE ST."]
+    # @param [Symbol] country_code - e.g. :us / :ca / :mx
+    # @param [String] postal_code - e.g "78751"
+    # @param [String?] name - e.g. "John Smith"
+    # @param [String?] company - e.g. "ShipEngine"
+    # @param [String?] phone - e.g. 5551234567
+    # @param [String?] city_locality - e.g. "AUSTIN"
+    # @param [String?] state_province - e.g. "TX"
+    # @param [Boolean?] residential
     def initialize(street:, name:, company:, phone:, city_locality:, state_province:, postal_code:, country_code:, residential:)
       @street = street
       @name = name
@@ -44,6 +52,10 @@ module ShipEngine
       @postal_code = postal_code
       @country_code = country_code
       @residential = residential
+    end
+
+    def residential?
+      @residential
     end
   end
 
