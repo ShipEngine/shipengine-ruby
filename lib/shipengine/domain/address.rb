@@ -34,7 +34,7 @@ module ShipEngine
     attr_reader :street, :name, :company, :phone, :city_locality, :state_province, :postal_code, :country_code
 
     # @param [Array<String>] street - e.g. ["123 FAKE ST."]
-    # @param [Symbol] country_code - e.g. :us / :ca / :mx
+    # @param [String] country_code - e.g. "US"
     # @param [String] postal_code - e.g "78751"
     # @param [String?] name - e.g. "John Smith"
     # @param [String?] company - e.g. "ShipEngine"
@@ -66,11 +66,11 @@ module ShipEngine
         @internal_client = internal_client
       end
 
-      # @param [String] street - e.g. '123 Main Street'
-      # @param [String?] city_locality - e.g. 'Austin'
-      # @param [String?] state_province - e.g. 'TX'
-      # @param [String?] postal_code - e.g. '78751'
-      # @param [String] country_code - e.g. 'US'
+      # @param [String] street
+      # @param [String?] city_locality
+      # @param [String?] state_province
+      # @param [String?] postal_code
+      # @param [String] country_code
       # @return [ShipEngine::Domain::Address::ValidateAddressResult]
       def validate(address, cfg)
         address_params = {
