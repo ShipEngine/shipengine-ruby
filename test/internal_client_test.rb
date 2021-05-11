@@ -53,7 +53,7 @@ describe 'Internal Client Tests' do
   base_url = 'https://simengine.herokuapp.com/jsonrpc'
   describe 'Configuration' do
     it 'Should throw a validation error if api_key is nil during instantiation' do
-      err = assert_raises ShipEngine::Exceptions::FieldValueRequired do
+      err = assert_raises ShipEngine::Exceptions::ValidationError do
         ShipEngine::Client.new(api_key: nil)
       end
       assert_api_key_error(err)
@@ -67,11 +67,11 @@ describe 'Internal Client Tests' do
       client.configuration.timeout = 0
 
       # the fact that this an InvalidFieldValue error means I don't need to test the constants on that class.
-      err = assert_raises ShipEngine::Exceptions::InvalidFieldValue do
+      err = assert_raises ShipEngine::Exceptions::ValidationError do
         client.validate_address(valid_address_params)
       end
       assert_nil(err.request_id)
-      assert_error(err, message: 'Timeout must be greater than zero.')
+      assert_error(err, message: 'Timeout must be greater than zero.', code: :invalid_field_value)
       assert_not_requested(stub)
     end
 
@@ -82,11 +82,11 @@ describe 'Internal Client Tests' do
 
       client = ShipEngine::Client.new(api_key: 'abc1234')
       client.configuration.retries = -1
-      err = assert_raises ShipEngine::Exceptions::InvalidFieldValue do
+      err = assert_raises ShipEngine::Exceptions::ShipEngineError do
         client.validate_address(valid_address_params)
       end
       assert_nil(err.request_id)
-      assert_error(err, message: 'Retries must be zero or greater.')
+      assert_error(err, message: 'Retries must be zero or greater.', code: :invalid_field_value)
       assert_not_requested(stub)
     end
 
@@ -109,7 +109,7 @@ describe 'Internal Client Tests' do
 
       client = ShipEngine::Client.new(api_key: 'abc1234')
       client.configuration.retries = -1
-      err = assert_raises ShipEngine::Exceptions::InvalidFieldValue do
+      err = assert_raises ShipEngine::Exceptions::ValidationError do
         client.validate_address(valid_address_params)
       end
       assert_nil(err.request_id)

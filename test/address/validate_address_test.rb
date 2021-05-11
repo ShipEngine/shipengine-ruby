@@ -20,7 +20,7 @@ describe 'Validate Address' do
 
   it 'should propgate server errors if server response has error' do
     client = ::ShipEngine::Client.new(api_key: 'abc123')
-    err = assert_raises exceptions::ShipEngineError do
+    err = assert_raises exceptions::ValidationError do
       client.validate_address({
                                 street: nil,
                                 city_locality: 'Houston',

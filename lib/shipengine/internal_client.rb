@@ -99,7 +99,11 @@ module ShipEngine
 
       message, data = error.values_at('message', 'data')
       source, type, code = data.values_at('source', 'type', 'code')
-      raise Exceptions::ShipEngineError.new(request_id, message, source, type, code)
+      if type === 'validation'
+        raise Exceptions::ValidationError.new(message, code, request_id)
+      else
+        raise Exceptions::ShipEngineError.new(request_id, message, source, type, code)
+      end
     end
   end
 end
