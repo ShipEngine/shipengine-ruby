@@ -8,6 +8,7 @@ require 'shipengine/domain'
 require 'shipengine/version'
 require 'shipengine/exceptions'
 require 'shipengine/utils/validate'
+require 'shipengine/constants'
 
 module ShipEngine
   class Configuration
@@ -51,6 +52,16 @@ module ShipEngine
       @package = Domain::Package.new(internal_client)
     end
 
+    #
+    # Validates an address
+    # @param [Address] address
+    # @param [<Type>] options
+    # @option options [<Type>] :<key> <description>
+    # @option options [<Type>] :<key> <description>
+    # @option options [<Type>] :<key> <description>
+    #
+    # @return [::ShipEngine::AddressValidationResult] <description>
+    #
     def validate_address(address, options = {})
       @address.validate(address, options)
     end

@@ -13,7 +13,8 @@ Metrics/MethodLength:
   Enabled: false
 
 Layout/LineLength:
-  Enabled: false
+  Max: 120
+  IgnoredPatterns:  ['^ *# ']
 
 Metrics/BlockLength:
   Enabled: false

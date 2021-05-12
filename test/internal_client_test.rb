@@ -19,7 +19,7 @@ def assert_error(err, message: nil, source: 'shipengine', type: nil, code: nil)
 end
 
 valid_address_params = {
-  street: ['104 Foo Street'], postal_code: '78751', country_code: 'US'
+  street: ['104 Foo Street'], postal_code: '78751', country: 'US'
 }
 
 valid_address_res = JSON.generate({
@@ -43,7 +43,6 @@ valid_address_res = JSON.generate({
                                       messages: []
                                     }
                                   })
-
 
 describe 'Internal Client Tests' do
   after do
@@ -97,7 +96,7 @@ describe 'Internal Client Tests' do
 
       client = ShipEngine::Client.new(api_key: 'abc1234')
       client.configuration.retries = 2
-      client.validate_address({ street: ['104 Foo Street'], postal_code: '78751', country_code: 'US' })
+      client.validate_address({ street: ['104 Foo Street'], postal_code: '78751', country: 'US' })
 
       assert_requested(stub)
       # this is an error, but it probably shouldn't be an INVALID FIELD VALUE ERROR
@@ -139,7 +138,8 @@ describe 'Internal Client Tests' do
       assert_requested(stub)
     end
 
-    it 'should have header: API-Key and configuration should be overriddeable on a per-call basis, but the global config should not change' do
+    it 'should have header: API-Key and configuration should be overriddeable on a per-call basis,
+        but the global config should not change' do
       stub = stub_request(:post, base_url)
              .with(body: /.*/, headers: { 'API-Key' => 'baz' })
              .to_return(status: 200, body: valid_address_res)

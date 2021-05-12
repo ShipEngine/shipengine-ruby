@@ -3,8 +3,10 @@
 source 'https://rubygems.org'
 
 group :development do
+  gem 'debase', require: false
   gem 'guard'
   gem 'guard-minitest'
+  gem 'ruby-debug-ide', require: false
   gem 'solargraph', require: false
 end
 

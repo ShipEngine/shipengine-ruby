@@ -39,9 +39,8 @@ module ShipEngine
     end
 
     def self.create_required_error(missing_item, request_id = nil)
-      ValidationError.new("#{missing_item} must be specified.", Exceptions::ErrorCode.get(:FIELD_VALUE_REQUIRED), request_id)
+      ValidationError.new("#{missing_item} must be specified.",
+                          Exceptions::ErrorCode.get(:FIELD_VALUE_REQUIRED), request_id)
     end
-
-
   end
 end

@@ -24,7 +24,8 @@ module ShipEngine
       def track_by_tracking_number(tracking_number, carrier_code, opts = {})
         Utils::Validate.not_nil_or_empty_str(tracking_number, 'A tracking number')
         Utils::Validate.not_nil_or_empty_str(carrier_code, 'A carrier code')
-        @internal_client.make_request('package.track.v1', { trackingNumber: tracking_number, carrierCode: carrier_code }, opts)
+        @internal_client.make_request('package.track.v1',
+                                      { trackingNumber: tracking_number, carrierCode: carrier_code }, opts)
       end
     end
   end

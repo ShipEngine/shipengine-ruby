@@ -34,9 +34,11 @@ module ShipEngine
     # @option opts [String] :base_url
     # @option opts [Number] :retries
     # @return body of the shipengine rpc request, or throws error.
-    def make_request(method, params, opts = { api_key: nil, base_url: nil, retries: nil, timeout: nil })
+    def make_request(method, params, opts = { api_key: nil, base_url: nil, retries: nil,
+                                              timeout: nil })
       api_key, base_url, retries, timeout = opts.values_at(:api_key, :base_url, :retries, :timeout)
-      config_with_overrides = @configuration.merge(api_key: api_key, base_url: base_url, retries: retries, timeout: timeout)
+      config_with_overrides = @configuration.merge(api_key: api_key, base_url: base_url,
+                                                   retries: retries, timeout: timeout)
       connection = create_connection(config_with_overrides)
 
       response = connection.post do |req|
@@ -47,8 +49,7 @@ module ShipEngine
 
       assert_shipengine_rpc_success(response)
 
-      body
-      # throw an error if status code is 500 or above.
+      body['result']
     end
 
     private
@@ -75,7 +76,11 @@ module ShipEngine
       end
     end
 
-    # create jsonrpc request has
+    #
+    # @param [String] method - e.g. "address.validate.v1"
+    # @param [Hash] params
+    # @returns [Hash] - JSON:RPC response
+    #
     def build_jsonrpc_request_body(method, params)
       {
         jsonrpc: '2.0',
@@ -99,11 +104,13 @@ module ShipEngine
 
       message, data = error.values_at('message', 'data')
       source, type, code = data.values_at('source', 'type', 'code')
-      if type === 'validation'
+      # rubocop:disable Style/GuardClause
+      if type == 'validation'
         raise Exceptions::ValidationError.new(message, code, request_id)
       else
         raise Exceptions::ShipEngineError.new(request_id, message, source, type, code)
       end
+      # rubocop:enable Style/GuardClause
     end
   end
 end
