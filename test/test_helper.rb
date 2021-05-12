@@ -11,3 +11,6 @@ require 'webmock/minitest'
 WebMock.enable_net_connect!
 
 Minitest::Reporters.use! [Minitest::Reporters::SpecReporter.new]
+
+require 'test_utility/custom_assertions'
+include CustomAssertions

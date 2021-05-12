@@ -6,6 +6,13 @@ require 'shipengine'
 exceptions = ::ShipEngine::Exceptions
 
 describe 'Validate Address' do
+  #
+  # <Description>
+  #
+  # @param [Hash] err_hash
+  # @param [class] err_res
+  #
+
   client = ::ShipEngine::Client.new(api_key: 'abc123')
   it 'Should successfully validate an address' do
     success_request = client.validate_address({
@@ -28,10 +35,10 @@ describe 'Validate Address' do
                                 country: nil
                               })
     end
-    assert_equal exceptions::ErrorCode.get(:FIELD_VALUE_REQUIRED), err.code
-    assert_equal 'shipengine', err.source
-    assert_equal 'validation', err.type
-    assert err.message.is_a?(String)
+   assert_response_error(err,
+                       { code: exceptions::ErrorCode.get(:FIELD_VALUE_REQUIRED),
+                         source: 'shipengine',
+                         type: 'validation' })
   end
 
   ## The following confirms:
