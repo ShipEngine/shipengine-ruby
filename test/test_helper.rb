@@ -10,7 +10,6 @@ require 'webmock/minitest'
 require 'color_pound_spec_reporter'
 WebMock.enable_net_connect!
 
-
 Minitest::Reporters.use! [Minitest::Reporters::ProgressReporter.new]
 require 'minitest/fail_fast'
 ENV['USE_SIMENGINE'] = 'true'

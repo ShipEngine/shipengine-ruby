@@ -30,6 +30,7 @@ module ShipEngine
       copy.base_url = cfg[:base_url] if cfg.key?(:base_url)
       copy.retries =  cfg[:retries] if cfg.key?(:retries)
       copy.timeout =  cfg[:timeout] if cfg.key?(:timeout)
+      copy.page_size = cfg[:page_size] if cfg.key?(:page_size)
       copy.validate
       copy
     end

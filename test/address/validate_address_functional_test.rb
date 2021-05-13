@@ -15,6 +15,7 @@ def get_address(overrides = {})
     street: ['123 Foo', 'Some Other Line']
   }.merge(overrides)
 end
+
 # @param expected_address [Hash]
 # @param response [::ShipEngine::AddressValidationResult]
 def assert_address_equals(expected_address, response)
@@ -28,18 +29,16 @@ def assert_address_equals(expected_address, response)
   assert_equal(expected_address_normalized[:residential], response.normalized_address.residential?, '-> residential') if expected_address_normalized.key?(:residential)
   assert_equal(expected_address_normalized[:name], response.normalized_address.name, '-> name') if expected_address_normalized.key?(:name)
   assert_equal(expected_address_normalized[:company], response.normalized_address.company, '-> company') if expected_address_normalized.key?(:company)
-  assert_equal(expected_address_normalized[:phone], response.normalized_address.phone, '-> phone')  if expected_address_normalized.key?(:phone)
+  assert_equal(expected_address_normalized[:phone], response.normalized_address.phone, '-> phone') if expected_address_normalized.key?(:phone)
   assert_equal(expected_address_normalized[:street], response.normalized_address.street, '-> street') if expected_address_normalized.key?(:street)
   assert_equal(expected_address_normalized[:city_locality], response.normalized_address.city_locality, '-> city_locality') if expected_address_normalized.key?(:city_locality)
   assert_equal(expected_address_normalized[:country], response.normalized_address.country, '-> country') if expected_address_normalized.key?(:country)
-  # rubocop:disable Layout/LineLength
 end
 
 # @param expected_messages [Array<Hash>]
 # @param response_messages [Array<::ShipEngine::AddressValidationMessage>]
 def assert_messages_equals(expected_messages, response_messages)
-  assert_equal(expected_messages.length, response_messages.length,
-               "expected_messages and response_messages should be the same length. expected: #{expected_messages}, response: #{response_messages}")
+  assert_equal(expected_messages.length, response_messages.length, "expected_messages and response_messages should be the same length. expected: #{expected_messages}, response: #{response_messages}")
   expected_messages.each_with_index do |message, idx|
     r_msg = response_messages[idx]
     assert_equal(message[:code], r_msg.code)
@@ -61,9 +60,6 @@ describe 'Validate Address: Functional' do
     }
     expected = {
       valid: true,
-      warnings: [],
-      errors: [],
-      info: [],
       normalized_address: {
         residential: false,
         country: 'US',
@@ -74,7 +70,10 @@ describe 'Validate Address: Functional' do
         name: '',
         phone: '',
         company: ''
-      }
+      },
+      warnings: [],
+      info: [],
+      errors: []
     }
     response = client.validate_address(params)
     assert_address_equals(expected, response)
@@ -127,7 +126,10 @@ describe 'Validate Address: Functional' do
         phone: '',
         name: '',
         company: ''
-      }
+      },
+      warnings: [],
+      info: [],
+      errors: []
     }
 
     response = client.validate_address(params)
@@ -156,46 +158,92 @@ describe 'Validate Address: Functional' do
         name: '',
         phone: '',
         company: ''
-      }
+      },
+      warnings: [],
+      info: [],
+      errors: []
     }
     response = client.validate_address(params)
     assert_address_equals(expected, response)
   end
 
+  # DX-939
+  it 'handles non-latin characters' do
+    params = {
+      street: ["上鳥羽角田町６８", "validate-with-non-latin-chars"],
+      city_locality: "南区",
+      state_province: "京都",
+      postal_code: "601-8104",
+      country: "JP",
+    };
+
+    expected = {
+      valid: true,
+      normalized_address: {
+        street: ["68 Kamitobatsunodacho"],
+        city_locality: "Kyoto-Shi Minami-Ku",
+        state_province: "Kyoto",
+        postal_code: "601-8104",
+        country: "JP",
+      },
+      warnings: [],
+      info: [],
+      errors: []
+    }
+    response = client.validate_address(params)
+    assert_address_equals(expected, response)
+  end
+
+  # DX-938
+  it 'handles alpha postal code' do
+  end
+  # DX-946 Invalid Country Code
+  it 'validates country code' do
+    params = {
+      country: 'XX',
+      street: ['400 Jersey St'],
+      city_locality: 'Boston',
+      state_province: 'MA',
+      postal_code: '02215'
+    }
+    expected = {
+      code: :invalid_field_value,
+      message: "Invalid address. XX is not a valid country code."
+    }
+    assert_raises_shipengine_validation(expected) do
+      client.validate_address(params)
+    end
+  end
   # DX-935 Valid address of unknown type
   it 'should handle unknown' do
-    response = client.validate_address(get_address)
-    assert_equal(['123 Foo', 'Some Other Line'], response.normalized_address.street)
   end
   # DX-947
   it 'handles server-side errors' do
-
-
   end
 
   # DX-944
   it 'handles missing city+state or postal code' do
     missing_postal_code_or_city = {
-      country: "US",
-      street: ["123 Some St."],
-      state_province: "TX"
-    };
+      country: 'US',
+      street: ['123 Some St.'],
+      state_province: 'TX'
+    }
 
     missing_postal_code_or_state = {
-      country: "US",
-      street: ["123 Some St."],
-      city_locality: "Austin"
+      country: 'US',
+      street: ['123 Some St.'],
+      city_locality: 'Austin'
     }
 
     missing_postal_code_city_and_state = {
-      country: "US",
-      street: ["123 Some St."]
+      country: 'US',
+      street: ['123 Some St.']
     }
 
     expected = {
       code: :field_value_required,
       message:
-        "Invalid address. Either the postal code or the city/locality and state/province must be specified.",
+        'Invalid address. Either the postal code or the city/locality and state/province must be specified.'
     }
 
     assert_raises_shipengine_validation(expected) do
@@ -212,38 +260,61 @@ describe 'Validate Address: Functional' do
     # nice
   end
 
-
   # DX-937
   it 'handles numeric postal code' do
+    params = {
+      country: 'US',
+      street: ['4 Jersey St'],
+      city_locality: 'Boston',
+      state_province: 'MA',
+      postal_code: '02215'
+    }
+    response = client.validate_address(params)
+    expected = {
+      valid: true,
+      normalized_address: {
+        country: 'US',
+        street: ['4 JERSEY ST'],
+        city_locality: 'BOSTON',
+        state_province: 'MA',
+        postal_code: '02215',
+        name: '',
+        company: ''
+      },
+      warnings: [],
+      info: [],
+      errors: []
+    }
+    assert_address_equals(expected, response)
   end
 
   # DX-941
   it 'handles messages: error' do
-     params = {
-      street: ["170 Invalid Blvd"],
-      city_locality: "Toronto",
-      state_province: "On",
-      postal_code: "M6K 3C3",
-      country: "CA",
-    };
+    params = {
+      street: ['170 Invalid Blvd'],
+      city_locality: 'Toronto',
+      state_province: 'On',
+      postal_code: 'M6K 3C3',
+      country: 'CA'
+    }
     response = client.validate_address(params)
     expected_warning_message = {
-      code: "address_not_found",
-      message: "Address not found",
-      type: "warning",
-    };
+      code: 'address_not_found',
+      message: 'Address not found',
+      type: 'warning'
+    }
 
     expected_error_message = {
-      code: "address_not_found",
-      message: "Invalid City, State, or Zip",
-      type: "error",
-    };
+      code: 'address_not_found',
+      message: 'Invalid City, State, or Zip',
+      type: 'error'
+    }
 
     expected_error_message2 = {
-      code: "address_not_found",
-      message: "Insufficient or Incorrect Address Data",
-      type: "error",
-    };
+      code: 'address_not_found',
+      message: 'Insufficient or Incorrect Address Data',
+      type: 'error'
+    }
 
     expected = {
       normalized_address: nil,
@@ -279,24 +350,15 @@ describe 'Validate Address: Functional' do
         city_locality: 'Toronto',
         state_province: 'On',
         postal_code: 'M6K 3C3',
-        country: 'CA',
+        country: 'CA'
       },
       warnings: [expected_warning_message],
       info: [],
-      errors: [],
+      errors: []
     }
 
     response = client.validate_address(params)
     assert_address_equals(expected, response)
   end
-
-  # DX-939
-  it 'handles non-latin characters' do
-  end
-
-  # DX-938
-  it 'handles alpha postal code' do
-  end
-
 
 end

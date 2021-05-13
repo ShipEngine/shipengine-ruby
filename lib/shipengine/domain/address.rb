@@ -108,17 +108,17 @@ module ShipEngine
           end
 
           def assert_country(country)
-            Utils::Validate.not_nil_or_empty_str("Country", country)
+            Utils::Validate.not_nil_or_empty_str('Country', country)
             return if Constants::Country.valid?(country)
 
             if country.nil? || (country == '')
               raise Exceptions.create_required_error(
-                'Invalid Address. The country'
+                'Invalid address. The country'
               )
             end
 
             raise Exceptions.create_invalid_field_value_error(
-              "Invalid Address. #{country} is not a valid country code."
+              "Invalid address. #{country} is not a valid country code."
             )
           end
       end
