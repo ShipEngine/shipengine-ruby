@@ -29,16 +29,15 @@ module ShipEngine
 
     # @param [String] method - address.validate.v1
     # @param [Hash | Array] params - {street: "123 main street", ...}
-    # @param [Hash] opts - options
-    # @option opts [String] :api_key
-    # @option opts [String] :base_url
-    # @option opts [Number] :retries
+    # @param [Hash] config - options
+    # @option config [String] :api_key
+    # @option config [String] :base_url
+    # @option config [Number] :retries
     # @return body of the shipengine rpc request, or throws error.
-    def make_request(method, params, opts = { api_key: nil, base_url: nil, retries: nil,
-                                              timeout: nil })
-      api_key, base_url, retries, timeout = opts.values_at(:api_key, :base_url, :retries, :timeout)
-      config_with_overrides = @configuration.merge(api_key: api_key, base_url: base_url,
-                                                   retries: retries, timeout: timeout)
+    def make_request(method, params, config = { api_key: nil, base_url: nil, retries: nil,
+                                                timeout: nil })
+
+      config_with_overrides = @configuration.merge(config)
       connection = create_connection(config_with_overrides)
 
       response = connection.post do |req|

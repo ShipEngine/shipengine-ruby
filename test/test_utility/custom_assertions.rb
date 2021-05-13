@@ -1,5 +1,6 @@
-require 'minitest/assertions'
+# frozen_string_literal: true
 
+require 'minitest/assertions'
 
 module CustomAssertions
   include Minitest::Assertions

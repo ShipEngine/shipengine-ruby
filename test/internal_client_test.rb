@@ -3,13 +3,6 @@
 require 'test_helper'
 require 'shipengine/exceptions'
 require 'json'
-def assert_api_key_error(err)
-  assert_error(err,
-               source: 'shipengine',
-               type: 'validation',
-               code: :field_value_required,
-               message: 'A ShipEngine API key must be specified.')
-end
 
 def assert_error(err, message: nil, source: 'shipengine', type: nil, code: nil)
   assert_equal source, err.source if source
@@ -51,107 +44,161 @@ describe 'Internal Client Tests' do
 
   base_url = 'https://simengine.herokuapp.com/jsonrpc'
   describe 'Configuration' do
-    it 'Should throw a validation error if api_key is nil during instantiation' do
-      err = assert_raises ShipEngine::Exceptions::ValidationError do
-        ShipEngine::Client.new(api_key: nil)
+    describe 'common functionality' do
+      it 'the global config should not be mutated if overridden at method call time' do
+        stub = stub_request(:post, base_url)
+               .with(body: /.*/, headers: { 'API-Key' => 'baz' })
+               .to_return(status: 200, body: valid_address_res)
+
+        client = ::ShipEngine::Client.new(api_key: 'foo')
+        # override "foo"
+        client.configuration.api_key = 'bar'
+        # override "bar"
+        client.validate_address(valid_address_params, { api_key: 'baz' })
+        assert_requested(stub)
+
+        # the global configuration should not be mutated
+        assert_equal client.configuration.api_key, 'bar'
       end
-      assert_api_key_error(err)
     end
 
-    it 'Should throw an error if timeout is invalid' do
-      stub = stub_request(:post, base_url)
-             .with(body: /.*/)
+    describe 'timeout' do
+      it 'Should throw an error if timeout is invalid at instantiation or at method call' do
+        def assert_timeout_validation_err(err)
+          assert_error(err, message: 'Timeout must be greater than zero.', code: :invalid_field_value)
+          assert_nil(err.request_id)
+        end
 
-      client = ShipEngine::Client.new(api_key: 'abc1234')
-      client.configuration.timeout = 0
+        stub = stub_request(:post, base_url)
+               .with(body: /.*/)
+               .to_return(status: 200, body: valid_address_res)
 
-      # the fact that this an InvalidFieldValue error means I don't need to test the constants on that class.
-      err = assert_raises ShipEngine::Exceptions::ValidationError do
+        # configuration during insantiation
+        err = assert_raises ShipEngine::Exceptions::ValidationError do
+          ShipEngine::Client.new(api_key: 'abc1234', timeout: 0)
+        end
+        assert_timeout_validation_err(err)
+
+        # config during instantiation and method call
+        err = assert_raises ShipEngine::Exceptions::ValidationError do
+          client = ShipEngine::Client.new(api_key: 'abc1234')
+          client.configuration.timeout = -1
+          client.validate_address(valid_address_params)
+        end
+        assert_timeout_validation_err(err)
+
+        # config during method call
+        err = assert_raises ShipEngine::Exceptions::ValidationError do
+          client = ShipEngine::Client.new(api_key: 'abc1234')
+          client.validate_address(valid_address_params, { timeout: -1 })
+        end
+        assert_timeout_validation_err(err)
+
+        assert_not_requested(stub)
+        ShipEngine::Client.new(api_key: 'abc1234', timeout: 5) # valid timeout
+      end
+    end
+
+    describe 'retries' do
+      it 'Should throw an error if retries is invalid at instantiation or at method call' do
+        def assert_retries_validation_err(err)
+          assert_error(err, message: 'Retries must be zero or greater.', code: :invalid_field_value)
+          assert_nil(err.request_id)
+        end
+
+        stub = stub_request(:post, base_url)
+               .with(body: /.*/)
+               .to_return(status: 200, body: valid_address_res)
+
+        # configuration during insantiation
+        err = assert_raises ShipEngine::Exceptions::ValidationError do
+          ShipEngine::Client.new(api_key: 'abc1234', retries: -1)
+        end
+        assert_retries_validation_err(err)
+
+        # config during instantiation and method call
+        err = assert_raises ShipEngine::Exceptions::ValidationError do
+          client = ShipEngine::Client.new(api_key: 'abc1234')
+          client.configuration.retries = -1
+          client.validate_address(valid_address_params)
+        end
+        assert_retries_validation_err(err)
+
+        # config during method call
+        err = assert_raises ShipEngine::Exceptions::ValidationError do
+          client = ShipEngine::Client.new(api_key: 'abc1234')
+          client.validate_address(valid_address_params, { retries: -1 })
+        end
+        assert_retries_validation_err(err)
+
+        assert_not_requested(stub)
+
+        ShipEngine::Client.new(api_key: 'abc1234', retries: 5) # valid
+        ShipEngine::Client.new(api_key: 'abc1234', retries: 0) # valid
+      end
+
+      it 'Should not throw an error if retries is valid' do
+        stub_request(:post, base_url)
+          .with(body: /.*/)
+          .to_return(status: 200, body: valid_address_res)
+
+        client = ShipEngine::Client.new(api_key: 'abc1234')
+        client.configuration.retries = 2
+        client.validate_address(valid_address_params)
+        client.configuration.retries = 0
         client.validate_address(valid_address_params)
       end
-      assert_nil(err.request_id)
-      assert_error(err, message: 'Timeout must be greater than zero.', code: :invalid_field_value)
-      assert_not_requested(stub)
     end
 
-    it 'Should throw an error if retries is set to a negative integer' do
-      stub = stub_request(:post, base_url)
-             .with(body: /.*/)
-             .to_return(status: 200, body: valid_address_res)
+    describe 'api_key' do
+      it 'should have header: API-Key if api-key passed during initialization' do
+        stub = stub_request(:post, base_url)
+               .with(body: /.*/, headers: { 'API-Key' => 'foo' }).to_return(status: 200, body: valid_address_res)
 
-      client = ShipEngine::Client.new(api_key: 'abc1234')
-      client.configuration.retries = -1
-      err = assert_raises ShipEngine::Exceptions::ShipEngineError do
+        client = ::ShipEngine::Client.new(api_key: 'foo')
         client.validate_address(valid_address_params)
+        assert_requested(stub)
       end
-      assert_nil(err.request_id)
-      assert_error(err, message: 'Retries must be zero or greater.', code: :invalid_field_value)
-      assert_not_requested(stub)
-    end
 
-    it 'Should work if retries is valid' do
-      stub = stub_request(:post, base_url)
-             .with(body: /.*/)
-             .to_return(status: 200, body: valid_address_res)
+      it 'should throw an error if api_key is invalid at instantiation or at method call' do
+        def assert_api_key_error(err)
+          assert_error(err,
+                       source: 'shipengine',
+                       type: 'validation',
+                       code: :field_value_required,
+                       message: 'A ShipEngine API key must be specified.')
+        end
 
-      client = ShipEngine::Client.new(api_key: 'abc1234')
-      client.configuration.retries = 2
-      client.validate_address({ street: ['104 Foo Street'], postal_code: '78751', country: 'US' })
+        stub = stub_request(:post, base_url)
+               .with(body: /.*/)
+               .to_return(status: 200, body: valid_address_res)
 
-      assert_requested(stub)
-      # this is an error, but it probably shouldn't be an INVALID FIELD VALUE ERROR
-    end
+        # configuration during insantiation
+        err = assert_raises ShipEngine::Exceptions::ValidationError do
+          ShipEngine::Client.new(api_key: nil)
+        end
+        assert_api_key_error(err)
 
-    it 'Should throw an error if retries is set to a negative integer' do
-      stub = stub_request(:post, base_url)
-             .with(body: /.*/)
+        # config during instantiation and method call
+        err = assert_raises ShipEngine::Exceptions::ValidationError do
+          client = ShipEngine::Client.new(api_key: 'abc1234')
+          client.configuration.api_key = nil
+          client.validate_address(valid_address_params)
+        end
+        assert_api_key_error(err)
 
-      client = ShipEngine::Client.new(api_key: 'abc1234')
-      client.configuration.retries = -1
-      err = assert_raises ShipEngine::Exceptions::ValidationError do
-        client.validate_address(valid_address_params)
+        # config during method call
+        err = assert_raises ShipEngine::Exceptions::ValidationError do
+          client = ShipEngine::Client.new(api_key: 'foo')
+          client.validate_address(valid_address_params, { api_key: nil })
+        end
+        assert_api_key_error(err)
+
+        assert_not_requested(stub)
+
+        ShipEngine::Client.new(api_key: 'abc1234') # valid
+        ShipEngine::Client.new(api_key: 'abc1234') # valid
       end
-      assert_nil(err.request_id)
-      assert_error(err, message: 'Retries must be zero or greater.')
-      assert_not_requested(stub)
-    end
-
-    it 'should have header: API-Key if api-key passed during initialization' do
-      stub = stub_request(:post, base_url)
-             .with(body: /.*/, headers: { 'API-Key' => 'foo' }).to_return(status: 200, body: valid_address_res)
-
-      client = ::ShipEngine::Client.new(api_key: 'foo')
-      client.validate_address(valid_address_params)
-      assert_requested(stub)
-    end
-
-    it 'should have header: API-Key and global configuration should be able to be changed on class' do
-      stub = stub_request(:post, base_url)
-             .with(body: /.*/, headers: { 'API-Key' => 'bar' })
-             .to_return(status: 200, body: valid_address_res)
-
-      client = ::ShipEngine::Client.new(api_key: 'foo')
-      # override "foo"
-      client.configuration.api_key = 'bar'
-
-      client.validate_address(valid_address_params)
-      assert_requested(stub)
-    end
-
-    it 'should have header: API-Key and configuration should be overriddeable on a per-call basis,
-        but the global config should not change' do
-      stub = stub_request(:post, base_url)
-             .with(body: /.*/, headers: { 'API-Key' => 'baz' })
-             .to_return(status: 200, body: valid_address_res)
-
-      client = ::ShipEngine::Client.new(api_key: 'foo')
-      # override "foo"
-      client.configuration.api_key = 'bar'
-      # override "bar"
-      client.validate_address(valid_address_params, { api_key: 'baz' })
-      assert_requested(stub)
-      # the global configuration should not be mutated
-      assert_equal client.configuration.api_key, 'bar'
     end
   end
 end

@@ -76,7 +76,7 @@ module ShipEngine
         end
 
         def positive_int(field, value)
-          non_neg_int(field, value)
+          int(field, value)
           return if value.positive?
 
           raise Exceptions.create_invalid_field_value_error("#{field} must be greater than zero.")
