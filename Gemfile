@@ -11,6 +11,7 @@ group :development do
 end
 
 group :test do
+  gem 'color_pound_spec_reporter'
   gem 'minitest'
   gem 'minitest-hooks'
   gem 'minitest-reporters'

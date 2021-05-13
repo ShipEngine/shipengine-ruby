@@ -35,10 +35,11 @@ describe 'Validate Address' do
                                 country: nil
                               })
     end
-    assert_response_error(err,
-                          { code: exceptions::ErrorCode.get(:FIELD_VALUE_REQUIRED),
-                            source: 'shipengine',
-                            type: 'validation' })
+    assert_response_error(
+      { code: exceptions::ErrorCode.get(:FIELD_VALUE_REQUIRED),
+        source: 'shipengine',
+        type: 'validation' }, err
+    )
   end
 
   ## The following confirms:

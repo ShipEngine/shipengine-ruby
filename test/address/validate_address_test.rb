@@ -35,10 +35,11 @@ describe 'Validate Address' do
                                 country: nil
                               })
     end
-    assert_response_error(err,
-                          { code: exceptions::ErrorCode.get(:FIELD_VALUE_REQUIRED),
-                            source: 'shipengine',
-                            type: 'validation' })
+    assert_response_error(
+      { code: exceptions::ErrorCode.get(:FIELD_VALUE_REQUIRED),
+        source: 'shipengine',
+        type: 'validation' }, err
+    )
   end
 
   ## The following confirms:
@@ -89,21 +90,6 @@ describe 'Validate Address' do
     assert_equal('Toronto', response.normalized_address.city_locality)
     assert_equal(true, response.normalized_address.residential?)
     assert_equal('CA', response.normalized_address.country)
-  end
-
-  it 'should work with multi-line street and return them in the correct order' do
-    address_to_validate = {
-      name: 'John Smith',
-      company: 'ShipMate',
-      city_locality: 'Toronto',
-      state_province: 'On',
-      postal_code: 'M6K 3C3',
-      country: 'CA',
-      street: ['123 Foo', 'Some Other Line']
-    }
-
-    response = client.validate_address(address_to_validate)
-    assert_equal(['123 Foo', 'Some Other Line'], response.normalized_address.street)
   end
 
   it 'should return name and company name and phone (if available)' do

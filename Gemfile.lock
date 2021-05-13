@@ -18,6 +18,11 @@ GEM
     benchmark (0.1.1)
     builder (3.2.4)
     coderay (1.1.3)
+    color_pound_spec_reporter (0.0.9)
+      bundler
+      minitest
+      minitest-reporters (>= 0.14.24)
+      rake
     crack (0.4.5)
       rexml
     debase (0.2.4.1)
@@ -152,6 +157,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  color_pound_spec_reporter
   debase
   guard
   guard-minitest
