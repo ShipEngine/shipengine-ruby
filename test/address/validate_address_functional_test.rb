@@ -167,24 +167,53 @@ describe 'Validate Address: Functional' do
     assert_address_equals(expected, response)
   end
 
-  # DX-939
-  it 'handles non-latin characters' do
+  # DX-935 Valid address of unknown type
+  it 'should handle unknown' do
     params = {
-      street: ["上鳥羽角田町６８", "validate-with-non-latin-chars"],
-      city_locality: "南区",
-      state_province: "京都",
-      postal_code: "601-8104",
-      country: "JP",
-    };
+      country: 'US',
+      street: ['4 Jersey St'],
+      city_locality: 'Boston',
+      state_province: 'MA',
+      postal_code: '02215'
+    }
 
     expected = {
       valid: true,
       normalized_address: {
-        street: ["68 Kamitobatsunodacho"],
-        city_locality: "Kyoto-Shi Minami-Ku",
-        state_province: "Kyoto",
-        postal_code: "601-8104",
-        country: "JP",
+        country: 'US',
+        street: ['4 JERSEY ST'],
+        city_locality: 'BOSTON',
+        state_province: 'MA',
+        postal_code: '02215',
+        name: '',
+        company: ''
+      },
+      warnings: [],
+      info: [],
+      errors: []
+    }
+    response = client.validate_address(params)
+    assert_address_equals(expected, response)
+  end
+
+  # DX-939
+  it 'handles non-latin characters' do
+    params = {
+      street: %w[上鳥羽角田町６８ validate-with-non-latin-chars],
+      city_locality: '南区',
+      state_province: '京都',
+      postal_code: '601-8104',
+      country: 'JP'
+    }
+
+    expected = {
+      valid: true,
+      normalized_address: {
+        street: ['68 Kamitobatsunodacho'],
+        city_locality: 'Kyoto-Shi Minami-Ku',
+        state_province: 'Kyoto',
+        postal_code: '601-8104',
+        country: 'JP'
       },
       warnings: [],
       info: [],
@@ -201,35 +230,31 @@ describe 'Validate Address: Functional' do
   it 'validates country code / missing country-code' do
     # missing
     assert_raises_shipengine_validation({
-      code: :field_value_required,
-      message: "Invalid address. The country must be specified."
-    }) do
+                                          code: :field_value_required,
+                                          message: 'Invalid address. The country must be specified.'
+                                        }) do
       client.validate_address({
-        street: ['400 Jersey St'],
-        city_locality: 'Boston',
-        state_province: 'MA',
-        postal_code: '02215'
-      })
+                                street: ['400 Jersey St'],
+                                city_locality: 'Boston',
+                                state_province: 'MA',
+                                postal_code: '02215'
+                              })
     end
 
     assert_raises_shipengine_validation({
-      code: :invalid_field_value,
-      message: "Invalid address. XX is not a valid country code."
-    }) do
+                                          code: :invalid_field_value,
+                                          message: 'Invalid address. XX is not a valid country code.'
+                                        }) do
       client.validate_address({
-        country: 'XX',
-        street: ['400 Jersey St'],
-        city_locality: 'Boston',
-        state_province: 'MA',
-        postal_code: '02215'
-      })
+                                country: 'XX',
+                                street: ['400 Jersey St'],
+                                city_locality: 'Boston',
+                                state_province: 'MA',
+                                postal_code: '02215'
+                              })
     end
-
-
   end
-  # DX-935 Valid address of unknown type
-  it 'should handle unknown' do
-  end
+
   # DX-947
   it 'handles server-side errors' do
   end
@@ -303,21 +328,21 @@ describe 'Validate Address: Functional' do
 
   it 'handles alphanumeric postal code ' do
     params = {
-        country: "CA",
-        street: ["170 Princes' Blvd"],
-        city_locality: "Toronto",
-        state_province: "On",
-        postal_code: "M6K 3C3",
+      country: 'CA',
+      street: ["170 Princes' Blvd"],
+      city_locality: 'Toronto',
+      state_province: 'On',
+      postal_code: 'M6K 3C3'
     }
     response = client.validate_address(params)
     expected = {
       valid: true,
       normalized_address: {
-        country: "CA",
-        street: ["170 Princes Blvd"],
-        city_locality: "Toronto",
-        state_province: "On",
-        postal_code: "M6 K 3 C3",
+        country: 'CA',
+        street: ['170 Princes Blvd'],
+        city_locality: 'Toronto',
+        state_province: 'On',
+        postal_code: 'M6 K 3 C3'
       },
       warnings: [],
       info: [],
@@ -397,5 +422,4 @@ describe 'Validate Address: Functional' do
     response = client.validate_address(params)
     assert_address_equals(expected, response)
   end
-
 end
