@@ -108,7 +108,7 @@ module ShipEngine
           end
 
           def assert_country(country)
-            Utils::Validate.not_nil_or_empty_str('Country', country)
+            Utils::Validate.not_nil_or_empty_str('Invalid address. The country', country)
             return if Constants::Country.valid?(country)
 
             if country.nil? || (country == '')

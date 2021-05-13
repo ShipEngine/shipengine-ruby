@@ -197,22 +197,35 @@ describe 'Validate Address: Functional' do
   # DX-938
   it 'handles alpha postal code' do
   end
-  # DX-946 Invalid Country Code
-  it 'validates country code' do
-    params = {
-      country: 'XX',
-      street: ['400 Jersey St'],
-      city_locality: 'Boston',
-      state_province: 'MA',
-      postal_code: '02215'
-    }
-    expected = {
+  # DX-945 Missing Country Code | DX-946 Invalid Country Code
+  it 'validates country code / missing country-code' do
+    # missing
+    assert_raises_shipengine_validation({
+      code: :field_value_required,
+      message: "Invalid address. The country must be specified."
+    }) do
+      client.validate_address({
+        street: ['400 Jersey St'],
+        city_locality: 'Boston',
+        state_province: 'MA',
+        postal_code: '02215'
+      })
+    end
+
+    assert_raises_shipengine_validation({
       code: :invalid_field_value,
       message: "Invalid address. XX is not a valid country code."
-    }
-    assert_raises_shipengine_validation(expected) do
-      client.validate_address(params)
+    }) do
+      client.validate_address({
+        country: 'XX',
+        street: ['400 Jersey St'],
+        city_locality: 'Boston',
+        state_province: 'MA',
+        postal_code: '02215'
+      })
     end
+
+
   end
   # DX-935 Valid address of unknown type
   it 'should handle unknown' do
@@ -289,7 +302,7 @@ describe 'Validate Address: Functional' do
   end
 
   # DX-941
-  it 'handles messages: error' do
+  it 'handles messages: errors' do
     params = {
       street: ['170 Invalid Blvd'],
       city_locality: 'Toronto',
@@ -326,7 +339,7 @@ describe 'Validate Address: Functional' do
   end
 
   # DX-940
-  it 'handles messages: warning' do
+  it 'handles messages: warnings' do
     params = {
       street: ['170 Warning Blvd', 'Apartment 32-B'],
       city_locality: 'Toronto',
