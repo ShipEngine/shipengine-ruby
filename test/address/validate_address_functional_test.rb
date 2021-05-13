@@ -273,8 +273,8 @@ describe 'Validate Address: Functional' do
     # nice
   end
 
-  # DX-937
-  it 'handles numeric postal code' do
+  # DX-937 - numeric postal code
+  it 'handles numeric postal code ' do
     params = {
       country: 'US',
       street: ['4 Jersey St'],
@@ -301,6 +301,30 @@ describe 'Validate Address: Functional' do
     assert_address_equals(expected, response)
   end
 
+  it 'handles alphanumeric postal code ' do
+    params = {
+        country: "CA",
+        street: ["170 Princes' Blvd"],
+        city_locality: "Toronto",
+        state_province: "On",
+        postal_code: "M6K 3C3",
+    }
+    response = client.validate_address(params)
+    expected = {
+      valid: true,
+      normalized_address: {
+        country: "CA",
+        street: ["170 Princes Blvd"],
+        city_locality: "Toronto",
+        state_province: "On",
+        postal_code: "M6 K 3 C3",
+      },
+      warnings: [],
+      info: [],
+      errors: []
+    }
+    assert_address_equals(expected, response)
+  end
   # DX-941
   it 'handles messages: errors' do
     params = {
