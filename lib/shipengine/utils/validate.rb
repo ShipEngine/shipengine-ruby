@@ -14,9 +14,9 @@ module ShipEngine
 
         def not_nil_or_empty_str(field, value)
           not_nil(field, value)
-          return if value == ''
+          return unless value == ''
 
-          raise Exceptions.create_required_error(feld)
+          raise Exceptions.create_required_error(field)
         end
 
         def str(field, value)

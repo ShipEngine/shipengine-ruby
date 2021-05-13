@@ -9,3 +9,6 @@ guard :minitest do
   watch(%r{^test/test_helper\.rb$}) { 'test' }
   watch(%r{^test/test_utility/(.*)\.rb$}) { 'test' }
 end
+
+# https://stackoverflow.com/questions/23571163/clear-previous-tests-in-rspec-while-running-new-tests-using-guard
+clearing :on
