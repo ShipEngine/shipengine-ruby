@@ -49,6 +49,26 @@ end
 
 describe 'Validate Address: Functional' do
   client = ::ShipEngine::Client.new(api_key: 'abc123')
+  # DX-938 -
+  it 'handles server-side errors' do
+    params = {
+      street: ['500 Server Error'],
+      city_locality: 'Boston',
+      state_province: 'MA',
+      postal_code: '01152',
+      country: 'US'
+    }
+    expected_err = {
+      source: 'shipengine',
+      type: 'system',
+      code: :unspecified,
+      message: 'Unable to connect to the database',
+      request_id: :__REGEX_MATCH__
+    }
+    assert_raises_shipengine(::ShipEngine::Exceptions::ShipEngineError, expected_err) do
+      client.validate_address(params)
+    end
+  end
   # DX-936 Multi-line address returned correctly
   it 'should work with multi-line street addresses' do
     params = {
@@ -56,7 +76,8 @@ describe 'Validate Address: Functional' do
       street: ['4 Jersey St.', 'Suite 200', '2nd Floor'],
       city_locality: 'Boston',
       state_province: 'MA',
-      postal_code: '02215'
+      postal_code: '02215',
+      request_id: :__REGEX_MATCH__
     }
     expected = {
       valid: true,
@@ -83,7 +104,8 @@ describe 'Validate Address: Functional' do
   it 'should throw a client-side error if there are too many address lines' do
     expected = {
       code: :invalid_field_value,
-      message: 'Invalid address. No more than 3 street lines are allowed.'
+      message: 'Invalid address. No more than 3 street lines are allowed.',
+      request_id: nil
     }
     assert_raises_shipengine_validation(expected) do
       client.validate_address(get_address(street: %w[this should throw error]))
@@ -95,7 +117,8 @@ describe 'Validate Address: Functional' do
   it 'should throw a client-side error if there are no address lines' do
     expected = {
       code: :field_value_required,
-      message: 'Invalid address. At least one address line is required.'
+      message: 'Invalid address. At least one address line is required.',
+      request_id: nil
     }
 
     params = get_address({ street: [] })
@@ -223,9 +246,6 @@ describe 'Validate Address: Functional' do
     assert_address_equals(expected, response)
   end
 
-  # DX-938
-  it 'handles alpha postal code' do
-  end
   # DX-945 Missing Country Code | DX-946 Invalid Country Code
   it 'validates country code / missing country-code' do
     # missing
@@ -253,10 +273,6 @@ describe 'Validate Address: Functional' do
                                 postal_code: '02215'
                               })
     end
-  end
-
-  # DX-947
-  it 'handles server-side errors' do
   end
 
   # DX-944
@@ -307,6 +323,7 @@ describe 'Validate Address: Functional' do
       state_province: 'MA',
       postal_code: '02215'
     }
+
     response = client.validate_address(params)
     expected = {
       valid: true,

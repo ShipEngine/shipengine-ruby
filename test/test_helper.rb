@@ -14,4 +14,5 @@ Minitest::Reporters.use! [Minitest::Reporters::ProgressReporter.new]
 require 'minitest/fail_fast'
 ENV['USE_SIMENGINE'] = 'true'
 require 'test_utility/custom_assertions'
-include CustomAssertions
+
+include CustomAssertions # rubocop:disable Style/MixinUsage

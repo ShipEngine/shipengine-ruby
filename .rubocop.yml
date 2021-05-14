@@ -21,3 +21,6 @@ Metrics/BlockLength:
 
 Style/MultilineOperationIndentation:
   Enabled: false
+
+Metrics/CyclomaticComplexity:
+  Enabled: false

@@ -3,8 +3,6 @@
 require 'test_helper'
 require 'shipengine'
 
-exceptions = ::ShipEngine::Exceptions
-
 describe 'Validate Address' do
   #
   # <Description>
@@ -23,23 +21,6 @@ describe 'Validate Address' do
                                                 country: 'US'
                                               })
     assert success_request
-  end
-
-  it 'should propgate server errors if server response has error' do
-    err = assert_raises exceptions::ValidationError do
-      client.validate_address({
-                                street: nil,
-                                city_locality: 'Houston',
-                                postal_code: '77002',
-                                state_province: 'TX',
-                                country: nil
-                              })
-    end
-    assert_response_error(
-      { code: exceptions::ErrorCode.get(:FIELD_VALUE_REQUIRED),
-        source: 'shipengine',
-        type: 'validation' }, err
-    )
   end
 
   ## The following confirms:

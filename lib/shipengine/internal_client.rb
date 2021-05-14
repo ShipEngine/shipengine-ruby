@@ -95,10 +95,10 @@ module ShipEngine
       unless body.is_a?(Hash)
         # this should not happen
         ShipEngineErrorLogger.invariant('response body is NOT a hash', [status: response.status, body: response.body])
-        raise Exceptions::UnspecifiedError, response
+        raise Exceptions.create_invariant_error(response)
       end
 
-      error, request_id = body.values_at('error', 'request_id')
+      error, request_id = body.values_at('error', 'id')
       return nil unless error
 
       message, data = error.values_at('message', 'data')
