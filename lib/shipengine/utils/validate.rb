@@ -100,7 +100,7 @@ module ShipEngine
         end
 
         def validate_input_address(address); end
-    end
+      end
     end
   end
 end

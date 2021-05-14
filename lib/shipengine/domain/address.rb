@@ -122,7 +122,7 @@ module ShipEngine
               "Invalid address. #{country} is not a valid country code."
             )
           end
-      end
+        end
       end
 
       # @param [ShipEngine::InternalClient] internal_client
