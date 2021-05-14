@@ -28,7 +28,7 @@ module ShipEngine
     end
 
     # @param [String] method - address.validate.v1
-    # @param [Hash | Array] params - {street: "123 main street", ...}
+    # @param [Hash | Array] params
     # @param [Hash] config - options
     # @option config [String] :api_key
     # @option config [String] :base_url
@@ -78,7 +78,7 @@ module ShipEngine
     #
     # @param [String] method - e.g. "address.validate.v1"
     # @param [Hash] params
-    # @returns [Hash] - JSON:RPC response
+    # @return [Hash] - JSON:RPC response
     #
     def build_jsonrpc_request_body(method, params)
       {

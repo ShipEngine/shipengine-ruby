@@ -6,7 +6,7 @@ require_relative 'base58'
 module ShipEngine
   module Utils
     class RequestId
-      # @returns [String] req_abcd123456789
+      # @return [String] req_abcd123456789
       def self.create
         base58_encoded_uuid = Base58.binary_to_base58(SecureRandom.uuid.force_encoding('BINARY'))
         "req_#{base58_encoded_uuid}"

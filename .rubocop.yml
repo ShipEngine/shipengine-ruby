@@ -1,10 +1,10 @@
 AllCops:
   NewCops: enable # https://docs.rubocop.org/rubocop/1.11/versioning.html#pending-cops
-  TargetRubyVersion: 2.6
   SuggestExtensions: false
   Exclude:
     - bin/**/*
     - tmp/**/*
+    - vendor/**/*
     - lib/shipengine/utils/base58.rb
 Style/Documentation:
   Enabled: false

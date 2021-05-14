@@ -3,17 +3,17 @@
 source 'https://rubygems.org'
 
 group :development do
-  gem 'debase', require: false
   gem 'guard'
   gem 'guard-minitest'
-  gem 'ruby-debug-ide', require: false
+  gem 'pry'
   gem 'solargraph', require: false
+  gem 'yard'
 end
 
 group :test do
-  gem 'color_pound_spec_reporter'
   gem 'minitest'
   gem 'minitest-fail-fast'
+  gem 'minitest-focus'
   gem 'minitest-hooks'
   gem 'minitest-line'
   gem 'minitest-reporters'
@@ -22,10 +22,8 @@ group :test do
 end
 
 group :test, :development do
-  gem 'pry'
   gem 'rake'
-  gem 'reek', require: false
-  gem 'rubocop'
+  gem 'rubocop', require: false
 end
 
 gemspec
