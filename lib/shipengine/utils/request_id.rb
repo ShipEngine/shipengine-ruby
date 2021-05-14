@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require 'base58'
 require 'securerandom'
+require_relative 'base58'
 
 module ShipEngine
   module Utils
