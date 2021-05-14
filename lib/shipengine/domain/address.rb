@@ -47,7 +47,7 @@ module ShipEngine
     # @param [String?] city_locality - e.g. "AUSTIN"
     # @param [String?] state_province - e.g. "TX"
     # @param [Boolean?] residential
-    def initialize(street:, name:, company:, phone:, city_locality:, state_province:, postal_code:, country:, residential:)
+    def initialize(street:, name:, company:, phone:, city_locality:, state_province:, postal_code:, country:, residential:) # rubocop:disable Metrics/ParameterLists
       @street = street
       @name = name
       @company = company
@@ -90,7 +90,8 @@ module ShipEngine
               Validate.assert_state_province(state)
             else
               raise Exceptions::ValidationError.new(
-                'Invalid address. Either the postal code or the city/locality and state/province must be specified.', Exceptions::ErrorCode.get(:FIELD_VALUE_REQUIRED)
+                'Invalid address. Either the postal code or the city/locality and state/province must be specified.',
+                Exceptions::ErrorCode.get(:FIELD_VALUE_REQUIRED)
               )
             end
           end

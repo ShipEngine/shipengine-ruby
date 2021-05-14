@@ -2,7 +2,10 @@ AllCops:
   NewCops: enable # https://docs.rubocop.org/rubocop/1.11/versioning.html#pending-cops
   TargetRubyVersion: 2.6
   SuggestExtensions: false
-
+  Exclude:
+    - bin/**/*
+    - tmp/**/*
+    - lib/shipengine/utils/base58.rb
 Style/Documentation:
   Enabled: false
 
@@ -14,13 +17,16 @@ Metrics/MethodLength:
 
 Layout/LineLength:
   Max: 150
-  IgnoredPatterns:  ['^ *# ']
+  IgnoredPatterns: ["^ *# "]
 
 Metrics/BlockLength:
   Enabled: false
 
-Style/MultilineOperationIndentation:
+Layout/MultilineOperationIndentation:
   Enabled: false
 
 Metrics/CyclomaticComplexity:
+  Enabled: false
+
+Metrics/PerceivedComplexity:
   Enabled: false

@@ -33,12 +33,14 @@ def assert_address_equals(expected_address, response)
   assert_equal(expected_address_normalized[:street], response.normalized_address.street, '-> street') if expected_address_normalized.key?(:street)
   assert_equal(expected_address_normalized[:city_locality], response.normalized_address.city_locality, '-> city_locality') if expected_address_normalized.key?(:city_locality)
   assert_equal(expected_address_normalized[:country], response.normalized_address.country, '-> country') if expected_address_normalized.key?(:country)
+  # rubocop:enable Layout/LineLength
 end
 
 # @param expected_messages [Array<Hash>]
 # @param response_messages [Array<::ShipEngine::AddressValidationMessage>]
 def assert_messages_equals(expected_messages, response_messages)
-  assert_equal(expected_messages.length, response_messages.length, "expected_messages and response_messages should be the same length. expected: #{expected_messages}, response: #{response_messages}")
+  assert_equal(expected_messages.length, response_messages.length,
+               "expected_messages and response_messages should be the same length. expected: #{expected_messages}, response: #{response_messages}")
   expected_messages.each_with_index do |message, idx|
     r_msg = response_messages[idx]
     assert_equal(message[:code], r_msg.code)
