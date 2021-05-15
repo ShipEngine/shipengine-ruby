@@ -8,7 +8,7 @@ module ShipEngine
     class ShipEngineError < StandardError
       attr_reader :request_id, :message, :source, :type, :code
 
-      def initialize(request_id, message, source, type, code)
+      def initialize(message, source, type, code, request_id)
         code = Exceptions::ErrorCode.get_by_str(code) if code.is_a?(String)
 
         super(message)
@@ -23,7 +23,7 @@ module ShipEngine
     # 400 error, or other "user exceptions"
     class ValidationError < ShipEngineError
       def initialize(message, code, request_id = nil)
-        super(request_id, message, 'shipengine', 'validation', code)
+        super(message, 'shipengine', 'validation', code, request_id)
       end
     end
 
@@ -38,7 +38,7 @@ module ShipEngine
     end
 
     def self.create_invariant_error(message)
-      super(nil, message, 'shipengine', nil, Exceptions::ErrorCode.get(:UNSPECIFIED))
+      ShipEngineError.new("INVARIANT ERROR: #{message}", 'shipengine', nil, Exceptions::ErrorCode.get(:UNSPECIFIED), nil)
     end
   end
 end
