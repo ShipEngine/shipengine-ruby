@@ -90,8 +90,8 @@ module ShipEngine
               Validate.assert_state_province(state)
             else
               raise Exceptions::ValidationError.new(
-                'Invalid address. Either the postal code or the city/locality and state/province must be specified.',
-                Exceptions::ErrorCode.get(:FIELD_VALUE_REQUIRED)
+                message: 'Invalid address. Either the postal code or the city/locality and state/province must be specified.',
+                code: Exceptions::ErrorCode.get(:FIELD_VALUE_REQUIRED)
               )
             end
           end
@@ -100,8 +100,8 @@ module ShipEngine
             Utils::Validate.array_of_str('Street', street)
 
             if street.empty?
-              raise Exceptions::ValidationError.new('Invalid address. At least one address line is required.',
-                                                    Exceptions::ErrorCode.get(:FIELD_VALUE_REQUIRED))
+              raise Exceptions::ValidationError.new(message: 'Invalid address. At least one address line is required.',
+                                                    code: Exceptions::ErrorCode.get(:FIELD_VALUE_REQUIRED))
             elsif street.length > 3
               raise Exceptions
                 .create_invalid_field_value_error('Invalid address. No more than 3 street lines are allowed.')
@@ -139,7 +139,7 @@ module ShipEngine
       # @param [String?] name
       # @param [String?] company
       # @return [ShipEngine::AddressValidationResult]
-      def validate(address, cfg)
+      def validate(address, config)
         address_params = {
           street: address.fetch(:street, nil),
           cityLocality: address.fetch(:city_locality, nil),
@@ -159,9 +159,9 @@ module ShipEngine
         )
 
         address_api_result = @internal_client.make_request('address.validate.v1',
-                                                           { address: address_params }, cfg)
+                                                           { address: address_params }, config)
 
-        normalized_address_api_result = address_api_result['normalizedAddress'] || {}
+        normalized_address_api_result = address_api_result['normalizedAddress'] || nil
 
         messages_classes = address_api_result['messages'].map do |msg|
           AddressValidationMessage.new(type: msg['type'], code: msg['code'], message: msg['message'])
@@ -172,7 +172,7 @@ module ShipEngine
           errors: messages_classes.select { |msg| msg.type == 'error' },
           warnings: messages_classes.select { |msg| msg.type == 'warning' },
           info: messages_classes.select { |msg| msg.type == 'info' },
-          normalized_address: NormalizedAddress.new(
+          normalized_address: normalized_address_api_result && NormalizedAddress.new(
             street: normalized_address_api_result['street'],
             name: normalized_address_api_result['name'],
             company: normalized_address_api_result['company'],

@@ -7,14 +7,10 @@ require 'shipengine/version'
 require 'logger'
 
 class ShipEngineErrorLogger
-  def self.log(data)
+  def self.log(msg, data)
     logger = Logger.new($stderr)
+    logger.log("msg: #{msg}")
     logger.error(data)
-  end
-
-  def self.invariant(msg, data)
-    ShipEngineErrorLogger.log("INVARIANT Err: #{msg}")
-    log(data)
   end
 end
 
@@ -27,13 +23,17 @@ module ShipEngine
       @configuration = configuration
     end
 
-    # @param [String] method - address.validate.v1
-    # @param [Hash | Array] params
-    # @param [Hash] config - options
-    # @option config [String] :api_key
-    # @option config [String] :base_url
-    # @option config [Number] :retries
-    # @return body of the shipengine rpc request, or throws error.
+    # @param method [String] e.g. `address.validate.v1`
+    # @param params [Hash]
+    # @param config [Hash?]
+    # @option config [String?] :api_key
+    # @option config [String?] :base_url
+    # @option config [Number?] :retries
+    # @option config [Number?] :timeout
+    # @return [Hash] - `result` object from JSON-RPC request
+
+    # @example
+    #   make_request("address.validate.v1", {address: {...}}, {api_key: "123"}, ...) #=> {...}
     def make_request(method, params, config = { api_key: nil, base_url: nil, retries: nil,
                                                 timeout: nil })
 
@@ -75,11 +75,9 @@ module ShipEngine
       end
     end
 
-    #
     # @param [String] method - e.g. "address.validate.v1"
     # @param [Hash] params
     # @return [Hash] - JSON:RPC response
-    #
     def build_jsonrpc_request_body(method, params)
       {
         jsonrpc: '2.0',
@@ -94,7 +92,7 @@ module ShipEngine
 
       unless body.is_a?(Hash)
         # this should not happen
-        ShipEngineErrorLogger.invariant('response body is NOT a hash', [status: response.status, body: response.body])
+        ShipEngineErrorLogger.log('response body is NOT a hash', [status: response.status, body: response.body])
         raise Exceptions.create_invariant_error(response)
       end
 
@@ -105,9 +103,9 @@ module ShipEngine
       source, type, code = data.values_at('source', 'type', 'code')
       # rubocop:disable Style/GuardClause
       if type == 'validation'
-        raise Exceptions::ValidationError.new(message, code, request_id)
+        raise Exceptions::ValidationError.new(message: message, code: code, request_id: request_id)
       else
-        raise Exceptions::ShipEngineError.new(message, source, type, code, request_id)
+        raise Exceptions::ShipEngineError.new(message: message, source: source, type: type, code: code, request_id: request_id)
       end
       # rubocop:enable Style/GuardClause
     end

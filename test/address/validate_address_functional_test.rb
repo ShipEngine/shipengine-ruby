@@ -25,7 +25,10 @@ def assert_address_equals(expected_address, response)
   assert_messages_equals(expected_address[:info], response.info) if expected_address.key?(:info)
   assert_messages_equals(expected_address[:errors], response.errors) if expected_address.key?(:errors)
 
-  expected_address_normalized = expected_address[:normalized_address] || {}
+  return assert_nil(response.normalized_address, '~> normalized_address') if expected_address.key?(:normalized_address) && expected_address[:normalized_address].nil?
+
+  expected_address_normalized = expected_address[:normalized_address]
+
   assert_equal(expected_address_normalized[:residential], response.normalized_address.residential?, '-> residential') if expected_address_normalized.key?(:residential)
   assert_equal(expected_address_normalized[:name], response.normalized_address.name, '-> name') if expected_address_normalized.key?(:name)
   assert_equal(expected_address_normalized[:company], response.normalized_address.company, '-> company') if expected_address_normalized.key?(:company)
@@ -43,9 +46,9 @@ def assert_messages_equals(expected_messages, response_messages)
                "expected_messages and response_messages should be the same length. expected: #{expected_messages}, response: #{response_messages}")
   expected_messages.each_with_index do |message, idx|
     r_msg = response_messages[idx]
-    assert_equal(message[:code], r_msg.code)
-    assert_equal(message[:type], r_msg.type)
-    assert_equal(message[:message], r_msg.message)
+    assert_equal(message.fetch(:code), r_msg.code)
+    assert_equal(message.fetch(:type), r_msg.type)
+    assert_equal(message.fetch(:message), r_msg.message)
   end
 end
 
@@ -399,8 +402,9 @@ describe 'Validate Address: Functional' do
 
     expected = {
       normalized_address: nil,
-      errors: [expected_error_message, expected_error_message2],
-      warnings: [expected_warning_message]
+      warnings: [expected_warning_message],
+      info: [],
+      errors: [expected_error_message, expected_error_message2]
     }
     assert_address_equals(expected, response)
     # nice

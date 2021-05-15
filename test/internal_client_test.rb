@@ -39,20 +39,65 @@ describe 'Internal Client Tests' do
   base_url = 'https://simengine.herokuapp.com/jsonrpc'
   describe 'Configuration' do
     describe 'common functionality' do
+      it 'default values should be passed' do
+        client = ::ShipEngine::Client.new(api_key: 'foo')
+
+        # the global configuration should not be mutated
+        assert_equal 5, client.configuration.timeout
+        assert_equal 50, client.configuration.page_size
+      end
       it 'the global config should not be mutated if overridden at method call time' do
         stub = stub_request(:post, base_url)
                .with(body: /.*/, headers: { 'API-Key' => 'baz' })
                .to_return(status: 200, body: valid_address_res)
 
-        client = ::ShipEngine::Client.new(api_key: 'foo')
-        # override "foo"
+        client = ::ShipEngine::Client.new(api_key: 'foo', timeout: 111)
+        assert_equal 'foo', client.configuration.api_key
+        assert_equal 111, client.configuration.timeout
+
+        # override
         client.configuration.api_key = 'bar'
-        # override "bar"
-        client.validate_address(valid_address_params, { api_key: 'baz' })
+        client.configuration.timeout = 222
+        client.validate_address(valid_address_params, { api_key: 'baz', timeout: 222 })
         assert_requested(stub)
 
         # the global configuration should not be mutated
-        assert_equal client.configuration.api_key, 'bar'
+        assert_equal 'bar', client.configuration.api_key
+        assert_equal 222, client.configuration.timeout
+
+        # any default arguments should continue to be passed down.
+        assert_equal 50, client.configuration.page_size
+      end
+    end
+
+    describe 'page_size' do
+      it 'Should throw an error if page size is invalid at instantiation or at method call' do
+        page_size_err = { message: 'Page size must be greater than zero.', code: :invalid_field_value }
+
+        stub = stub_request(:post, base_url)
+               .with(body: /.*/)
+               .to_return(status: 200, body: valid_address_res)
+
+        # configuration during insantiation
+        assert_raises_shipengine_validation(page_size_err) do
+          ::ShipEngine::Client.new(api_key: 'abc1234', page_size: 0)
+        end
+
+        # config during instantiation and method call
+        assert_raises_shipengine_validation(page_size_err) do
+          client = ::ShipEngine::Client.new(api_key: 'abc1234')
+          client.configuration.page_size = 0
+          client.validate_address(valid_address_params)
+        end
+
+        # config during method call
+        assert_raises_shipengine_validation(page_size_err) do
+          client = ShipEngine::Client.new(api_key: 'abc1234')
+          client.validate_address(valid_address_params, { page_size: 0 })
+        end
+
+        assert_not_requested(stub)
+        ShipEngine::Client.new(api_key: 'abc1234', page_size: 5)
       end
     end
 
