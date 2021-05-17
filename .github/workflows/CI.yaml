@@ -10,7 +10,7 @@ jobs:
         os: [ubuntu-latest]
         # Due to https://github.com/actions/runner/issues/849, we have to use quotes for '3.0'
         ruby: [2.6, 2.7, "3.0"]
-    name: Build / Lint / Test
+    name: Build / Test
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
@@ -19,7 +19,7 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
-      - name: Lint
-        run: bundle exec rake lint
+      # - name: Lint
+      #   run: bundle exec rake lint
       - name: Test
         run: bundle exec rake test

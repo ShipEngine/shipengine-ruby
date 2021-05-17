@@ -7,14 +7,10 @@ require 'shipengine/version'
 require 'logger'
 
 class ShipEngineErrorLogger
-  def self.log(data)
+  def self.log(msg, data)
     logger = Logger.new($stderr)
+    logger.log("msg: #{msg}")
     logger.error(data)
-  end
-
-  def self.invariant(msg, data)
-    ShipEngineErrorLogger.log("INVARIANT Err: #{msg}")
-    log(data)
   end
 end
 
@@ -27,16 +23,21 @@ module ShipEngine
       @configuration = configuration
     end
 
-    # @param [String] method - address.validate.v1
-    # @param [Hash | Array] params - {street: "123 main street", ...}
-    # @param [Hash] opts - options
-    # @option opts [String] :api_key
-    # @option opts [String] :base_url
-    # @option opts [Number] :retries
-    # @return body of the shipengine rpc request, or throws error.
-    def make_request(method, params, opts = { api_key: nil, base_url: nil, retries: nil, timeout: nil })
-      api_key, base_url, retries, timeout = opts.values_at(:api_key, :base_url, :retries, :timeout)
-      config_with_overrides = @configuration.merge(api_key: api_key, base_url: base_url, retries: retries, timeout: timeout)
+    # @param method [String] e.g. `address.validate.v1`
+    # @param params [Hash]
+    # @param config [Hash?]
+    # @option config [String?] :api_key
+    # @option config [String?] :base_url
+    # @option config [Number?] :retries
+    # @option config [Number?] :timeout
+    # @return [Hash] - `result` object from JSON-RPC request
+
+    # @example
+    #   make_request("address.validate.v1", {address: {...}}, {api_key: "123"}, ...) #=> {...}
+    def make_request(method, params, config = { api_key: nil, base_url: nil, retries: nil,
+                                                timeout: nil })
+
+      config_with_overrides = @configuration.merge(config)
       connection = create_connection(config_with_overrides)
 
       response = connection.post do |req|
@@ -47,8 +48,7 @@ module ShipEngine
 
       assert_shipengine_rpc_success(response)
 
-      body
-      # throw an error if status code is 500 or above.
+      body['result']
     end
 
     private
@@ -75,7 +75,9 @@ module ShipEngine
       end
     end
 
-    # create jsonrpc request has
+    # @param [String] method - e.g. "address.validate.v1"
+    # @param [Hash] params
+    # @return [Hash] - JSON:RPC response
     def build_jsonrpc_request_body(method, params)
       {
         jsonrpc: '2.0',
@@ -90,20 +92,22 @@ module ShipEngine
 
       unless body.is_a?(Hash)
         # this should not happen
-        ShipEngineErrorLogger.invariant('response body is NOT a hash', [status: response.status, body: response.body])
-        raise Exceptions::UnspecifiedError, response
+        ShipEngineErrorLogger.log('response body is NOT a hash', [status: response.status, body: response.body])
+        raise Exceptions.create_invariant_error(response)
       end
 
-      error, request_id = body.values_at('error', 'request_id')
+      error, request_id = body.values_at('error', 'id')
       return nil unless error
 
       message, data = error.values_at('message', 'data')
       source, type, code = data.values_at('source', 'type', 'code')
-      if type === 'validation'
-        raise Exceptions::ValidationError.new(message, code, request_id)
+      # rubocop:disable Style/GuardClause
+      if type == 'validation'
+        raise Exceptions::ValidationError.new(message: message, code: code, request_id: request_id)
       else
-        raise Exceptions::ShipEngineError.new(request_id, message, source, type, code)
+        raise Exceptions::ShipEngineError.new(message: message, source: source, type: type, code: code, request_id: request_id)
       end
+      # rubocop:enable Style/GuardClause
     end
   end
 end
