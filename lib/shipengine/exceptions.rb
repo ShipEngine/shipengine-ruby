@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'exceptions/error_code'
+require_relative 'exceptions/error_type'
 
 module ShipEngine
   module Exceptions

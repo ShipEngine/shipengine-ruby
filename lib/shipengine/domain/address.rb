@@ -14,19 +14,20 @@ module ShipEngine
   end
 
   class AddressValidationResult
-    attr_reader :normalized_address, :errors, :warnings, :info
+    attr_reader :normalized_address, :errors, :warnings, :info, :request_id
 
     # @param [Boolean] valid
     # @param [NormalizedAddress] normalized_address
-    # @param [AddressValidationMessage] errors
-    # @param [AddressValidationMessage] warnings
-    # @param [AddressValidationMessage] info
-    def initialize(valid:, normalized_address:, errors:, warnings:, info:)
+    # @param [Array<AddressValidationMessage>] errors
+    # @param [Array<AddressValidationMessage>] warnings
+    # @param [Array<AddressValidationMessage>] info
+    def initialize(valid:, normalized_address:, errors:, warnings:, info:, request_id:)
       @valid = valid
       @errors = errors
       @info = info
       @normalized_address = normalized_address
       @warnings = warnings
+      @request_id = request_id
     end
 
     def valid?
@@ -168,6 +169,7 @@ module ShipEngine
         end
 
         AddressValidationResult.new(
+          request_id: address_api_result['requestId'] || 'foo',
           valid: address_api_result['isValid'],
           errors: messages_classes.select { |msg| msg.type == 'error' },
           warnings: messages_classes.select { |msg| msg.type == 'warning' },
@@ -186,18 +188,33 @@ module ShipEngine
         )
       end
 
+      # @param response [AddressValidationResult]
+      def result_is_successful(response)
+        response.valid? and response.normalized_address and response.errors.empty?
+      end
+
       #
       # Normalize an address
       #
       # @param address [@see #validate]
       # @param config [Hash] <description>
       #
-      # @return [ShipEngine::NormalizedAddress]
+      # @return [ShipEngine::NormalizedAddress] - return a `NormalizedAddress`.
+      # Unlike the `validate` method, will throw a `ShipEngineError` if normalized_address is nil.
       #
-      def normalize(address, config); end
+      def normalize(address, config)
+        result = validate(address, config)
 
-      def foo
-        normalize
+        return result.normalized_address if result_is_successful(result)
+        err_message = result.errors.map { |err| err.message }.join("\n")
+        raise Exceptions::ShipEngineError.new(
+          message: "Invalid Address. #{err_message}",
+          source: 'shipengine',
+          type: Exceptions::ErrorType.get(:BUSINESS_RULES),
+          request_id:  result.request_id,
+          # Even though we are constructing this HERE, this should be something we could just grab from the server
+          code: Exceptions::ErrorCode.get(:INVALID_ADDRESS)
+        )
       end
     end
   end

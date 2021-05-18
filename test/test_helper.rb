@@ -7,10 +7,11 @@ require 'minitest/reporters'
 require 'minitest/spec'
 require 'minitest/hooks/default'
 require 'webmock/minitest'
+require 'minitest/focus'
+require 'minitest/fail_fast'
 WebMock.enable_net_connect!
 
 Minitest::Reporters.use! [Minitest::Reporters::ProgressReporter.new]
-require 'minitest/fail_fast'
 ENV['USE_SIMENGINE'] = 'true'
 require 'test_utility/custom_assertions'
 

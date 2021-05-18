@@ -12,6 +12,8 @@ module ShipEngine
       # @return [Symbol] error code - e.g. :invalid_field_value
       def self.get(key)
         @codes.fetch(key)
+      rescue ::KeyError => _e
+        key
       end
 
       # @param [String] str_key
@@ -21,6 +23,11 @@ module ShipEngine
       end
 
       @codes = {
+
+        ###############################
+
+        MINIMUM_POSTAL_CODE_VERIFICATION_FAILED: :minimum_postal_code_verification_failed,
+
         ##
         ## Only certain carriers support pre-paid balances. So you can only add funds
         ## to those carriers. If you attempt to add funds to a carrier that doesn't
