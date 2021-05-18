@@ -141,14 +141,14 @@ module ShipEngine
       # @return [ShipEngine::AddressValidationResult]
       def validate(address, config)
         address_params = {
-          street: address.fetch(:street, nil),
-          cityLocality: address.fetch(:city_locality, nil),
-          stateProvince: address.fetch(:state_province, nil),
-          postalCode: address.fetch(:postal_code, nil),
-          countryCode: address.fetch(:country, nil),
-          phone: address.fetch(:phone, nil),
-          name: address.fetch(:name, nil),
-          company: address.fetch(:company, nil)
+          street: address[:street],
+          cityLocality: address[:city_locality],
+          stateProvince: address[:state_province],
+          postalCode: address[:postal_code],
+          countryCode: address[:country],
+          phone: address[:phone],
+          name: address[:name],
+          company: address[:company]
         }.compact # drop nil
 
         Validate.assert_address_street(address_params[:street])
@@ -184,6 +184,20 @@ module ShipEngine
             residential: normalized_address_api_result['isResidential']
           )
         )
+      end
+
+      #
+      # Normalize an address
+      #
+      # @param address [@see #validate]
+      # @param config [Hash] <description>
+      #
+      # @return [ShipEngine::NormalizedAddress]
+      #
+      def normalize(address, config); end
+
+      def foo
+        normalize
       end
     end
   end
