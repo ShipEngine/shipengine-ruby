@@ -72,7 +72,7 @@ describe 'Internal Client Tests' do
 
     describe 'page_size' do
       it 'Should throw an error if page size is invalid at instantiation or at method call' do
-        page_size_err = { message: 'Page size must be greater than zero.', code: :invalid_field_value }
+        page_size_err = { message: 'Page size must be greater than zero.', code: ::ShipEngine::Exceptions::ErrorCode.get(:INVALID_FIELD_VALUE) }
 
         stub = stub_request(:post, base_url)
                .with(body: /.*/)
@@ -103,7 +103,7 @@ describe 'Internal Client Tests' do
 
     describe 'timeout' do
       it 'Should throw an error if timeout is invalid at instantiation or at method call' do
-        timeout_err = { message: 'Timeout must be greater than zero.', code: :invalid_field_value }
+        timeout_err = { message: 'Timeout must be greater than zero.', code: ::ShipEngine::Exceptions::ErrorCode.get(:INVALID_FIELD_VALUE) }
 
         stub = stub_request(:post, base_url)
                .with(body: /.*/)
@@ -134,7 +134,7 @@ describe 'Internal Client Tests' do
 
     describe 'retries' do
       it 'Should throw an error if retries is invalid at instantiation or at method call' do
-        retries_err = { message: 'Retries must be zero or greater.', code: :invalid_field_value }
+        retries_err = { message: 'Retries must be zero or greater.', code: ::ShipEngine::Exceptions::ErrorCode.get(:INVALID_FIELD_VALUE) }
 
         stub = stub_request(:post, base_url)
                .with(body: /.*/)
@@ -191,7 +191,7 @@ describe 'Internal Client Tests' do
         api_key_err = {
           source: 'shipengine',
           type: 'validation',
-          code: :field_value_required,
+          code: ::ShipEngine::Exceptions::ErrorCode.get(:FIELD_VALUE_REQUIRED),
           message: 'A ShipEngine API key must be specified.'
         }
 

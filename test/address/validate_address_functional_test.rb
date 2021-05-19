@@ -74,7 +74,7 @@ describe 'Validate Address: Functional' do
     expected_err = {
       source: 'shipengine',
       type: 'system',
-      code: :unspecified,
+      code: 'unspecified',
       message: 'Unable to connect to the database',
       request_id: :__REGEX_MATCH__
     }
@@ -116,7 +116,7 @@ describe 'Validate Address: Functional' do
   # DX-943 too many address lines
   it 'should throw a client-side error if there are too many address lines' do
     expected = {
-      code: :invalid_field_value,
+      code: 'invalid_field_value',
       message: 'Invalid address. No more than 3 street lines are allowed.',
       request_id: nil
     }
@@ -129,7 +129,7 @@ describe 'Validate Address: Functional' do
   # DX-942 No Address Lines
   it 'should throw a client-side error if there are no address lines' do
     expected = {
-      code: :field_value_required,
+      code: 'field_value_required',
       message: 'Invalid address. At least one address line is required.',
       request_id: nil
     }
@@ -263,7 +263,7 @@ describe 'Validate Address: Functional' do
   it 'validates country code / missing country-code' do
     # missing
     assert_raises_shipengine_validation({
-                                          code: :field_value_required,
+                                          code: 'field_value_required',
                                           message: 'Invalid address. The country must be specified.'
                                         }) do
       client.validate_address({
@@ -275,7 +275,7 @@ describe 'Validate Address: Functional' do
     end
 
     assert_raises_shipengine_validation({
-                                          code: :invalid_field_value,
+                                          code: 'invalid_field_value',
                                           message: 'Invalid address. XX is not a valid country code.'
                                         }) do
       client.validate_address({
@@ -308,7 +308,7 @@ describe 'Validate Address: Functional' do
     }
 
     expected = {
-      code: :field_value_required,
+      code: 'field_value_required',
       message:
         'Invalid address. Either the postal code or the city/locality and state/province must be specified.'
     }
@@ -470,7 +470,7 @@ describe 'Normalize Address: Functional' do
     expected_err = {
       source: 'shipengine',
       type: 'system',
-      code: :unspecified,
+      code: 'unspecified',
       message: 'Unable to connect to the database',
       request_id: :__REGEX_MATCH__
     }
@@ -506,7 +506,7 @@ describe 'Normalize Address: Functional' do
 
   it 'should throw a client-side error if there are too many address lines' do
     expected = {
-      code: :invalid_field_value,
+      code: 'invalid_field_value',
       message: 'Invalid address. No more than 3 street lines are allowed.',
       request_id: nil
     }
@@ -517,7 +517,7 @@ describe 'Normalize Address: Functional' do
 
   it 'should throw a client-side error if there are no address lines' do
     expected = {
-      code: :field_value_required,
+      code: 'field_value_required',
       message: 'Invalid address. At least one address line is required.',
       request_id: nil
     }
@@ -638,7 +638,7 @@ describe 'Normalize Address: Functional' do
     end
 
     assert_raises_shipengine_validation({
-                                          code: ::ShipEngine::Exceptions::ErrorCode.get(:INVALID_FIELD_VALUE),
+                                          code: 'invalid_field_value',
                                           message: 'Invalid address. XX is not a valid country code.'
                                         }) do
       client.normalize_address({
@@ -671,7 +671,7 @@ describe 'Normalize Address: Functional' do
     }
 
     expected_err = {
-      code: :field_value_required,
+      code: 'field_value_required',
       message:
         'Invalid address. Either the postal code or the city/locality and state/province must be specified.'
     }
@@ -746,7 +746,7 @@ describe 'Normalize Address: Functional' do
     expected = {
       source: 'shipengine',
       type: 'business_rules',
-      code: ::ShipEngine::Exceptions::ErrorCode.get(:INVALID_ADDRESS),
+      code: 'invalid_address',
       message: 'Invalid Address. Insufficient or inaccurate postal code',
       request_id: :__REGEX_MATCH__
     }
@@ -767,7 +767,7 @@ describe 'Normalize Address: Functional' do
     }
 
     assert_raises_shipengine(::ShipEngine::Exceptions::ShipEngineError, {
-                               code: ::ShipEngine::Exceptions::ErrorCode.get(:INVALID_ADDRESS),
+                               code: 'invalid_address',
                                message: "Invalid Address. Invalid City, State, or Zip\nInsufficient or Incorrect Address Data"
                              }) do
       client.normalize_address(params)

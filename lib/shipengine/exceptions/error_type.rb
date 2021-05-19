@@ -7,13 +7,13 @@ module ShipEngine
     # #/
     class ErrorType
       # @param [Symbol] key
-      # @return [Symbol] error type - e.g. :validation
+      # @return [Symbol] error type
       def self.get(key)
-        @types.fetch(key)
+        @types[key]
       end
 
       # @param [String] str_key
-      # @return [Symbol] error type - e.g. :validation
+      # @return [Symbol] error type
       def self.get_by_str(str_key)
         get(str_key.upcase.to_sym)
       end
