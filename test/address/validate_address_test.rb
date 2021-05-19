@@ -4,22 +4,16 @@ require 'test_helper'
 require 'shipengine'
 
 describe 'Validate Address' do
-  #
-  # <Description>
-  #
-  # @param [Hash] err_hash
-  # @param [class] err_res
-  #
-
   client = ::ShipEngine::Client.new(api_key: 'abc123')
   it 'Should successfully validate an address' do
-    success_request = client.validate_address({
-                                                street: ['501 Crawford St'],
-                                                city_locality: 'Houston',
-                                                postal_code: '77002',
-                                                state_province: 'TX',
-                                                country: 'US'
-                                              })
+    params = {
+      street: ['501 Crawford St'],
+      city_locality: 'Houston',
+      postal_code: '77002',
+      state_province: 'TX',
+      country: 'US'
+    }
+    success_request = client.validate_address(params)
     assert success_request
   end
 
@@ -29,7 +23,7 @@ describe 'Validate Address' do
   # the response is an actual class
   #
   it 'should serialize and coerce the address fields from the server into a ruby object with the correct shape' do
-    address_params = {
+    params = {
       street: [
         '170 Warning Blvd',
         'Apartment 32-B'
@@ -40,7 +34,7 @@ describe 'Validate Address' do
       country: 'CA'
     }
 
-    response = client.validate_address(address_params)
+    response = client.validate_address(params)
 
     # Expected api response:
     # _address_result = {
@@ -74,8 +68,7 @@ describe 'Validate Address' do
   end
 
   it 'should return name and company name and phone (if available)' do
-    # Address to validate
-    address_to_validate = {
+    params = {
       name: 'John Smith',
       phone: '77345517190',
       company: 'Shipmate',
@@ -86,7 +79,7 @@ describe 'Validate Address' do
       street: ['123 Foo', 'Some Other Line']
     }
 
-    response = client.validate_address(address_to_validate)
+    response = client.validate_address(params)
     assert_equal('77345517190', response.normalized_address.phone)
     assert_equal('Shipmate', response.normalized_address.company)
     assert_equal('John Smith', response.normalized_address.name)
