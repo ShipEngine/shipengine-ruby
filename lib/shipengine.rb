@@ -61,6 +61,7 @@ module ShipEngine
       internal_client = InternalClient.new(@configuration)
       @address = Domain::Address.new(internal_client)
       @package = Domain::Package.new(internal_client)
+      @carriers = Domain::Carrier.new(internal_client)
     end
 
     #
@@ -95,6 +96,10 @@ module ShipEngine
       @address.normalize(address, config)
     end
 
+    def list_carrier_accounts(carrier_code = nil, config = {})
+      @carriers.list_accounts(carrier_code, config)
+    end
+
     def track_package_by_id(package_id, config = {})
       @package.track_by_id(package_id, config)
     end
@@ -102,6 +107,5 @@ module ShipEngine
     def track_package_by_tracking_number(tracking_number, carrier_code, config = {})
       @package.track_by_tracking_number(tracking_number, carrier_code, config)
     end
-
   end
 end

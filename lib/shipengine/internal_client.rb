@@ -48,6 +48,7 @@ module ShipEngine
 
       assert_shipengine_rpc_success(response)
 
+      # TODO: return the entire response
       body['result']['requestId'] = body['id']
       body['result']
     end
