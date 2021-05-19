@@ -102,13 +102,7 @@ module ShipEngine
 
       message, data = error.values_at('message', 'data')
       source, type, code = data.values_at('source', 'type', 'code')
-      # rubocop:disable Style/GuardClause
-      if type == 'validation'
-        raise Exceptions::ValidationError.new(message: message, code: code, request_id: request_id)
-      else
-        raise Exceptions::ShipEngineError.new(message: message, source: source, type: type, code: code, request_id: request_id)
-      end
-      # rubocop:enable Style/GuardClause
+      raise Exceptions.create_error_instance_by_type(type: type, message: message, code: code, request_id: request_id, source: source)
     end
   end
 end

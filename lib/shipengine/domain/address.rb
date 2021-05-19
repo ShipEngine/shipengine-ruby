@@ -169,7 +169,7 @@ module ShipEngine
         end
 
         AddressValidationResult.new(
-          request_id: address_api_result['requestId'] || 'foo',
+          request_id: address_api_result['requestId'],
           valid: address_api_result['isValid'],
           errors: messages_classes.select { |msg| msg.type == 'error' },
           warnings: messages_classes.select { |msg| msg.type == 'warning' },
@@ -206,14 +206,13 @@ module ShipEngine
         result = validate(address, config)
 
         return result.normalized_address if result_is_successful(result)
+
         err_message = result.errors.map { |err| err.message }.join("\n")
-        raise Exceptions::ShipEngineError.new(
+        raise Exceptions::BusinessRulesError.new(
           message: "Invalid Address. #{err_message}",
-          source: 'shipengine',
-          type: Exceptions::ErrorType.get(:BUSINESS_RULES),
-          request_id:  result.request_id,
+          code: Exceptions::ErrorCode.get(:INVALID_ADDRESS),
+          request_id: result.request_id
           # Even though we are constructing this HERE, this should be something we could just grab from the server
-          code: Exceptions::ErrorCode.get(:INVALID_ADDRESS)
         )
       end
     end
