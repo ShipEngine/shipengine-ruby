@@ -15,6 +15,17 @@ class ShipEngineErrorLogger
 end
 
 module ShipEngine
+  class InternalClientResponseSuccess
+    attr_reader :result, :request_id
+
+    # @param result [Hash | Array]
+    # @param request_id [String]
+    def initialize(result:, request_id:)
+      @result = result
+      @request_id = request_id
+    end
+  end
+
   class InternalClient
     attr_reader :configuration
 
@@ -30,8 +41,7 @@ module ShipEngine
     # @option config [String?] :base_url
     # @option config [Number?] :retries
     # @option config [Number?] :timeout
-    # @return [Hash] - `result` object from JSON-RPC request
-
+    # @return [::InternalClientResponseSuccess]
     # @example
     #   make_request("address.validate.v1", {address: {...}}, {api_key: "123"}, ...) #=> {...}
     def make_request(method, params, config = { api_key: nil, base_url: nil, retries: nil,
@@ -44,13 +54,9 @@ module ShipEngine
         req.body = build_jsonrpc_request_body(method, params)
       end
 
-      body = response.body
-
       assert_shipengine_rpc_success(response)
-
-      # TODO: return the entire response
-      body['result']['requestId'] = body['id']
-      body['result']
+      result, id = response.body.values_at("result", "id")
+      InternalClientResponseSuccess.new(result: result, request_id: id)
     end
 
     private

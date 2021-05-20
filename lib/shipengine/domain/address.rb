@@ -159,8 +159,10 @@ module ShipEngine
           city: address_params[:cityLocality], state: address_params[:stateProvince]
         )
 
-        address_api_result = @internal_client.make_request('address.validate.v1',
-                                                           { address: address_params }, config)
+        response = @internal_client.make_request('address.validate.v1',
+                                                 { address: address_params }, config)
+        address_api_result = response.result
+        id = response.request_id
 
         normalized_address_api_result = address_api_result['normalizedAddress'] || nil
 
@@ -169,7 +171,7 @@ module ShipEngine
         end
 
         AddressValidationResult.new(
-          request_id: address_api_result['requestId'],
+          request_id: id,
           valid: address_api_result['isValid'],
           errors: messages_classes.select { |msg| msg.type == 'error' },
           warnings: messages_classes.select { |msg| msg.type == 'warning' },
