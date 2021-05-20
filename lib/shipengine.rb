@@ -83,8 +83,7 @@ module ShipEngine
     #
     # Validates an address
     # @param [Address] address
-    # @param [<Type>] options
-    # @param config [Hash?]
+    # @param config [Hash]
     # @option config [String?] :api_key
     # @option config [String?] :base_url
     # @option config [Number?] :retries
@@ -96,7 +95,7 @@ module ShipEngine
       @address.normalize(address, config)
     end
 
-    def list_carrier_accounts(carrier_code = nil, config = {})
+    def list_carrier_accounts(carrier_code: nil, config: {})
       @carriers.list_accounts(carrier_code, config)
     end
 

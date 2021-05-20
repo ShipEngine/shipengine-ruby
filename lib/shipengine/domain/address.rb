@@ -203,7 +203,6 @@ module ShipEngine
       #
       # @return [ShipEngine::NormalizedAddress] - return a `NormalizedAddress`.
       # Unlike the `validate` method, will throw a `ShipEngineError` if normalized_address is nil.
-      #
       def normalize(address, config)
         result = validate(address, config)
 
