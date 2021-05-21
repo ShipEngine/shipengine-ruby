@@ -96,7 +96,7 @@ module ShipEngine
     end
 
     def list_carrier_accounts(carrier_code: nil, config: {})
-      @carriers.list_accounts(carrier_code, config)
+      @carriers.list_accounts(carrier_code: carrier_code, config: config)
     end
 
     def track_package_by_id(package_id, config = {})

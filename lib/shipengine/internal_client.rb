@@ -55,7 +55,7 @@ module ShipEngine
       end
 
       assert_shipengine_rpc_success(response)
-      result, id = response.body.values_at("result", "id")
+      result, id = response.body.values_at('result', 'id')
       InternalClientResponseSuccess.new(result: result, request_id: id)
     end
 

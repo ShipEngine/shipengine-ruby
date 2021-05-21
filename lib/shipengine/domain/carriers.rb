@@ -7,27 +7,19 @@ module ShipEngine
   class Carrier
     attr_reader :code, :name
 
+    # @param code [string] e.g. 'ups' | 'fedex'
     def initialize(code)
       @code = code
-      @name = get_name(code)
+      @name = CARRIER_MAP[code]
     end
 
-    private
-
-    # map of [carrier_code => name]
+    # {"carrier_code" => "name"}
     CARRIER_MAP = {
       'ups' => 'United Parcel Service',
       'fedex' => 'FedEx',
       'usps' => 'U.S. Postal Service',
       'stamps_com' => 'Stamps.com'
-    }
-
-    def get_name(code)
-      nil unless code.is_a?(String)
-      normalized_code = code.downcase
-      CARRIER_MAP[normalized_code]
-      # @carrier_map[normalized_code]
-    end
+    }.freeze
   end
 
   class CarrierAccount
@@ -52,8 +44,8 @@ module ShipEngine
         @internal_client = internal_client
       end
 
-      def list_accounts(carrier_code = nil, config)
-        response = @internal_client.make_request('carrier.listAccounts.v1', { carrierCode: carrier_code }, config)
+      def list_accounts(config:, carrier_code: nil)
+        response = @internal_client.make_request('carrier.listAccounts.v1', { carrierCode: carrier_code }.compact, config)
         accounts = response.result['carrierAccounts']
         accounts.map do |account|
           CarrierAccount.new(

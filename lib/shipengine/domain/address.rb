@@ -208,7 +208,7 @@ module ShipEngine
 
         return result.normalized_address if result_is_successful(result)
 
-        err_message = result.errors.map { |err| err.message }.join("\n")
+        err_message = result.errors.map(&:message).join("\n")
         raise Exceptions::BusinessRulesError.new(
           message: "Invalid Address. #{err_message}",
           code: Exceptions::ErrorCode.get(:INVALID_ADDRESS),

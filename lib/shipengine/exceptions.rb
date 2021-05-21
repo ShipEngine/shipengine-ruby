@@ -33,8 +33,8 @@ module ShipEngine
       ValidationError.new(message: message, code: Exceptions::ErrorCode.get(:INVALID_FIELD_VALUE), request_id: request_id, source: source)
     end
 
-    def self.create_required_error(missing_item, request_id = nil, source = nil)
-      ValidationError.new(message: "#{missing_item} must be specified.",
+    def self.create_required_error(field_name, request_id = nil, source = nil)
+      ValidationError.new(message: "#{field_name} must be specified.",
                           code: Exceptions::ErrorCode.get(:FIELD_VALUE_REQUIRED), request_id: request_id, source: source)
     end
 
@@ -69,7 +69,7 @@ module ShipEngine
 
     def self.create_error_instance_by_type(type:, message:, code:, request_id: nil, source: nil)
       error = get_error_class_by_type(type)
-      error.new(message: message, code: code, request_id: request_id, source: source) unless error.nil?
+      return error.new(message: message, code: code, request_id: request_id, source: source) unless error.nil?
 
       ShipEngineError.new(message: message, source: source, code: code, type: type, request_id: request_id)
     end
