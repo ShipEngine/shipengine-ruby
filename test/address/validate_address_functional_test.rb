@@ -16,42 +16,6 @@ def get_address(overrides = {})
   }.merge(overrides)
 end
 
-# @param expected_address [Hash]
-# @param response [::ShipEngine::AddressValidationResult]
-def assert_address_equals(expected_address, response)
-  # rubocop:disable Layout/LineLength
-  assert_equal(expected_address[:valid], response.valid?, '-> valid') if expected_address.key?(:valid)
-  assert_messages_equals(expected_address[:warnings], response.warnings) if expected_address.key?(:warnings)
-  assert_messages_equals(expected_address[:info], response.info) if expected_address.key?(:info)
-  assert_messages_equals(expected_address[:errors], response.errors) if expected_address.key?(:errors)
-
-  return assert_nil(response.normalized_address, '~> normalized_address') if expected_address.key?(:normalized_address) && expected_address[:normalized_address].nil?
-
-  expected_address_normalized = expected_address[:normalized_address]
-
-  assert_equal(expected_address_normalized[:residential], response.normalized_address.residential?, '-> residential') if expected_address_normalized.key?(:residential)
-  assert_equal(expected_address_normalized[:name], response.normalized_address.name, '-> name') if expected_address_normalized.key?(:name)
-  assert_equal(expected_address_normalized[:company], response.normalized_address.company, '-> company') if expected_address_normalized.key?(:company)
-  assert_equal(expected_address_normalized[:phone], response.normalized_address.phone, '-> phone') if expected_address_normalized.key?(:phone)
-  assert_equal(expected_address_normalized[:street], response.normalized_address.street, '-> street') if expected_address_normalized.key?(:street)
-  assert_equal(expected_address_normalized[:city_locality], response.normalized_address.city_locality, '-> city_locality') if expected_address_normalized.key?(:city_locality)
-  assert_equal(expected_address_normalized[:country], response.normalized_address.country, '-> country') if expected_address_normalized.key?(:country)
-  # rubocop:enable Layout/LineLength
-end
-
-# @param expected_messages [Array<Hash>]
-# @param response_messages [Array<::ShipEngine::AddressValidationMessage>]
-def assert_messages_equals(expected_messages, response_messages)
-  assert_equal(expected_messages.length, response_messages.length,
-               "expected_messages and response_messages should be the same length. expected: #{expected_messages}, response: #{response_messages}")
-  expected_messages.each_with_index do |message, idx|
-    r_msg = response_messages[idx]
-    assert_equal(message.fetch(:code), r_msg.code)
-    assert_equal(message.fetch(:type), r_msg.type)
-    assert_equal(message.fetch(:message), r_msg.message)
-  end
-end
-
 describe 'Validate Address: Functional' do
   client = ::ShipEngine::Client.new(api_key: 'abc123')
   # DX-938 -
@@ -66,7 +30,7 @@ describe 'Validate Address: Functional' do
     expected_err = {
       source: 'shipengine',
       type: 'system',
-      code: :unspecified,
+      code: 'unspecified',
       message: 'Unable to connect to the database',
       request_id: :__REGEX_MATCH__
     }
@@ -102,13 +66,13 @@ describe 'Validate Address: Functional' do
       errors: []
     }
     response = client.validate_address(params)
-    assert_address_equals(expected, response)
+    assert_address_validation_result(expected, response)
   end
 
   # DX-943 too many address lines
   it 'should throw a client-side error if there are too many address lines' do
     expected = {
-      code: :invalid_field_value,
+      code: 'invalid_field_value',
       message: 'Invalid address. No more than 3 street lines are allowed.',
       request_id: nil
     }
@@ -121,7 +85,7 @@ describe 'Validate Address: Functional' do
   # DX-942 No Address Lines
   it 'should throw a client-side error if there are no address lines' do
     expected = {
-      code: :field_value_required,
+      code: 'field_value_required',
       message: 'Invalid address. At least one address line is required.',
       request_id: nil
     }
@@ -161,7 +125,7 @@ describe 'Validate Address: Functional' do
     }
 
     response = client.validate_address(params)
-    assert_address_equals(expected, response)
+    assert_address_validation_result(expected, response)
   end
 
   # DX-935 Valid Commercial
@@ -192,7 +156,7 @@ describe 'Validate Address: Functional' do
       errors: []
     }
     response = client.validate_address(params)
-    assert_address_equals(expected, response)
+    assert_address_validation_result(expected, response)
   end
 
   # DX-935 Valid address of unknown type
@@ -221,7 +185,7 @@ describe 'Validate Address: Functional' do
       errors: []
     }
     response = client.validate_address(params)
-    assert_address_equals(expected, response)
+    assert_address_validation_result(expected, response)
   end
 
   # DX-939
@@ -248,14 +212,14 @@ describe 'Validate Address: Functional' do
       errors: []
     }
     response = client.validate_address(params)
-    assert_address_equals(expected, response)
+    assert_address_validation_result(expected, response)
   end
 
   # DX-945 Missing Country Code | DX-946 Invalid Country Code
   it 'validates country code / missing country-code' do
     # missing
     assert_raises_shipengine_validation({
-                                          code: :field_value_required,
+                                          code: 'field_value_required',
                                           message: 'Invalid address. The country must be specified.'
                                         }) do
       client.validate_address({
@@ -267,7 +231,7 @@ describe 'Validate Address: Functional' do
     end
 
     assert_raises_shipengine_validation({
-                                          code: :invalid_field_value,
+                                          code: 'invalid_field_value',
                                           message: 'Invalid address. XX is not a valid country code.'
                                         }) do
       client.validate_address({
@@ -300,7 +264,7 @@ describe 'Validate Address: Functional' do
     }
 
     expected = {
-      code: :field_value_required,
+      code: 'field_value_required',
       message:
         'Invalid address. Either the postal code or the city/locality and state/province must be specified.'
     }
@@ -316,7 +280,6 @@ describe 'Validate Address: Functional' do
     assert_raises_shipengine_validation(expected) do
       client.validate_address(missing_postal_code_city_and_state)
     end
-    # nice
   end
 
   # DX-937 - numeric postal code
@@ -345,7 +308,7 @@ describe 'Validate Address: Functional' do
       info: [],
       errors: []
     }
-    assert_address_equals(expected, response)
+    assert_address_validation_result(expected, response)
   end
 
   it 'handles alphanumeric postal code ' do
@@ -370,7 +333,7 @@ describe 'Validate Address: Functional' do
       info: [],
       errors: []
     }
-    assert_address_equals(expected, response)
+    assert_address_validation_result(expected, response)
   end
   # DX-941
   it 'handles messages: errors' do
@@ -406,8 +369,7 @@ describe 'Validate Address: Functional' do
       info: [],
       errors: [expected_error_message, expected_error_message2]
     }
-    assert_address_equals(expected, response)
-    # nice
+    assert_address_validation_result(expected, response)
   end
 
   # DX-940
@@ -443,6 +405,6 @@ describe 'Validate Address: Functional' do
     }
 
     response = client.validate_address(params)
-    assert_address_equals(expected, response)
+    assert_address_validation_result(expected, response)
   end
 end

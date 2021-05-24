@@ -20,7 +20,7 @@ describe 'Assertion testing' do
     err = assert_error_message(exceptions::ValidationError, "#{field_name} must be an Array.") do
       validate.array_of_str(field_name, 'not_a_string_array')
     end
-    assert_equal :invalid_field_value, err.code
+    assert_equal ::ShipEngine::Exceptions::ErrorCode.get(:INVALID_FIELD_VALUE), err.code
   end
 
   it 'should throw exception if not hash' do
@@ -34,7 +34,7 @@ describe 'Assertion testing' do
     err = assert_error_message(exceptions::ValidationError) do
       validate.hash(field_name, nil)
     end
-    assert_equal :field_value_required, err.code
+    assert_equal ::ShipEngine::Exceptions::ErrorCode.get(:FIELD_VALUE_REQUIRED), err.code
   end
 
   it 'should validate a non-whitespace-string' do
@@ -44,6 +44,6 @@ describe 'Assertion testing' do
       validate.non_whitespace_str(field_name, '  ')
       validate.non_whitespace_str(field_name, '')
     end
-    assert_equal :invalid_field_value, err.code
+    assert_equal ::ShipEngine::Exceptions::ErrorCode.get(:INVALID_FIELD_VALUE), err.code
   end
 end

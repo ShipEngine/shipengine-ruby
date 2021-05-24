@@ -79,6 +79,22 @@ module ShipEngine
       @address.validate(address, config)
     end
 
+    #
+    # Validates an address
+    # @param [Address] address
+    # @param [<Type>] options
+    # @param config [Hash?]
+    # @option config [String?] :api_key
+    # @option config [String?] :base_url
+    # @option config [Number?] :retries
+    # @option config [Number?] :timeout
+    #
+    # @return [::ShipEngine::NormalizedAddress]
+    #
+    def normalize_address(address, config = {})
+      @address.normalize(address, config)
+    end
+
     def track_package_by_id(package_id, config = {})
       @package.track_by_id(package_id, config)
     end
@@ -86,5 +102,6 @@ module ShipEngine
     def track_package_by_tracking_number(tracking_number, carrier_code, config = {})
       @package.track_by_tracking_number(tracking_number, carrier_code, config)
     end
+
   end
 end

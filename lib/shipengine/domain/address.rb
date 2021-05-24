@@ -14,19 +14,20 @@ module ShipEngine
   end
 
   class AddressValidationResult
-    attr_reader :normalized_address, :errors, :warnings, :info
+    attr_reader :normalized_address, :errors, :warnings, :info, :request_id
 
     # @param [Boolean] valid
     # @param [NormalizedAddress] normalized_address
-    # @param [AddressValidationMessage] errors
-    # @param [AddressValidationMessage] warnings
-    # @param [AddressValidationMessage] info
-    def initialize(valid:, normalized_address:, errors:, warnings:, info:)
+    # @param [Array<AddressValidationMessage>] errors
+    # @param [Array<AddressValidationMessage>] warnings
+    # @param [Array<AddressValidationMessage>] info
+    def initialize(valid:, normalized_address:, errors:, warnings:, info:, request_id:)
       @valid = valid
       @errors = errors
       @info = info
       @normalized_address = normalized_address
       @warnings = warnings
+      @request_id = request_id
     end
 
     def valid?
@@ -141,14 +142,14 @@ module ShipEngine
       # @return [ShipEngine::AddressValidationResult]
       def validate(address, config)
         address_params = {
-          street: address.fetch(:street, nil),
-          cityLocality: address.fetch(:city_locality, nil),
-          stateProvince: address.fetch(:state_province, nil),
-          postalCode: address.fetch(:postal_code, nil),
-          countryCode: address.fetch(:country, nil),
-          phone: address.fetch(:phone, nil),
-          name: address.fetch(:name, nil),
-          company: address.fetch(:company, nil)
+          street: address[:street],
+          cityLocality: address[:city_locality],
+          stateProvince: address[:state_province],
+          postalCode: address[:postal_code],
+          countryCode: address[:country],
+          phone: address[:phone],
+          name: address[:name],
+          company: address[:company]
         }.compact # drop nil
 
         Validate.assert_address_street(address_params[:street])
@@ -168,6 +169,7 @@ module ShipEngine
         end
 
         AddressValidationResult.new(
+          request_id: address_api_result['requestId'],
           valid: address_api_result['isValid'],
           errors: messages_classes.select { |msg| msg.type == 'error' },
           warnings: messages_classes.select { |msg| msg.type == 'warning' },
@@ -183,6 +185,34 @@ module ShipEngine
             city_locality: normalized_address_api_result['cityLocality'],
             residential: normalized_address_api_result['isResidential']
           )
+        )
+      end
+
+      # @param response [AddressValidationResult]
+      def result_is_successful(response)
+        response.valid? and response.normalized_address and response.errors.empty?
+      end
+
+      #
+      # Normalize an address
+      #
+      # @param address [@see #validate]
+      # @param config [Hash] <description>
+      #
+      # @return [ShipEngine::NormalizedAddress] - return a `NormalizedAddress`.
+      # Unlike the `validate` method, will throw a `ShipEngineError` if normalized_address is nil.
+      #
+      def normalize(address, config)
+        result = validate(address, config)
+
+        return result.normalized_address if result_is_successful(result)
+
+        err_message = result.errors.map { |err| err.message }.join("\n")
+        raise Exceptions::BusinessRulesError.new(
+          message: "Invalid Address. #{err_message}",
+          code: Exceptions::ErrorCode.get(:INVALID_ADDRESS),
+          request_id: result.request_id
+          # Even though we are constructing this HERE, this should be something we could just grab from the server
         )
       end
     end
