@@ -66,6 +66,14 @@ module ShipEngine
       end
     end
 
+    class RateLimitError < SystemError
+      attr_reader :retry_attempt
+      def initialize(message:, request_id: nil, retry_attempt: nil)
+        super(message: message, code: 'rate_limit_error', request_id: request_id)
+        @retry_attempt = retry_attempt
+      end
+    end
+
     def self.create_error_instance_by_type(type:, message:, code:, request_id: nil, source: nil)
       error = get_error_class_by_type(type)
       return error.new(message: message, code: code, request_id: request_id, source: source) unless error.nil?

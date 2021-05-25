@@ -9,8 +9,7 @@ require 'logger'
 class ShipEngineErrorLogger
   def self.log(msg, data)
     logger = Logger.new($stderr)
-    logger.log("msg: #{msg}")
-    logger.error(data)
+    logger.error([msg, data])
   end
 end
 
@@ -70,7 +69,11 @@ module ShipEngine
       timeout = configuration.timeout
       Faraday.new(url: base_url, request: { timeout: timeout }) do |f|
         f.request :json
-        f.request :retry, { max: retries }
+        f.request :retry, {
+          max: retries,
+          retry_statuses: [429], # even though this seems self-evident, this field is neccessary for Retry-After to be respected.
+          methods: Faraday::Request::Retry::IDEMPOTENT_METHODS + [:post] # :post is not a "retry-able request by default"
+        }
         f.headers = {
           'API-Key' => api_key,
           'Content-Type' => 'application/json',
@@ -79,7 +82,6 @@ module ShipEngine
         }
 
         f.response :json
-        f.adapter Faraday.default_adapter
       end
     end
 

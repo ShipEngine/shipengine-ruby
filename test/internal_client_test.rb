@@ -31,6 +31,27 @@ valid_address_res = JSON.generate({
                                     }
                                   })
 
+module Factory
+  def self.rate_limit_error(data: {})
+    result = {
+      jsonrpc: '2.0',
+      id: 'req_123456',
+      error: {
+        code: -32_603,
+        message: 'You have exceeded the rate limit.',
+        data: {
+          source: 'shipengine',
+          type: 'system',
+          code: 'rate_limit_exceeded',
+          url: 'https://www.shipengine.com/docs/rate-limits',
+          retryAfter: 3
+        }.merge(data)
+      }
+    }
+    JSON.generate(result)
+  end
+end
+
 describe 'Internal Client Tests' do
   after do
     WebMock.reset!
@@ -175,6 +196,48 @@ describe 'Internal Client Tests' do
         client.configuration.retries = 0
         client.validate_address(valid_address_params)
       end
+
+      it 'should have a default value of 1' do
+        client = ShipEngine::Client.new(api_key: 'abc1234')
+        assert_equal(1, client.configuration.retries)
+      end
+
+      it 'should retry once again on a 429' do
+        retries = 1
+        stub = stub_request(:post, base_url)
+               .to_return(status: 429, body: Factory.rate_limit_error).then
+               .to_return(status: 429, body: Factory.rate_limit_error)
+
+        client = ShipEngine::Client.new(api_key: 'abc123', retries: retries)
+
+        assert_raises_rate_limit_error { client.validate_address(valid_address_params) }
+
+        assert_requested(stub, times: retries + 1)
+      end
+
+      it 'should not retry more than once | should return shipengine exception when retry limit is exhausted' do
+        retries = 2
+        stub = stub_request(:post, base_url)
+               .to_return(status: 429, body: Factory.rate_limit_error).then
+               .to_return(status: 429, body: Factory.rate_limit_error).then
+               .to_return(status: 429, body: Factory.rate_limit_error)
+        client = ShipEngine::Client.new(api_key: 'abc123', retries: retries)
+
+        assert_raises_rate_limit_error { client.validate_address(valid_address_params) }
+
+        assert_requested(stub, times: retries + 1)
+      end
+
+      # it 'should respect Retry-After header' do
+      #   stub = stub_request(:post, base_url)
+      #          .to_return(status: 429, body: nil, headers: { "Retry-After": '' }).then
+      #          .to_return(status: 200, body: valid_address_res)
+
+      #   client = ShipEngine::Client.new(api_key: 'abc1234', retries: 3)
+      #   client.validate_address(valid_address_params)
+      #   assert_requested(stub, times: 2)
+      #   #  assert_kind_of(ShipEngine::AddressValidationResult, response)
+      # end
     end
 
     describe 'api_key' do

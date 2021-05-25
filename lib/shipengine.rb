@@ -17,7 +17,7 @@ module ShipEngine
     def initialize(api_key:, retries: nil, timeout: nil, page_size: nil, base_url: nil)
       @api_key = api_key
       @base_url = base_url || (ENV['USE_SIMENGINE'] == 'true' ? 'https://simengine.herokuapp.com/jsonrpc' : 'https://api.shipengine.com')
-      @retries = retries || 0
+      @retries = retries || 1
       @timeout = timeout || 5 # https://github.com/lostisland/faraday/issues/708
       @page_size = page_size || 50
       validate

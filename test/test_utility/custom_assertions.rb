@@ -5,8 +5,7 @@ require 'minitest/assertions'
 module CustomAssertions
   include Minitest::Assertions
   def assert_response_error(expected_err, response_err)
-    assert_equal(expected_err[:message], response_err.to_s) if expected_err.key?(:message)
-    assert_equal(expected_err[:message], response_err.message) if expected_err.key?(:message)
+    assert_equal(expected_err[:message], response_err.to_s) and assert_equal(expected_err[:message], response_err.message) if expected_err.key?(:message)
     assert_equal(expected_err[:code], response_err.code) if expected_err.key?(:code)
     assert_equal(expected_err[:source], response_err.source) if expected_err.key?(:source)
     assert_equal(expected_err[:type], response_err.type) if expected_err.key?(:type)
@@ -67,6 +66,14 @@ module CustomAssertions
     expected_address_normalized = expected_result[:normalized_address]
     assert_normalized_address(expected_address_normalized, response_result.normalized_address)
     # rubocop:enable Layout/LineLength
+  end
+
+  def assert_raises_rate_limit_error(&block)
+    assert_raises_shipengine(ShipEngine::Exceptions::SystemError, {
+      code: 'rate_limit_exceeded',
+      message: 'You have exceeded the rate limit.',
+      source: 'shipengine'
+    }, &block)
   end
 
   # @param expected_messages [Array<Hash>]
