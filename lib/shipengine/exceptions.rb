@@ -7,14 +7,13 @@ module ShipEngine
   module Exceptions
     # 400 error, or other "user exceptions"
     class ShipEngineError < StandardError
-      attr_reader :request_id, :message, :source, :type, :code
+      # message is inherited
+      attr_reader :request_id, :source, :type, :code
 
       def initialize(message:, source:, type:, code:, request_id:)
         code = Exceptions::ErrorCode.get_by_str(code) if code.is_a?(String)
-
         super(message)
         @request_id = request_id
-        @message = message
         @source = source || 'shipengine'
         @type = type
         @code = code
@@ -74,6 +73,8 @@ module ShipEngine
       ShipEngineError.new(message: message, source: source, code: code, type: type, request_id: request_id)
     end
 
+    # @param error_type [String] e.g "validation"
+    # @return [BusinessRulesError, AccountStatusError, SecurityError, SystemError, ValidationError]
     def self.get_error_class_by_type(error_type)
       case error_type
       when Exceptions::ErrorType.get(:BUSINESS_RULES)
