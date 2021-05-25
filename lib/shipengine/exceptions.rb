@@ -74,8 +74,6 @@ module ShipEngine
       ShipEngineError.new(message: message, source: source, code: code, type: type, request_id: request_id)
     end
 
-    # @param error_type [String] e.g "validation"
-    # @return [BusinessRulesError, AccountStatusError, SecurityError, SystemError, ValidationError]
     def self.get_error_class_by_type(error_type)
       case error_type
       when Exceptions::ErrorType.get(:BUSINESS_RULES)
