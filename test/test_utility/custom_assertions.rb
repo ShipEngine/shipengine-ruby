@@ -70,12 +70,13 @@ module CustomAssertions
     # rubocop:enable Layout/LineLength
   end
 
-  def assert_raises_rate_limit_error(&block)
-    assert_raises_shipengine(ShipEngine::Exceptions::RateLimitError, {
-                               code: 'rate_limit_exceeded',
-                               message: 'You have exceeded the rate limit.',
-                               source: 'shipengine'
-                             }, &block)
+  def assert_raises_rate_limit_error(retries: nil, &block)
+    err = assert_raises_shipengine(ShipEngine::Exceptions::RateLimitError, {
+                                     code: 'rate_limit_exceeded',
+                                     message: 'You have exceeded the rate limit.',
+                                     source: 'shipengine'
+                                   }, &block)
+    assert_equal(retries, err.retries) unless retries.nil?
   end
 
   # @param expected_messages [Array<Hash>]

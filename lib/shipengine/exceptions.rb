@@ -68,20 +68,26 @@ module ShipEngine
     end
 
     class RateLimitError < SystemError
-      attr_reader :retry_attempt
+      attr_reader :retries
 
-      def initialize(message: 'You have exceeded the rate limit.', source: nil, request_id: nil)
-        super(message: message, code: ErrorCode.get(:RATE_LIMIT_EXCEEDED), request_id: request_id, source: source)
+      def initialize(retries: nil, message: 'You have exceeded the rate limit.', source: nil, request_id: nil)
+        super(
+          message: message,
+          code: ErrorCode.get(:RATE_LIMIT_EXCEEDED),
+          request_id: request_id,
+          source: source,
+        )
+        @retries = retries
       end
     end
 
     class TimeoutError < SystemError
-      def initialize(message:, source: nil, request_id: nil)
+      def initialize(message:, source: ::Exceptions::DEFAULT_SOURCE, request_id: nil)
         super(message: message, code: ErrorCode.get(:TIMEOUT), request_id: request_id, source: source)
       end
     end
 
-    def self.create_error_instance_by_type(type:, message:, code:, request_id: nil, source: nil)
+    def self.create_error_instance(type:, message:, code:, request_id: nil, source: nil, config: nil)
       case type
       when Exceptions::ErrorType.get(:BUSINESS_RULES)
         BusinessRulesError.new(message: message, code: code, request_id: request_id, source: source)
@@ -94,7 +100,7 @@ module ShipEngine
       when Exceptions::ErrorType.get(:SYSTEM)
         case code
         when ErrorCode.get(:RATE_LIMIT_EXCEEDED)
-          RateLimitError.new(message: message, request_id: request_id, source: source)
+          RateLimitError.new(message: message, request_id: request_id, source: source, retries: config.retries)
         when ErrorCode.get(:TIMEOUT)
           TimeoutError.new(message: message, request_id: request_id, source: source)
         else

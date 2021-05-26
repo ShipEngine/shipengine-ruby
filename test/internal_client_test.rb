@@ -224,14 +224,24 @@ describe 'Internal Client Tests' do
         assert_raises_rate_limit_error { client.validate_address(valid_address_params) }
       end
 
+      it 'should throw an error with the number of tries' do
+        client = ShipEngine::Client.new(api_key: 'abc123', retries: 2)
+        stub_request(:post, base_url)
+          .to_return(status: 429, body: Factory.rate_limit_error).then
+          .to_return(status: 429, body: Factory.rate_limit_error).then
+          .to_return(status: 429, body: Factory.rate_limit_error)
+        assert_raises_rate_limit_error(retries: 2) { client.validate_address(valid_address_params) }
+      end
+
       it 'respects the Retry-After header, which can override error.retryAfter' do
         client = ShipEngine::Client.new(api_key: 'abc123', retries: 1)
         stub = stub_request(:post, base_url)
-               .to_return(status: 429, body: Factory.rate_limit_error, headers: { "Retry-After": 1 }).then
-               .to_return(status: 200, body: valid_address_res)
+               .to_return(status: 429, body: Factory.rate_limit_error, headers: { "Retry-After": 1 })
+               .then.to_return(status: 200, body: valid_address_res)
         start = Time.now
         client.validate_address(valid_address_params)
         diff = Time.now - start
+
         assert_operator(diff, :>, 1, 'should take more than than 1 second')
         assert_requested(stub, times: 2)
       end
@@ -263,17 +273,17 @@ describe 'Internal Client Tests' do
 
       # https://auctane.atlassian.net/browse/DX-1500
       it 'SLOW: should use the retryAfter field in errors to dictate how long it should wait to retry' do
-        retries = 2
+        retries = 3
         client = ShipEngine::Client.new(api_key: 'abc123', retries: retries)
         stub = stub_request(:post, base_url)
                .to_return(status: 429, body: Factory.rate_limit_error(data: { retryAfter: 1 })).then
-               .to_return(status: 429, body: Factory.rate_limit_error(data: { retryAfter: 2 })).then
+               .to_return(status: 429, body: Factory.rate_limit_error(data: { retryAfter: 1 })).then
+               .to_return(status: 429, body: Factory.rate_limit_error(data: { retryAfter: 1 })).then
                .to_return(status: 200, body: valid_address_res)
         start = Time.now
         client.validate_address(valid_address_params)
         diff = Time.now - start
-        assert_operator(diff, :>, 3, 'should take between 3 and 4 seconds')
-        assert_operator(diff, :<, 4, 'should take between 3 and 4 seconds')
+        assert(diff > 3 && diff < 4, 'should take between 3 and 4 seconds')
         assert_requested(stub, times: retries + 1)
       end
     end

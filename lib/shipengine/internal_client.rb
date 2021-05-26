@@ -20,6 +20,8 @@ module ShipEngine
     # This transforms the `retryAfter` field from our JSON-RPC server to an HTTP header, so this client
     # can use the standard retry middleware from faraday-middleware.
     class RetryAfter < Faraday::Middleware
+      attr_reader :retry_attempt
+
       def initialize(app)
         super(app)
         @retry_attempt = 0
@@ -32,14 +34,10 @@ module ShipEngine
         return env unless (status == 429) && body.is_a?(Hash) && body['error']
 
         # ShipEngineErrorLogger.log('Retrying...attempt: #{ @retry_attempt}')
-        env[:response_headers]['Retry-After'] = body.dig('error', 'data', 'retryAfter').to_s unless env[:response_headers]['Retry-After']
+        env[:response_headers]['Retry-After'] ||= body.dig('error', 'data', 'retryAfter').to_s
         @retry_attempt += 1
         env
       end
-    end
-
-    def self.register_request_middleware
-      Faraday::Request.register_middleware(retry_after: RetryAfter)
     end
   end
 
@@ -59,7 +57,7 @@ module ShipEngine
 
     # @param [::ShipEngine::Configuration] configuration
     def initialize(configuration)
-      CustomMiddleware.register_request_middleware
+      Faraday::Request.register_middleware(retry_after: CustomMiddleware::RetryAfter)
       @configuration = configuration
     end
 
@@ -83,20 +81,21 @@ module ShipEngine
         req.body = build_jsonrpc_request_body(method, params)
       end
 
-      assert_shipengine_rpc_success(response)
+      assert_shipengine_rpc_success(response, config_with_overrides)
+
       result, id = response.body.values_at('result', 'id')
       InternalClientResponseSuccess.new(result: result, request_id: id)
     end
 
     private
 
-    # @param [::ShipEngine::Configuration] configuration
+    # @param config [::ShipEngine::Configuration]
     # @return [::Faraday::Connection]
-    def create_connection(configuration)
-      retries = configuration.retries
-      base_url = configuration.base_url
-      api_key = configuration.api_key
-      timeout = configuration.timeout
+    def create_connection(config)
+      retries = config.retries
+      base_url = config.base_url
+      api_key = config.api_key
+      timeout = config.timeout
       Faraday.new(url: base_url, request: { timeout: timeout }) do |f|
         f.request :json
         f.request :retry, {
@@ -111,13 +110,12 @@ module ShipEngine
           'Accept' => 'application/json',
           'User-Agent' => "shipengine-ruby/#{VERSION} (#{RUBY_PLATFORM})"
         }
-
         f.response :json
       end
     end
 
-    # @param [String] method - e.g. "address.validate.v1"
-    # @param [Hash] params
+    # @param method [String] e.g. "address.validate.v1"
+    # @param params [Hash]
     # @return [Hash] - JSON:RPC response
     def build_jsonrpc_request_body(method, params)
       {
@@ -128,9 +126,10 @@ module ShipEngine
       }
     end
 
-    def assert_shipengine_rpc_success(response)
+    # @param response [::Faraday::Response]
+    # @param config [::ShipEngine::Configuration]
+    def assert_shipengine_rpc_success(response, config)
       body = response.body
-
       unless body.is_a?(Hash)
         # this should not happen
         ShipEngineErrorLogger.log('response body is NOT a hash', [status: response.status, body: response.body])
@@ -142,7 +141,7 @@ module ShipEngine
 
       message, data = error.values_at('message', 'data')
       source, type, code = data.values_at('source', 'type', 'code')
-      raise Exceptions.create_error_instance_by_type(type: type, message: message, code: code, request_id: request_id, source: source)
+      raise Exceptions.create_error_instance(type: type, message: message, code: code, request_id: request_id, source: source, config: config)
     end
   end
 end
