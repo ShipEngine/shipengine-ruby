@@ -3,7 +3,7 @@ PATH
   specs:
     shipengine (0.1.0)
       faraday (~> 1.4)
-      faraday_middleware
+      faraday_middleware (~> 1.0)
 
 GEM
   remote: https://rubygems.org/
@@ -162,4 +162,4 @@ DEPENDENCIES
   yard
 
 BUNDLED WITH
-   2.2.16
+   2.2.17

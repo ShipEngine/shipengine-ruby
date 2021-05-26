@@ -1,10 +1,11 @@
 # frozen_string_literal: true
 
-require 'faraday_middleware'
 require 'shipengine/utils/request_id'
 require 'shipengine/exceptions'
 require 'shipengine/version'
 require 'logger'
+require 'faraday_middleware'
+require 'faraday'
 
 class ShipEngineErrorLogger
   def self.log(msg, data)
@@ -14,6 +15,24 @@ class ShipEngineErrorLogger
 end
 
 module ShipEngine
+  module CustomMiddleware
+    class RetryAfter < Faraday::Middleware
+      def initialize(app)
+        super(app)
+        @app = app
+      end
+
+      def on_complete(env)
+        env[:response_headers]['Retry-After'] = '5'
+        env
+      end
+    end
+
+    def self.register_request_middleware
+      Faraday::Request.register_middleware(retry_after: RetryAfter)
+    end
+  end
+
   class InternalClientResponseSuccess
     attr_reader :result, :request_id
 
@@ -30,6 +49,7 @@ module ShipEngine
 
     # @param [::ShipEngine::Configuration] configuration
     def initialize(configuration)
+      CustomMiddleware.register_request_middleware
       @configuration = configuration
     end
 
@@ -74,6 +94,7 @@ module ShipEngine
           retry_statuses: [429], # even though this seems self-evident, this field is neccessary for Retry-After to be respected.
           methods: Faraday::Request::Retry::IDEMPOTENT_METHODS + [:post] # :post is not a "retry-able request by default"
         }
+        f.request :retry_after # should go after :retry
         f.headers = {
           'API-Key' => api_key,
           'Content-Type' => 'application/json',
