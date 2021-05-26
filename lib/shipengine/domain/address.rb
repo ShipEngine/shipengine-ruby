@@ -156,7 +156,8 @@ module ShipEngine
         Validate.assert_country(address_params[:countryCode])
         Validate.assert_either_postal_code_or_city_state(
           postal_code: address_params[:postalCode],
-          city: address_params[:cityLocality], state: address_params[:stateProvince]
+          city: address_params[:cityLocality],
+          state: address_params[:stateProvince]
         )
 
         response = @internal_client.make_request('address.validate.v1',

@@ -6,9 +6,10 @@ require 'shipengine/version'
 require 'logger'
 require 'faraday_middleware'
 require 'faraday'
+require 'json'
 
 class ShipEngineErrorLogger
-  def self.log(msg, data)
+  def self.log(msg, data = nil)
     logger = Logger.new($stderr)
     logger.error([msg, data])
   end
@@ -16,14 +17,23 @@ end
 
 module ShipEngine
   module CustomMiddleware
+    # This transforms the `retryAfter` field from our JSON-RPC server to an HTTP header, so this client
+    # can use the standard retry middleware from faraday-middleware.
     class RetryAfter < Faraday::Middleware
       def initialize(app)
         super(app)
+        @retry_attempt = 0
         @app = app
       end
 
       def on_complete(env)
-        env[:response_headers]['Retry-After'] = '5'
+        body = env[:body]
+        status = env[:status]
+        return env unless (status == 429) && body.is_a?(Hash) && body['error']
+
+        # ShipEngineErrorLogger.log('Retrying...attempt: #{ @retry_attempt}')
+        env[:response_headers]['Retry-After'] = body.dig('error', 'data', 'retryAfter').to_s unless env[:response_headers]['Retry-After']
+        @retry_attempt += 1
         env
       end
     end

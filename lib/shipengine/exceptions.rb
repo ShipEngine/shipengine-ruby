@@ -5,6 +5,7 @@ require_relative 'exceptions/error_type'
 
 module ShipEngine
   module Exceptions
+    DEFAULT_SOURCE = 'shipengine'
     # 400 error, or other "user exceptions"
     class ShipEngineError < StandardError
       # message is inherited
@@ -14,7 +15,7 @@ module ShipEngine
         code = Exceptions::ErrorCode.get_by_str(code) if code.is_a?(String)
         super(message)
         @request_id = request_id
-        @source = source || 'shipengine'
+        @source = source || DEFAULT_SOURCE
         @type = type
         @code = code
       end
@@ -68,34 +69,43 @@ module ShipEngine
 
     class RateLimitError < SystemError
       attr_reader :retry_attempt
-      def initialize(message:, request_id: nil, retry_attempt: nil)
-        super(message: message, code: 'rate_limit_error', request_id: request_id)
-        @retry_attempt = retry_attempt
+
+      def initialize(message: 'You have exceeded the rate limit.', source: nil, request_id: nil)
+        super(message: message, code: ErrorCode.get(:RATE_LIMIT_EXCEEDED), request_id: request_id, source: source)
+      end
+    end
+
+    class TimeoutError < SystemError
+      def initialize(message:, source: nil, request_id: nil)
+        super(message: message, code: ErrorCode.get(:TIMEOUT), request_id: request_id, source: source)
       end
     end
 
     def self.create_error_instance_by_type(type:, message:, code:, request_id: nil, source: nil)
-      error = get_error_class_by_type(type)
-      return error.new(message: message, code: code, request_id: request_id, source: source) unless error.nil?
-
-      ShipEngineError.new(message: message, source: source, code: code, type: type, request_id: request_id)
+      case type
+      when Exceptions::ErrorType.get(:BUSINESS_RULES)
+        BusinessRulesError.new(message: message, code: code, request_id: request_id, source: source)
+      when Exceptions::ErrorType.get(:VALIDATION)
+        ValidationError.new(message: message, code: code, request_id: request_id, source: source)
+      when Exceptions::ErrorType.get(:ACCOUNT_STATUS)
+        AccountStatusError.new(message: message, code: code, request_id: request_id, source: source)
+      when Exceptions::ErrorType.get(:SECURITY)
+        SecurityError.new(message: message, code: code, request_id: request_id, source: source)
+      when Exceptions::ErrorType.get(:SYSTEM)
+        case code
+        when ErrorCode.get(:RATE_LIMIT_EXCEEDED)
+          RateLimitError.new(message: message, request_id: request_id, source: source)
+        when ErrorCode.get(:TIMEOUT)
+          TimeoutError.new(message: message, request_id: request_id, source: source)
+        else
+          SystemError.new(message: message, code: code, request_id: request_id, source: source)
+        end
+      else
+        ShipEngineError.new(message: message, code: code, request_id: request_id, source: source)
+      end
     end
 
     # @param error_type [String] e.g "validation"
     # @return [BusinessRulesError, AccountStatusError, SecurityError, SystemError, ValidationError]
-    def self.get_error_class_by_type(error_type)
-      case error_type
-      when Exceptions::ErrorType.get(:BUSINESS_RULES)
-        BusinessRulesError
-      when Exceptions::ErrorType.get(:VALIDATION)
-        ValidationError
-      when Exceptions::ErrorType.get(:ACCOUNT_STATUS)
-        AccountStatusError
-      when Exceptions::ErrorType.get(:SECURITY)
-        SecurityError
-      when Exceptions::ErrorType.get(:SYSTEM)
-        SystemError
-      end
-    end
   end
 end

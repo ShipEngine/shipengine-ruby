@@ -44,7 +44,7 @@ module Factory
           type: 'system',
           code: 'rate_limit_exceeded',
           url: 'https://www.shipengine.com/docs/rate-limits',
-          retryAfter: 3
+          retryAfter: 0
         }.merge(data)
       }
     }
@@ -202,42 +202,80 @@ describe 'Internal Client Tests' do
         assert_equal(1, client.configuration.retries)
       end
 
-      it 'should retry once again on a 429' do
-        retries = 1
+      it 'should retry once again on a 429 (default)' do
         stub = stub_request(:post, base_url)
                .to_return(status: 429, body: Factory.rate_limit_error).then
-               .to_return(status: 429, body: Factory.rate_limit_error)
+               .to_return(status: 200, body: valid_address_res)
 
-        client = ShipEngine::Client.new(api_key: 'abc123', retries: retries)
+        client = ShipEngine::Client.new(api_key: 'abc123')
 
-        assert_raises_rate_limit_error { client.validate_address(valid_address_params) }
-
-        assert_requested(stub, times: retries + 1)
+        response = client.validate_address(valid_address_params)
+        assert(response.valid?)
+        assert_requested(stub, times: 2)
       end
 
-      it 'should not retry more than once | should return shipengine exception when retry limit is exhausted' do
+      it 'should stop retrying if retries is exhausted (and return rate limit error)' do
+        client = ShipEngine::Client.new(api_key: 'abc123', retries: 2)
+        stub_request(:post, base_url)
+          .to_return(status: 429, body: Factory.rate_limit_error).then
+          .to_return(status: 429, body: Factory.rate_limit_error).then
+          .to_return(status: 429, body: Factory.rate_limit_error)
+
+        assert_raises_rate_limit_error { client.validate_address(valid_address_params) }
+      end
+
+      it 'respects the Retry-After header, which can override error.retryAfter' do
+        client = ShipEngine::Client.new(api_key: 'abc123', retries: 1)
+        stub = stub_request(:post, base_url)
+               .to_return(status: 429, body: Factory.rate_limit_error, headers: { "Retry-After": 1 }).then
+               .to_return(status: 200, body: valid_address_res)
+        start = Time.now
+        client.validate_address(valid_address_params)
+        diff = Time.now - start
+        assert_operator(diff, :>, 1, 'should take more than than 1 second')
+        assert_requested(stub, times: 2)
+      end
+
+      # Can I use: https://auctane.atlassian.net/browse/DX-1497
+      it 'should not make any additional retries if retries is disabled (i.e. set to 0)' do
+        client = ShipEngine::Client.new(api_key: 'abc123', retries: 0)
+        stub = stub_request(:post, base_url)
+               .to_return(status: 429, body: Factory.rate_limit_error).then
+               .to_return(status: 429, body: Factory.rate_limit_error).then
+               .to_return(status: 200, body: valid_address_res)
+        assert_raises_rate_limit_error { client.validate_address(valid_address_params) }
+        assert_requested(stub, times: 1)
+      end
+
+      it 'should make requests immediately if retryAfter is set to 0' do
         retries = 2
-        stub = stub_request(:post, base_url)
-               .to_return(status: 429, body: Factory.rate_limit_error).then
-               .to_return(status: 429, body: Factory.rate_limit_error).then
-               .to_return(status: 429, body: Factory.rate_limit_error)
         client = ShipEngine::Client.new(api_key: 'abc123', retries: retries)
-
-        assert_raises_rate_limit_error { client.validate_address(valid_address_params) }
-
+        stub = stub_request(:post, base_url)
+               .to_return(status: 429, body: Factory.rate_limit_error(data: { retryAfter: 0 })).then
+               .to_return(status: 429, body: Factory.rate_limit_error(data: { retryAfter: 0 })).then
+               .to_return(status: 200, body: valid_address_res)
+        start = Time.now
+        client.validate_address(valid_address_params)
+        diff = Time.now - start
+        assert_operator(diff, :<, 1, 'should take less than 1 second')
         assert_requested(stub, times: retries + 1)
       end
 
-      # it 'should respect Retry-After header' do
-      #   stub = stub_request(:post, base_url)
-      #          .to_return(status: 429, body: nil, headers: { "Retry-After": '' }).then
-      #          .to_return(status: 200, body: valid_address_res)
-
-      #   client = ShipEngine::Client.new(api_key: 'abc1234', retries: 3)
-      #   client.validate_address(valid_address_params)
-      #   assert_requested(stub, times: 2)
-      #   #  assert_kind_of(ShipEngine::AddressValidationResult, response)
-      # end
+      # https://auctane.atlassian.net/browse/DX-1500
+      it 'SLOW: should use the retryAfter field in errors to dictate how long it should wait to retry' do
+        retries = 2
+        client = ShipEngine::Client.new(api_key: 'abc123', retries: retries)
+        stub = stub_request(:post, base_url)
+               .to_return(status: 429, body: Factory.rate_limit_error(data: { retryAfter: 1 })).then
+               .to_return(status: 429, body: Factory.rate_limit_error(data: { retryAfter: 2 })).then
+               .to_return(status: 200, body: valid_address_res)
+        start = Time.now
+        client.validate_address(valid_address_params)
+        diff = Time.now - start
+        assert_operator(diff, :>, 3, 'should take between 3 and 4 seconds')
+        assert_operator(diff, :<, 4, 'should take between 3 and 4 seconds')
+        assert_requested(stub, times: retries + 1)
+      end
     end
 
     describe 'api_key' do

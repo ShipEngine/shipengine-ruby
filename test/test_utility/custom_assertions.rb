@@ -5,7 +5,10 @@ require 'minitest/assertions'
 module CustomAssertions
   include Minitest::Assertions
   def assert_response_error(expected_err, response_err)
-    assert_equal(expected_err[:message], response_err.to_s) and assert_equal(expected_err[:message], response_err.message) if expected_err.key?(:message)
+    if expected_err.key?(:message)
+      assert_equal(expected_err[:message],
+                   response_err.to_s) and assert_equal(expected_err[:message], response_err.message)
+    end
     assert_equal(expected_err[:code], response_err.code) if expected_err.key?(:code)
     assert_equal(expected_err[:source], response_err.source) if expected_err.key?(:source)
     assert_equal(expected_err[:type], response_err.type) if expected_err.key?(:type)
@@ -29,6 +32,7 @@ module CustomAssertions
   def assert_raises_shipengine(error_class, expected_err, &block)
     err = assert_raises error_class, &block
     assert_response_error(expected_err, err)
+    err
   end
 
   def assert_raises_shipengine_validation(expected_err, &block)
@@ -39,7 +43,6 @@ module CustomAssertions
   end
 
   def assert_normalized_address(expected_address, response_address)
-    # rubocop:disable Layout/LineLength
     raise 'Street is a required key.' unless expected_address[:street]
 
     assert_equal(expected_address[:residential], response_address.residential?, '-> residential') if expected_address.key?(:residential)
@@ -49,7 +52,6 @@ module CustomAssertions
     assert_equal(expected_address[:street], response_address.street, '-> street')
     assert_equal(expected_address[:city_locality], response_address.city_locality, '-> city_locality') if expected_address.key?(:city_locality)
     assert_equal(expected_address[:country], response_address.country, '-> country') if expected_address.key?(:country)
-    # rubocop:enable Layout/LineLength
   end
 
   # @param response [::ShipEngine::AddressValidationResult]
@@ -69,11 +71,11 @@ module CustomAssertions
   end
 
   def assert_raises_rate_limit_error(&block)
-    assert_raises_shipengine(ShipEngine::Exceptions::SystemError, {
-      code: 'rate_limit_exceeded',
-      message: 'You have exceeded the rate limit.',
-      source: 'shipengine'
-    }, &block)
+    assert_raises_shipengine(ShipEngine::Exceptions::RateLimitError, {
+                               code: 'rate_limit_exceeded',
+                               message: 'You have exceeded the rate limit.',
+                               source: 'shipengine'
+                             }, &block)
   end
 
   # @param expected_messages [Array<Hash>]
