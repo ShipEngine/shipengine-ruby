@@ -24,7 +24,7 @@ module ShipEngine
 
       def initialize(app)
         super(app)
-        @retry_attempt = 0
+        @retries = 0
         @app = app
       end
 
@@ -35,8 +35,8 @@ module ShipEngine
 
         # ShipEngineErrorLogger.log('Retrying...attempt: #{ @retry_attempt}')
         env[:response_headers]['Retry-After'] ||= body.dig('error', 'data', 'retryAfter').to_s
-        @retry_attempt += 1
-        env[:attempts] = @retry_attempt
+        @retries += 1
+        env[:retries] = @retries
         env
       end
     end
@@ -58,11 +58,9 @@ module ShipEngine
     attr_reader :configuration
 
     # @param [::ShipEngine::Configuration] configuration
-    def initialize(configuration, network_observer)
+    def initialize(configuration)
       Faraday::Request.register_middleware(retry_after: CustomMiddleware::RetryAfter)
       @configuration = configuration
-
-      network_observer&.new(self)
     end
 
     # @param method [String] e.g. `address.validate.v1`
@@ -75,9 +73,7 @@ module ShipEngine
     # @return [::InternalClientResponseSuccess]
     # @example
     #   make_request("address.validate.v1", {address: {...}}, {api_key: "123"}, ...) #=> {...}
-    def make_request(method, params, config = { api_key: nil, base_url: nil, retries: nil,
-                                                timeout: nil })
-
+    def make_request(method, params, config = {})
       config_with_overrides = @configuration.merge(config)
       connection = create_connection(config_with_overrides)
 
@@ -100,14 +96,22 @@ module ShipEngine
       base_url = config.base_url
       api_key = config.api_key
       timeout = config.timeout
+      subscriber = config.subscriber
 
       Faraday.new(url: base_url, request: { timeout: timeout }) do |f|
         f.request :json
         f.request :retry, {
           max: retries,
           retry_block: lambda { |env, _options, _r, _exc|
-            changed
-            notify_observers({ type: 'retry', attempts: env[:attempts] })
+            # puts env
+            event = ::ShipEngine::Subscriber::RequestSentEvent.new(
+              message: "Calling the ShipEngine foo API at #{env[:url]}",
+              request_id: 'bar',
+              body: env[:body],
+              timeout: 123,
+              retries: env[:retries]
+            )
+            subscriber&.on_request_sent(event)
           },
           retry_statuses: [429], # even though this seems self-evident, this field is neccessary for Retry-After to be respected.
           methods: Faraday::Request::Retry::IDEMPOTENT_METHODS + [:post] # :post is not a "retry-able request by default"

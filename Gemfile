@@ -19,6 +19,7 @@ group :test do
   gem 'minitest-reporters'
   gem 'simplecov', require: false
   gem 'webmock'
+  gem 'spy'
 end
 
 group :test, :development do

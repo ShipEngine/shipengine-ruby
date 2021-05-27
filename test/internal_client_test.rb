@@ -4,6 +4,7 @@ require 'test_helper'
 require 'shipengine/exceptions'
 require 'shipengine'
 require 'json'
+require 'spy'
 
 valid_address_params = {
   street: ['104 Foo Street'], postal_code: '78751', country: 'US'
@@ -208,18 +209,7 @@ describe 'Internal Client Tests' do
           .to_return(status: 429, body: Factory.rate_limit_error).then
           .to_return(status: 200, body: valid_address_res)
 
-        # rubocop:disable Lint/ConstantDefinitionInBlock
-        class NetworkObserver
-          def initialize(obj)
-            obj.add_observer(self, :on_retry)
-          end
-
-          def on_retry(number)
-            puts "retry changed! #{number}"
-          end
-        end
-
-        client = ShipEngine::Client.new(api_key: 'abc123', retries: 2, network_observer: NetworkObserver)
+        client = ShipEngine::Client.new(api_key: 'abc123', retries: 2, subscriber: MyEventEmitter.new)
         response = client.validate_address(valid_address_params)
         assert(response.valid?)
         assert_requested(stub, times: 3)
@@ -258,6 +248,7 @@ describe 'Internal Client Tests' do
       end
 
       # Can I use: https://auctane.atlassian.net/browse/DX-1497
+
       it 'should not make any additional retries if retries is disabled (i.e. set to 0)' do
         client = ShipEngine::Client.new(api_key: 'abc123', retries: 0)
         stub = stub_request(:post, base_url)
@@ -266,6 +257,36 @@ describe 'Internal Client Tests' do
           .to_return(status: 200, body: valid_address_res)
         assert_raises_rate_limit_error { client.validate_address(valid_address_params) }
         assert_requested(stub, times: 1)
+      end
+
+      focus; it 'should dispatch an on_request_sent twice (once for every retry)' do
+        # rubocop:disable Lint/ConstantDefinitionInBlock
+        class MyEventEmitter < ShipEngine::Subscriber::EventEmitter
+          def on_request_sent(event); end
+        end
+
+        subscriber = MyEventEmitter.new
+        on_request_sent = Spy.on(subscriber, :on_request_sent)
+
+        client = ShipEngine::Client.new(api_key: 'abc123', retries: 2, subscriber: subscriber) # emitter = MyEventEmitter.double(MyEventEmitter)
+
+        stub_request(:post, base_url)
+          .to_return(status: 429, body: Factory.rate_limit_error).then
+          .to_return(status: 429, body: Factory.rate_limit_error).then
+          .to_return(status: 429, body: Factory.rate_limit_error)
+        assert_raises_rate_limit_error(retries: 2) { client.validate_address(valid_address_params) }
+
+        assert_equal(2, on_request_sent.calls.count, 'should be called twice')
+
+        arg1 = on_request_sent.calls[0].args[0]
+        assert_kind_of(::ShipEngine::Subscriber::RequestSentEvent, arg1, 'on_request_sent should be called with a RequestSentEvent')
+        assert_equal('rate_limit_exceeded', arg1.body.dig('error', 'data', 'code'), 'on_request_sent should be passed the body (as a hash)')
+        assert_equal(1, arg1.retries)
+        assert_equal('Calling the ShipEngine foo API at https://simengine.herokuapp.com/jsonrpc', arg1.message)
+        assert_equal(::ShipEngine::Subscriber::EventType::REQUEST_SENT, arg1.type)
+
+        arg2 = on_request_sent.calls[1].args[0]
+        assert_equal(2, arg2.retries)
       end
 
       it 'should make requests immediately if retryAfter is set to 0' do

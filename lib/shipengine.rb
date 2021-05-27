@@ -13,14 +13,15 @@ require 'observer'
 
 module ShipEngine
   class Configuration
-    attr_accessor :api_key, :retries, :base_url, :timeout, :page_size
+    attr_accessor :api_key, :retries, :base_url, :timeout, :page_size, :subscriber
 
-    def initialize(api_key:, retries: nil, timeout: nil, page_size: nil, base_url: nil)
+    def initialize(api_key:, retries: nil, timeout: nil, page_size: nil, base_url: nil, subscriber: nil)
       @api_key = api_key
       @base_url = base_url || (ENV['USE_SIMENGINE'] == 'true' ? 'https://simengine.herokuapp.com/jsonrpc' : 'https://api.shipengine.com')
       @retries = retries || 1
       @timeout = timeout || 5 # https://github.com/lostisland/faraday/issues/708
       @page_size = page_size || 50
+      @subscriber = subscriber || Subscriber::EventEmitter.new
       validate
     end
 
@@ -36,6 +37,7 @@ module ShipEngine
       copy.retries =  config[:retries] if config.key?(:retries)
       copy.timeout =  config[:timeout] if config.key?(:timeout)
       copy.page_size = config[:page_size] if config.key?(:page_size)
+      copy.subscriber = config[:subscriber] if config.key?(:subscriber)
       copy.validate
       copy
     end
@@ -52,18 +54,74 @@ module ShipEngine
     end
   end
 
+  module Subscriber
+    class Event
+      require 'date'
+      attr_reader :datetime, :type, :message
+      def initialize(type:, message:)
+        @type = type
+        @message = message
+        @datetime = DateTime.now
+      end
+    end
+
+    class EventType
+      RESPONSE_RECEIVED = 'response_received',
+      REQUEST_SENT = 'request_sent',
+      ERROR = 'error'
+    end
+
+    class HttpEvent < Event
+      attr_reader :request_id, :retries, :body
+      def initialize(type:, message:, request_id:, body:, retries:)
+        super(type: type, message: message)
+        @request_id = request_id
+        @retries = retries
+        @body = body
+      end
+    end
+
+    class RequestSentEvent < HttpEvent
+      attr_reader :timeout
+      def initialize(message:, request_id:, body:, retries:, timeout:)
+        super(type: EventType::REQUEST_SENT, message: message, request_id: request_id, body: body, retries: retries)
+        # The amount of time that will be allowed before this request times out. For languages that have a native time span data type, this should be that type. Otherwise, it should be an integer that represents the number of milliseconds.
+        @timeout = timeout
+      end
+    end
+
+    class ResponseReceivedEvent < HttpEvent
+      attr_reader :elapsed
+      def initialize(message:, request_id:, body:, retries:, elapsed:)
+        super(type: EventType::RESPONSE_RECEIVED, message: message, request_id: request_id, body: body, retries: retries)
+        # The amount of time that elapsed between when the request was sent and when the response was received. For languages that have a native time span data type, this should be that type. Otherwise, it should be an integer that represents the number of milliseconds.
+        @elapsed = elapsed
+      end
+    end
+
+    class EventEmitter
+      # maybe check that at least _one_ of the following are implemented?
+      def on_request_sent(request_sent_event); end
+
+      def on_response_received(response_received_event); end
+
+      def on_error(error_event); end
+    end
+  end
+
   class Client
     attr_accessor :configuration
 
-    def initialize(api_key:, retries: nil, timeout: nil, page_size: nil, base_url: nil, network_observer: nil)
+    def initialize(api_key:, retries: nil, timeout: nil, page_size: nil, base_url: nil, subscriber: nil)
       @configuration = Configuration.new(
         api_key: api_key,
         retries: retries,
         base_url: base_url,
         timeout: timeout,
-        page_size: page_size
+        page_size: page_size,
+        subscriber: subscriber
       )
-      internal_client = InternalClient.new(@configuration, network_observer)
+      internal_client = InternalClient.new(@configuration)
       @address = Domain::Address.new(internal_client)
       @package = Domain::Package.new(internal_client)
       @carriers = Domain::Carrier.new(internal_client)
