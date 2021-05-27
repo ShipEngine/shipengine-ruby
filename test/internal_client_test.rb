@@ -205,25 +205,24 @@ describe 'Internal Client Tests' do
       focus; it 'should retry once again on a 429 (default)' do
         stub = stub_request(:post, base_url)
                .to_return(status: 429, body: Factory.rate_limit_error).then
+               .to_return(status: 429, body: Factory.rate_limit_error).then
                .to_return(status: 200, body: valid_address_res)
 
-        client = ShipEngine::Client.new(api_key: 'abc123')
-
         # rubocop:disable Lint/ConstantDefinitionInBlock
-        class MyObserver
+        class NetworkObserver
           def initialize(obj)
-            obj.add_observer(self)
+            obj.add_observer(self, :on_retry)
           end
-          def update(res)
-            puts res
+
+          def on_retry(number)
+            puts "retry changed! #{number}"
           end
         end
 
-        MyObserver.new(client)
-
+        client = ShipEngine::Client.new(api_key: 'abc123', retries: 2, network_observer: NetworkObserver)
         response = client.validate_address(valid_address_params)
         assert(response.valid?)
-        assert_requested(stub, times: 2)
+        assert_requested(stub, times: 3)
       end
 
       it 'should stop retrying if retries is exhausted (and return rate limit error)' do

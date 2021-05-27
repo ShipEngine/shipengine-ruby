@@ -7,6 +7,7 @@ require 'logger'
 require 'faraday_middleware'
 require 'faraday'
 require 'json'
+require 'observer'
 
 class ShipEngineErrorLogger
   def self.log(msg, data = nil)
@@ -36,6 +37,7 @@ module ShipEngine
         # ShipEngineErrorLogger.log('Retrying...attempt: #{ @retry_attempt}')
         env[:response_headers]['Retry-After'] ||= body.dig('error', 'data', 'retryAfter').to_s
         @retry_attempt += 1
+        env[:attempts] = @retry_attempt
         env
       end
     end
@@ -53,12 +55,14 @@ module ShipEngine
   end
 
   class InternalClient
+    include Observable
     attr_reader :configuration
 
     # @param [::ShipEngine::Configuration] configuration
-    def initialize(configuration)
+    def initialize(configuration, network_observer)
       Faraday::Request.register_middleware(retry_after: CustomMiddleware::RetryAfter)
       @configuration = configuration
+      @network_observer = network_observer.new(self) if network_observer
     end
 
     # @param method [String] e.g. `address.validate.v1`
@@ -96,10 +100,15 @@ module ShipEngine
       base_url = config.base_url
       api_key = config.api_key
       timeout = config.timeout
+
       Faraday.new(url: base_url, request: { timeout: timeout }) do |f|
         f.request :json
         f.request :retry, {
           max: retries,
+          retry_block: lambda { |env, _options, _r, _exc|
+            changed
+            notify_observers(env[:attempts])
+          },
           retry_statuses: [429], # even though this seems self-evident, this field is neccessary for Retry-After to be respected.
           methods: Faraday::Request::Retry::IDEMPOTENT_METHODS + [:post] # :post is not a "retry-able request by default"
         }
