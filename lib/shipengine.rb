@@ -9,6 +9,7 @@ require 'shipengine/version'
 require 'shipengine/exceptions'
 require 'shipengine/utils/validate'
 require 'shipengine/constants'
+require 'observer'
 
 module ShipEngine
   class Configuration
@@ -52,6 +53,8 @@ module ShipEngine
   end
 
   class Client
+    include Observable
+
     attr_accessor :configuration
 
     def initialize(api_key:, retries: nil, timeout: nil, page_size: nil, base_url: nil)
@@ -77,6 +80,8 @@ module ShipEngine
     # @return [::ShipEngine::AddressValidationResult] <description>
     #
     def validate_address(address, config = {})
+      changed
+      notify_observers('validated')
       @address.validate(address, config)
     end
 

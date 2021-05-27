@@ -202,12 +202,24 @@ describe 'Internal Client Tests' do
         assert_equal(1, client.configuration.retries)
       end
 
-      it 'should retry once again on a 429 (default)' do
+      focus; it 'should retry once again on a 429 (default)' do
         stub = stub_request(:post, base_url)
                .to_return(status: 429, body: Factory.rate_limit_error).then
                .to_return(status: 200, body: valid_address_res)
 
         client = ShipEngine::Client.new(api_key: 'abc123')
+
+        # rubocop:disable Lint/ConstantDefinitionInBlock
+        class MyObserver
+          def initialize(obj)
+            obj.add_observer(self)
+          end
+          def update(res)
+            puts res
+          end
+        end
+
+        MyObserver.new(client)
 
         response = client.validate_address(valid_address_params)
         assert(response.valid?)
