@@ -53,17 +53,17 @@ module ShipEngine
   end
 
   class Client
-    include Observable
-
     attr_accessor :configuration
 
-
     def initialize(api_key:, retries: nil, timeout: nil, page_size: nil, base_url: nil, network_observer: nil)
-      @configuration = Configuration.new(api_key: api_key, retries: retries, base_url: base_url, timeout: timeout,
-                                         page_size: page_size)
-      @network_observer = network_observer
-
-      internal_client = InternalClient.new(@configuration, @network_observer)
+      @configuration = Configuration.new(
+        api_key: api_key,
+        retries: retries,
+        base_url: base_url,
+        timeout: timeout,
+        page_size: page_size
+      )
+      internal_client = InternalClient.new(@configuration, network_observer)
       @address = Domain::Address.new(internal_client)
       @package = Domain::Package.new(internal_client)
       @carriers = Domain::Carrier.new(internal_client)
@@ -82,8 +82,6 @@ module ShipEngine
     # @return [::ShipEngine::AddressValidationResult] <description>
     #
     def validate_address(address, config = {})
-      changed
-      notify_observers('validated')
       @address.validate(address, config)
     end
 

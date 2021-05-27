@@ -5,7 +5,6 @@ require 'shipengine/exceptions'
 require 'shipengine/version'
 require 'logger'
 require 'faraday_middleware'
-require 'faraday'
 require 'json'
 require 'observer'
 
@@ -62,7 +61,8 @@ module ShipEngine
     def initialize(configuration, network_observer)
       Faraday::Request.register_middleware(retry_after: CustomMiddleware::RetryAfter)
       @configuration = configuration
-      @network_observer = network_observer.new(self) if network_observer
+
+      network_observer&.new(self)
     end
 
     # @param method [String] e.g. `address.validate.v1`
@@ -107,7 +107,7 @@ module ShipEngine
           max: retries,
           retry_block: lambda { |env, _options, _r, _exc|
             changed
-            notify_observers(env[:attempts])
+            notify_observers({ type: 'retry', attempts: env[:attempts] })
           },
           retry_statuses: [429], # even though this seems self-evident, this field is neccessary for Retry-After to be respected.
           methods: Faraday::Request::Retry::IDEMPOTENT_METHODS + [:post] # :post is not a "retry-able request by default"

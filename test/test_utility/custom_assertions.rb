@@ -7,7 +7,7 @@ module CustomAssertions
   def assert_response_error(expected_err, response_err)
     if expected_err.key?(:message)
       assert_equal(expected_err[:message],
-                   response_err.to_s) and assert_equal(expected_err[:message], response_err.message)
+        response_err.to_s) and assert_equal(expected_err[:message], response_err.message)
     end
     assert_equal(expected_err[:code], response_err.code) if expected_err.key?(:code)
     assert_equal(expected_err[:source], response_err.source) if expected_err.key?(:source)
@@ -72,10 +72,10 @@ module CustomAssertions
 
   def assert_raises_rate_limit_error(retries: nil, &block)
     err = assert_raises_shipengine(ShipEngine::Exceptions::RateLimitError, {
-                                     code: 'rate_limit_exceeded',
+      code: 'rate_limit_exceeded',
                                      message: 'You have exceeded the rate limit.',
                                      source: 'shipengine'
-                                   }, &block)
+    }, &block)
     assert_equal(retries, err.retries) unless retries.nil?
   end
 
@@ -83,7 +83,7 @@ module CustomAssertions
   # @param response_messages [Array<::ShipEngine::AddressValidationMessage>]
   def assert_messages_equals(expected_messages, response_messages)
     assert_equal(expected_messages.length, response_messages.length,
-                 "expected_messages and response_messages should be the same length. expected: #{expected_messages}, response: #{response_messages}")
+      "expected_messages and response_messages should be the same length. expected: #{expected_messages}, response: #{response_messages}")
     expected_messages.each_with_index do |message, idx|
       r_msg = response_messages[idx]
       assert_equal(message.fetch(:code), r_msg.code)

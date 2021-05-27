@@ -219,28 +219,28 @@ describe 'Validate Address: Functional' do
   it 'validates country code / missing country-code' do
     # missing
     assert_raises_shipengine_validation({
-                                          code: 'field_value_required',
-                                          message: 'Invalid address. The country must be specified.'
-                                        }) do
+      code: 'field_value_required',
+      message: 'Invalid address. The country must be specified.'
+    }) do
       client.validate_address({
-                                street: ['400 Jersey St'],
-                                city_locality: 'Boston',
-                                state_province: 'MA',
-                                postal_code: '02215'
-                              })
+        street: ['400 Jersey St'],
+        city_locality: 'Boston',
+        state_province: 'MA',
+        postal_code: '02215'
+      })
     end
 
     assert_raises_shipengine_validation({
-                                          code: 'invalid_field_value',
-                                          message: 'Invalid address. XX is not a valid country code.'
-                                        }) do
+      code: 'invalid_field_value',
+      message: 'Invalid address. XX is not a valid country code.'
+    }) do
       client.validate_address({
-                                country: 'XX',
-                                street: ['400 Jersey St'],
-                                city_locality: 'Boston',
-                                state_province: 'MA',
-                                postal_code: '02215'
-                              })
+        country: 'XX',
+        street: ['400 Jersey St'],
+        city_locality: 'Boston',
+        state_province: 'MA',
+        postal_code: '02215'
+      })
     end
   end
 

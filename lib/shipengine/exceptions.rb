@@ -35,12 +35,12 @@ module ShipEngine
 
     def self.create_required_error(field_name, request_id = nil, source = nil)
       ValidationError.new(message: "#{field_name} must be specified.",
-                          code: Exceptions::ErrorCode.get(:FIELD_VALUE_REQUIRED), request_id: request_id, source: source)
+        code: Exceptions::ErrorCode.get(:FIELD_VALUE_REQUIRED), request_id: request_id, source: source)
     end
 
     def self.create_invariant_error(message, request_id = nil)
       SystemError.new(message: "INVARIANT ERROR: #{message}", code: Exceptions::ErrorCode.get(:UNSPECIFIED),
-                      request_id: request_id)
+        request_id: request_id)
     end
 
     class BusinessRulesError < ShipEngineError

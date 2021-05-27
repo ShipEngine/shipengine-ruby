@@ -25,7 +25,7 @@ module ShipEngine
         Utils::Validate.not_nil_or_empty_str(tracking_number, 'A tracking number')
         Utils::Validate.not_nil_or_empty_str(carrier_code, 'A carrier code')
         @internal_client.make_request('package.track.v1',
-                                      { trackingNumber: tracking_number, carrierCode: carrier_code }, config)
+          { trackingNumber: tracking_number, carrierCode: carrier_code }, config)
       end
     end
   end

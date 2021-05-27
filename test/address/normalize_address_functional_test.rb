@@ -175,28 +175,28 @@ describe 'Normalize Address: Functional' do
   it 'normalizes country code / missing country-code' do
     # missing
     assert_raises_shipengine_validation({
-                                          code: ::ShipEngine::Exceptions::ErrorCode.get(:FIELD_VALUE_REQUIRED),
-                                          message: 'Invalid address. The country must be specified.'
-                                        }) do
+      code: ::ShipEngine::Exceptions::ErrorCode.get(:FIELD_VALUE_REQUIRED),
+      message: 'Invalid address. The country must be specified.'
+    }) do
       client.normalize_address({
-                                 street: ['400 Jersey St'],
-                                 city_locality: 'Boston',
-                                 state_province: 'MA',
-                                 postal_code: '02215'
-                               })
+        street: ['400 Jersey St'],
+        city_locality: 'Boston',
+        state_province: 'MA',
+        postal_code: '02215'
+      })
     end
 
     assert_raises_shipengine_validation({
-                                          code: 'invalid_field_value',
-                                          message: 'Invalid address. XX is not a valid country code.'
-                                        }) do
+      code: 'invalid_field_value',
+      message: 'Invalid address. XX is not a valid country code.'
+    }) do
       client.normalize_address({
-                                 country: 'XX',
-                                 street: ['400 Jersey St'],
-                                 city_locality: 'Boston',
-                                 state_province: 'MA',
-                                 postal_code: '02215'
-                               })
+        country: 'XX',
+        street: ['400 Jersey St'],
+        city_locality: 'Boston',
+        state_province: 'MA',
+        postal_code: '02215'
+      })
     end
   end
 
@@ -315,9 +315,9 @@ describe 'Normalize Address: Functional' do
     }
 
     assert_raises_shipengine(::ShipEngine::Exceptions::ShipEngineError, {
-                               code: 'invalid_address',
+      code: 'invalid_address',
                                message: "Invalid Address. Invalid City, State, or Zip\nInsufficient or Incorrect Address Data"
-                             }) do
+    }) do
       client.normalize_address(params)
     end
   end

@@ -10,6 +10,76 @@ AllCops:
 Style/Documentation:
   Enabled: false
 
+Style/Lambda:
+  Enabled: false
+
+Layout/ArgumentAlignment:
+  EnforcedStyle: with_fixed_indentation
+
+Layout/CaseIndentation:
+  EnforcedStyle: end
+
+Layout/ClosingHeredocIndentation:
+  Enabled: false
+
+Layout/EmptyComment:
+  Enabled: false
+
+Layout/EmptyLineAfterGuardClause:
+  Enabled: false
+
+Layout/EmptyLineAfterMagicComment:
+  Enabled: false
+
+Layout/EmptyLinesAroundArguments:
+  Enabled: false
+
+Layout/EmptyLinesAroundAttributeAccessor:
+  Enabled: false
+
+Layout/EmptyLinesAroundBeginBody:
+  Enabled: false
+
+Layout/EmptyLinesAroundExceptionHandlingKeywords:
+  Enabled: false
+
+Layout/EndAlignment:
+  EnforcedStyleAlignWith: variable
+
+Layout/FirstArgumentIndentation:
+  Enabled: false
+
+Layout/FirstArrayElementIndentation:
+  EnforcedStyle: consistent
+
+Layout/FirstHashElementIndentation:
+  EnforcedStyle: consistent
+
+Layout/FirstParameterIndentation:
+  Enabled: false
+
+Layout/HashAlignment:
+  EnforcedLastArgumentHashStyle: ignore_implicit
+
+Layout/LeadingEmptyLines:
+  Enabled: false
+
+Layout/MultilineMethodCallIndentation:
+  EnforcedStyle: indented
+  IndentationWidth: 2
+
+Layout/ParameterAlignment:
+  EnforcedStyle: with_fixed_indentation
+
+Layout/SpaceAroundMethodCallOperator:
+  Enabled: false
+
+Layout/SpaceBeforeBrackets:
+  Enabled: false
+
+Layout/SpaceInLambdaLiteral:
+  Enabled: false
+
 Metrics/AbcSize:
   Enabled: false
 

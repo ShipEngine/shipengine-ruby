@@ -37,7 +37,7 @@ module ShipEngine
 
   class NormalizedAddress
     attr_reader :street, :name, :company, :phone, :city_locality, :state_province, :postal_code,
-                :country
+      :country
 
     # @param [Array<String>] street - e.g. ["123 FAKE ST."]
     # @param [String] country - e.g. "US". @see https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes
@@ -102,7 +102,7 @@ module ShipEngine
 
             if street.empty?
               raise Exceptions::ValidationError.new(message: 'Invalid address. At least one address line is required.',
-                                                    code: Exceptions::ErrorCode.get(:FIELD_VALUE_REQUIRED))
+                code: Exceptions::ErrorCode.get(:FIELD_VALUE_REQUIRED))
             elsif street.length > 3
               raise Exceptions
                 .create_invalid_field_value_error('Invalid address. No more than 3 street lines are allowed.')
@@ -161,7 +161,7 @@ module ShipEngine
         )
 
         response = @internal_client.make_request('address.validate.v1',
-                                                 { address: address_params }, config)
+          { address: address_params }, config)
         address_api_result = response.result
         id = response.request_id
 

@@ -10,26 +10,26 @@ valid_address_params = {
 }
 
 valid_address_res = JSON.generate({
-                                    jsonrpc: '2.0',
-                                    id: 'req_123456',
-                                    result: {
-                                      isValid: true,
-                                      normalizedAddress: {
-                                        name: '',
-                                        company: '',
-                                        phone: '',
-                                        street: [
-                                          '104 NELRAY'
-                                        ],
-                                        cityLocality: 'METROPOLIS',
-                                        stateProvince: 'ME',
-                                        postalCode: '02215',
-                                        countryCode: 'US',
-                                        isResidential: nil
-                                      },
-                                      messages: []
-                                    }
-                                  })
+  jsonrpc: '2.0',
+  id: 'req_123456',
+  result: {
+    isValid: true,
+    normalizedAddress: {
+      name: '',
+      company: '',
+      phone: '',
+      street: [
+        '104 NELRAY'
+      ],
+      cityLocality: 'METROPOLIS',
+      stateProvince: 'ME',
+      postalCode: '02215',
+      countryCode: 'US',
+      isResidential: nil
+    },
+    messages: []
+  }
+})
 
 module Factory
   def self.rate_limit_error(data: {})
@@ -69,8 +69,8 @@ describe 'Internal Client Tests' do
       end
       it 'the global config should not be mutated if overridden at method call time' do
         stub = stub_request(:post, base_url)
-               .with(body: /.*/, headers: { 'API-Key' => 'baz' })
-               .to_return(status: 200, body: valid_address_res)
+          .with(body: /.*/, headers: { 'API-Key' => 'baz' })
+          .to_return(status: 200, body: valid_address_res)
 
         client = ::ShipEngine::Client.new(api_key: 'foo', timeout: 111)
         assert_equal 'foo', client.configuration.api_key
@@ -96,8 +96,8 @@ describe 'Internal Client Tests' do
         page_size_err = { message: 'Page size must be greater than zero.', code: ::ShipEngine::Exceptions::ErrorCode.get(:INVALID_FIELD_VALUE) }
 
         stub = stub_request(:post, base_url)
-               .with(body: /.*/)
-               .to_return(status: 200, body: valid_address_res)
+          .with(body: /.*/)
+          .to_return(status: 200, body: valid_address_res)
 
         # configuration during insantiation
         assert_raises_shipengine_validation(page_size_err) do
@@ -127,8 +127,8 @@ describe 'Internal Client Tests' do
         timeout_err = { message: 'Timeout must be greater than zero.', code: ::ShipEngine::Exceptions::ErrorCode.get(:INVALID_FIELD_VALUE) }
 
         stub = stub_request(:post, base_url)
-               .with(body: /.*/)
-               .to_return(status: 200, body: valid_address_res)
+          .with(body: /.*/)
+          .to_return(status: 200, body: valid_address_res)
 
         # configuration during insantiation
         assert_raises_shipengine_validation(timeout_err) do
@@ -158,8 +158,8 @@ describe 'Internal Client Tests' do
         retries_err = { message: 'Retries must be zero or greater.', code: ::ShipEngine::Exceptions::ErrorCode.get(:INVALID_FIELD_VALUE) }
 
         stub = stub_request(:post, base_url)
-               .with(body: /.*/)
-               .to_return(status: 200, body: valid_address_res)
+          .with(body: /.*/)
+          .to_return(status: 200, body: valid_address_res)
 
         # configuration during insantiation
         assert_raises_shipengine_validation(retries_err) do
@@ -202,11 +202,11 @@ describe 'Internal Client Tests' do
         assert_equal(1, client.configuration.retries)
       end
 
-      focus; it 'should retry once again on a 429 (default)' do
+      it 'should retry once again on a 429 (default)' do
         stub = stub_request(:post, base_url)
-               .to_return(status: 429, body: Factory.rate_limit_error).then
-               .to_return(status: 429, body: Factory.rate_limit_error).then
-               .to_return(status: 200, body: valid_address_res)
+          .to_return(status: 429, body: Factory.rate_limit_error).then
+          .to_return(status: 429, body: Factory.rate_limit_error).then
+          .to_return(status: 200, body: valid_address_res)
 
         # rubocop:disable Lint/ConstantDefinitionInBlock
         class NetworkObserver
@@ -247,8 +247,8 @@ describe 'Internal Client Tests' do
       it 'respects the Retry-After header, which can override error.retryAfter' do
         client = ShipEngine::Client.new(api_key: 'abc123', retries: 1)
         stub = stub_request(:post, base_url)
-               .to_return(status: 429, body: Factory.rate_limit_error, headers: { "Retry-After": 1 })
-               .then.to_return(status: 200, body: valid_address_res)
+          .to_return(status: 429, body: Factory.rate_limit_error, headers: { "Retry-After": 1 })
+          .then.to_return(status: 200, body: valid_address_res)
         start = Time.now
         client.validate_address(valid_address_params)
         diff = Time.now - start
@@ -261,9 +261,9 @@ describe 'Internal Client Tests' do
       it 'should not make any additional retries if retries is disabled (i.e. set to 0)' do
         client = ShipEngine::Client.new(api_key: 'abc123', retries: 0)
         stub = stub_request(:post, base_url)
-               .to_return(status: 429, body: Factory.rate_limit_error).then
-               .to_return(status: 429, body: Factory.rate_limit_error).then
-               .to_return(status: 200, body: valid_address_res)
+          .to_return(status: 429, body: Factory.rate_limit_error).then
+          .to_return(status: 429, body: Factory.rate_limit_error).then
+          .to_return(status: 200, body: valid_address_res)
         assert_raises_rate_limit_error { client.validate_address(valid_address_params) }
         assert_requested(stub, times: 1)
       end
@@ -272,9 +272,9 @@ describe 'Internal Client Tests' do
         retries = 2
         client = ShipEngine::Client.new(api_key: 'abc123', retries: retries)
         stub = stub_request(:post, base_url)
-               .to_return(status: 429, body: Factory.rate_limit_error(data: { retryAfter: 0 })).then
-               .to_return(status: 429, body: Factory.rate_limit_error(data: { retryAfter: 0 })).then
-               .to_return(status: 200, body: valid_address_res)
+          .to_return(status: 429, body: Factory.rate_limit_error(data: { retryAfter: 0 })).then
+          .to_return(status: 429, body: Factory.rate_limit_error(data: { retryAfter: 0 })).then
+          .to_return(status: 200, body: valid_address_res)
         start = Time.now
         client.validate_address(valid_address_params)
         diff = Time.now - start
@@ -287,10 +287,10 @@ describe 'Internal Client Tests' do
         retries = 3
         client = ShipEngine::Client.new(api_key: 'abc123', retries: retries)
         stub = stub_request(:post, base_url)
-               .to_return(status: 429, body: Factory.rate_limit_error(data: { retryAfter: 1 })).then
-               .to_return(status: 429, body: Factory.rate_limit_error(data: { retryAfter: 1 })).then
-               .to_return(status: 429, body: Factory.rate_limit_error(data: { retryAfter: 1 })).then
-               .to_return(status: 200, body: valid_address_res)
+          .to_return(status: 429, body: Factory.rate_limit_error(data: { retryAfter: 1 })).then
+          .to_return(status: 429, body: Factory.rate_limit_error(data: { retryAfter: 1 })).then
+          .to_return(status: 429, body: Factory.rate_limit_error(data: { retryAfter: 1 })).then
+          .to_return(status: 200, body: valid_address_res)
         start = Time.now
         client.validate_address(valid_address_params)
         diff = Time.now - start
@@ -302,7 +302,7 @@ describe 'Internal Client Tests' do
     describe 'api_key' do
       it 'should have header: API-Key if api-key passed during initialization' do
         stub = stub_request(:post, base_url)
-               .with(body: /.*/, headers: { 'API-Key' => 'foo' }).to_return(status: 200, body: valid_address_res)
+          .with(body: /.*/, headers: { 'API-Key' => 'foo' }).to_return(status: 200, body: valid_address_res)
 
         client = ::ShipEngine::Client.new(api_key: 'foo')
         client.validate_address(valid_address_params)
@@ -318,8 +318,8 @@ describe 'Internal Client Tests' do
         }
 
         stub = stub_request(:post, base_url)
-               .with(body: /.*/)
-               .to_return(status: 200, body: valid_address_res)
+          .with(body: /.*/)
+          .to_return(status: 200, body: valid_address_res)
 
         # configuration during insantiation
         assert_raises_shipengine_validation(api_key_err) do
