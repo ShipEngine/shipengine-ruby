@@ -57,6 +57,7 @@ module ShipEngine
   module Subscriber
     class Event
       require 'date'
+      require 'uri'
       attr_reader :datetime, :type, :message
       def initialize(type:, message:)
         @type = type
@@ -66,15 +67,18 @@ module ShipEngine
     end
 
     class EventType
-      RESPONSE_RECEIVED = 'response_received',
-      REQUEST_SENT = 'request_sent',
+      RESPONSE_RECEIVED = 'response_received'
+      REQUEST_SENT = 'request_sent'
       ERROR = 'error'
     end
 
     class HttpEvent < Event
       attr_reader :request_id, :retries, :body
-      def initialize(type:, message:, request_id:, body:, retries:)
+      def initialize(type:, message:, request_id:, body:, retries:, headers:, url:)
         super(type: type, message: message)
+        url = URI(url)
+        @url = url
+        @headers = headers
         @request_id = request_id
         @retries = retries
         @body = body
@@ -83,8 +87,8 @@ module ShipEngine
 
     class RequestSentEvent < HttpEvent
       attr_reader :timeout
-      def initialize(message:, request_id:, body:, retries:, timeout:)
-        super(type: EventType::REQUEST_SENT, message: message, request_id: request_id, body: body, retries: retries)
+      def initialize(message:, request_id:, body:, retries:, headers:, url:, timeout:)
+        super(type: EventType::REQUEST_SENT, message: message, request_id: request_id, body: body, headers: headers, url: url, retries: retries)
         # The amount of time that will be allowed before this request times out. For languages that have a native time span data type, this should be that type. Otherwise, it should be an integer that represents the number of milliseconds.
         @timeout = timeout
       end
@@ -92,8 +96,8 @@ module ShipEngine
 
     class ResponseReceivedEvent < HttpEvent
       attr_reader :elapsed
-      def initialize(message:, request_id:, body:, retries:, elapsed:)
-        super(type: EventType::RESPONSE_RECEIVED, message: message, request_id: request_id, body: body, retries: retries)
+      def initialize(message:, request_id:, body:, headers:, url:, retries:, elapsed:)
+        super(type: EventType::RESPONSE_RECEIVED, message: message, request_id: request_id, body: body, headers: headers, url: url, retries: retries)
         # The amount of time that elapsed between when the request was sent and when the response was received. For languages that have a native time span data type, this should be that type. Otherwise, it should be an integer that represents the number of milliseconds.
         @elapsed = elapsed
       end

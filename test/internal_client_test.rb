@@ -6,50 +6,60 @@ require 'shipengine'
 require 'json'
 require 'spy'
 
-valid_address_params = {
-  street: ['104 Foo Street'], postal_code: '78751', country: 'US'
-}
-
-valid_address_res = JSON.generate({
-  jsonrpc: '2.0',
-  id: 'req_123456',
-  result: {
-    isValid: true,
-    normalizedAddress: {
-      name: '',
-      company: '',
-      phone: '',
-      street: [
-        '104 NELRAY'
-      ],
-      cityLocality: 'METROPOLIS',
-      stateProvince: 'ME',
-      postalCode: '02215',
-      countryCode: 'US',
-      isResidential: nil
-    },
-    messages: []
-  }
-})
-
 module Factory
-  def self.rate_limit_error(data: {})
-    result = {
-      jsonrpc: '2.0',
-      id: 'req_123456',
-      error: {
-        code: -32_603,
-        message: 'You have exceeded the rate limit.',
-        data: {
-          source: 'shipengine',
-          type: 'system',
-          code: 'rate_limit_exceeded',
-          url: 'https://www.shipengine.com/docs/rate-limits',
-          retryAfter: 0
-        }.merge(data)
+  class << self
+    def valid_address_params
+      {
+        street: ['104 Foo Street'], postal_code: '78751', country: 'US'
       }
-    }
-    JSON.generate(result)
+    end
+
+    def valid_address_res
+      {
+        jsonrpc: '2.0',
+        id: 'req_123456',
+        result: {
+          isValid: true,
+          normalizedAddress: {
+            name: '',
+            company: '',
+            phone: '',
+            street: [
+              '104 NELRAY'
+            ],
+            cityLocality: 'METROPOLIS',
+            stateProvince: 'ME',
+            postalCode: '02215',
+            countryCode: 'US',
+            isResidential: nil
+          },
+          messages: []
+        }
+      }
+    end
+
+    def valid_address_res_json
+      JSON.generate(Factory.valid_address_res)
+    end
+
+    def rate_limit_error(data: {})
+      result = {
+        jsonrpc: '2.0',
+        id: 'req_123456',
+        error: {
+          code: -32_603,
+          message: 'You have exceeded the rate limit.',
+          data: {
+            source: 'shipengine',
+            type: 'system',
+            code: 'rate_limit_exceeded',
+            url: 'https://www.shipengine.com/docs/rate-limits',
+            retryAfter: 0
+          }.merge(data)
+        }
+      }
+      JSON.generate(result)
+    end
   end
 end
 
@@ -71,7 +81,7 @@ describe 'Internal Client Tests' do
       it 'the global config should not be mutated if overridden at method call time' do
         stub = stub_request(:post, base_url)
           .with(body: /.*/, headers: { 'API-Key' => 'baz' })
-          .to_return(status: 200, body: valid_address_res)
+          .to_return(status: 200, body: Factory.valid_address_res_json)
 
         client = ::ShipEngine::Client.new(api_key: 'foo', timeout: 111)
         assert_equal 'foo', client.configuration.api_key
@@ -80,7 +90,7 @@ describe 'Internal Client Tests' do
         # override
         client.configuration.api_key = 'bar'
         client.configuration.timeout = 222
-        client.validate_address(valid_address_params, { api_key: 'baz', timeout: 222 })
+        client.validate_address(Factory.valid_address_params, { api_key: 'baz', timeout: 222 })
         assert_requested(stub)
 
         # the global configuration should not be mutated
@@ -98,7 +108,7 @@ describe 'Internal Client Tests' do
 
         stub = stub_request(:post, base_url)
           .with(body: /.*/)
-          .to_return(status: 200, body: valid_address_res)
+          .to_return(status: 200, body: Factory.valid_address_res_json)
 
         # configuration during insantiation
         assert_raises_shipengine_validation(page_size_err) do
@@ -109,13 +119,13 @@ describe 'Internal Client Tests' do
         assert_raises_shipengine_validation(page_size_err) do
           client = ::ShipEngine::Client.new(api_key: 'abc1234')
           client.configuration.page_size = 0
-          client.validate_address(valid_address_params)
+          client.validate_address(Factory.valid_address_params)
         end
 
         # config during method call
         assert_raises_shipengine_validation(page_size_err) do
           client = ShipEngine::Client.new(api_key: 'abc1234')
-          client.validate_address(valid_address_params, { page_size: 0 })
+          client.validate_address(Factory.valid_address_params, { page_size: 0 })
         end
 
         assert_not_requested(stub)
@@ -129,7 +139,7 @@ describe 'Internal Client Tests' do
 
         stub = stub_request(:post, base_url)
           .with(body: /.*/)
-          .to_return(status: 200, body: valid_address_res)
+          .to_return(status: 200, body: Factory.valid_address_res_json)
 
         # configuration during insantiation
         assert_raises_shipengine_validation(timeout_err) do
@@ -140,13 +150,13 @@ describe 'Internal Client Tests' do
         assert_raises_shipengine_validation(timeout_err) do
           client = ::ShipEngine::Client.new(api_key: 'abc1234')
           client.configuration.timeout = -1
-          client.validate_address(valid_address_params)
+          client.validate_address(Factory.valid_address_params)
         end
 
         # config during method call
         assert_raises_shipengine_validation(timeout_err) do
           client = ShipEngine::Client.new(api_key: 'abc1234')
-          client.validate_address(valid_address_params, { timeout: -1 })
+          client.validate_address(Factory.valid_address_params, { timeout: -1 })
         end
 
         assert_not_requested(stub)
@@ -160,7 +170,7 @@ describe 'Internal Client Tests' do
 
         stub = stub_request(:post, base_url)
           .with(body: /.*/)
-          .to_return(status: 200, body: valid_address_res)
+          .to_return(status: 200, body: Factory.valid_address_res_json)
 
         # configuration during insantiation
         assert_raises_shipengine_validation(retries_err) do
@@ -171,13 +181,13 @@ describe 'Internal Client Tests' do
         assert_raises_shipengine_validation(retries_err) do
           client = ShipEngine::Client.new(api_key: 'abc1234')
           client.configuration.retries = -1
-          client.validate_address(valid_address_params)
+          client.validate_address(Factory.valid_address_params)
         end
 
         # config during method call
         assert_raises_shipengine_validation(retries_err) do
           client = ShipEngine::Client.new(api_key: 'abc1234')
-          client.validate_address(valid_address_params, { retries: -1 })
+          client.validate_address(Factory.valid_address_params, { retries: -1 })
         end
 
         assert_not_requested(stub)
@@ -189,13 +199,13 @@ describe 'Internal Client Tests' do
       it 'Should not throw an error if retries is valid' do
         stub_request(:post, base_url)
           .with(body: /.*/)
-          .to_return(status: 200, body: valid_address_res)
+          .to_return(status: 200, body: Factory.valid_address_res_json)
 
         client = ShipEngine::Client.new(api_key: 'abc1234')
         client.configuration.retries = 2
-        client.validate_address(valid_address_params)
+        client.validate_address(Factory.valid_address_params)
         client.configuration.retries = 0
-        client.validate_address(valid_address_params)
+        client.validate_address(Factory.valid_address_params)
       end
 
       it 'should have a default value of 1' do
@@ -207,10 +217,10 @@ describe 'Internal Client Tests' do
         stub = stub_request(:post, base_url)
           .to_return(status: 429, body: Factory.rate_limit_error).then
           .to_return(status: 429, body: Factory.rate_limit_error).then
-          .to_return(status: 200, body: valid_address_res)
+          .to_return(status: 200, body: Factory.valid_address_res_json)
 
-        client = ShipEngine::Client.new(api_key: 'abc123', retries: 2, subscriber: MyEventEmitter.new)
-        response = client.validate_address(valid_address_params)
+        client = ShipEngine::Client.new(api_key: 'abc123', retries: 2)
+        response = client.validate_address(Factory.valid_address_params)
         assert(response.valid?)
         assert_requested(stub, times: 3)
       end
@@ -222,7 +232,7 @@ describe 'Internal Client Tests' do
           .to_return(status: 429, body: Factory.rate_limit_error).then
           .to_return(status: 429, body: Factory.rate_limit_error)
 
-        assert_raises_rate_limit_error { client.validate_address(valid_address_params) }
+        assert_raises_rate_limit_error { client.validate_address(Factory.valid_address_params) }
       end
 
       it 'should throw an error with the number of tries' do
@@ -231,16 +241,16 @@ describe 'Internal Client Tests' do
           .to_return(status: 429, body: Factory.rate_limit_error).then
           .to_return(status: 429, body: Factory.rate_limit_error).then
           .to_return(status: 429, body: Factory.rate_limit_error)
-        assert_raises_rate_limit_error(retries: 2) { client.validate_address(valid_address_params) }
+        assert_raises_rate_limit_error(retries: 2) { client.validate_address(Factory.valid_address_params) }
       end
 
       it 'respects the Retry-After header, which can override error.retryAfter' do
         client = ShipEngine::Client.new(api_key: 'abc123', retries: 1)
         stub = stub_request(:post, base_url)
           .to_return(status: 429, body: Factory.rate_limit_error, headers: { "Retry-After": 1 })
-          .then.to_return(status: 200, body: valid_address_res)
+          .then.to_return(status: 200, body: Factory.valid_address_res_json)
         start = Time.now
-        client.validate_address(valid_address_params)
+        client.validate_address(Factory.valid_address_params)
         diff = Time.now - start
 
         assert_operator(diff, :>, 1, 'should take more than than 1 second')
@@ -254,12 +264,12 @@ describe 'Internal Client Tests' do
         stub = stub_request(:post, base_url)
           .to_return(status: 429, body: Factory.rate_limit_error).then
           .to_return(status: 429, body: Factory.rate_limit_error).then
-          .to_return(status: 200, body: valid_address_res)
-        assert_raises_rate_limit_error { client.validate_address(valid_address_params) }
+          .to_return(status: 200, body: Factory.valid_address_res_json)
+        assert_raises_rate_limit_error { client.validate_address(Factory.valid_address_params) }
         assert_requested(stub, times: 1)
       end
 
-      focus; it 'should dispatch an on_request_sent twice (once for every retry)' do
+      it 'should dispatch an on_request_sent three times (once to start and twice more for every retry)' do
         # rubocop:disable Lint/ConstantDefinitionInBlock
         class MyEventEmitter < ShipEngine::Subscriber::EventEmitter
           def on_request_sent(event); end
@@ -274,19 +284,94 @@ describe 'Internal Client Tests' do
           .to_return(status: 429, body: Factory.rate_limit_error).then
           .to_return(status: 429, body: Factory.rate_limit_error).then
           .to_return(status: 429, body: Factory.rate_limit_error)
-        assert_raises_rate_limit_error(retries: 2) { client.validate_address(valid_address_params) }
+        assert_raises_rate_limit_error(retries: 2) { client.validate_address(Factory.valid_address_params) }
 
-        assert_equal(2, on_request_sent.calls.count, 'should be called twice')
+        assert_equal(3, on_request_sent.calls.count, 'should be called three times')
 
-        arg1 = on_request_sent.calls[0].args[0]
-        assert_kind_of(::ShipEngine::Subscriber::RequestSentEvent, arg1, 'on_request_sent should be called with a RequestSentEvent')
-        assert_equal('rate_limit_exceeded', arg1.body.dig('error', 'data', 'code'), 'on_request_sent should be passed the body (as a hash)')
-        assert_equal(1, arg1.retries)
-        assert_equal('Calling the ShipEngine foo API at https://simengine.herokuapp.com/jsonrpc', arg1.message)
-        assert_equal(::ShipEngine::Subscriber::EventType::REQUEST_SENT, arg1.type)
+        arg_call_1 = on_request_sent.calls[0].args[0]
+        assert_kind_of(::ShipEngine::Subscriber::RequestSentEvent, arg_call_1, 'on_request_sent should be called with a RequestSentEvent')
+        assert_equal(Factory.valid_address_params[:street], arg_call_1.body.dig('params', 'address', 'street'),
+          'on_request_sent should be passed the body (as a hash)')
+        assert_equal(0, arg_call_1.retries, 'should say the number of retries')
+        assert_equal('Calling the ShipEngine address.validate.v1 API at https://simengine.herokuapp.com/jsonrpc', arg_call_1.message,
+          'should have a message')
+        assert_equal(::ShipEngine::Subscriber::EventType::REQUEST_SENT, arg_call_1.type, 'should have a type')
 
-        arg2 = on_request_sent.calls[1].args[0]
-        assert_equal(2, arg2.retries)
+        arg_call_2 = on_request_sent.calls[1].args[0]
+        assert_equal(1, arg_call_2.retries)
+
+        arg_call_3 = on_request_sent.calls[2].args[0]
+        assert_equal(2, arg_call_3.retries)
+      end
+
+      it 'should dispatch an on_response_received three times (once to start and twice more for every retry)' do
+        class MyEventEmitter < ShipEngine::Subscriber::EventEmitter
+          def on_response_received(event); end
+        end
+
+        subscriber = MyEventEmitter.new
+        on_response_received = Spy.on(subscriber, :on_response_received)
+
+        client = ShipEngine::Client.new(api_key: 'abc123', retries: 2, subscriber: subscriber) # emitter = MyEventEmitter.double(MyEventEmitter)
+
+        stub_request(:post, base_url)
+          .to_return(status: 429, body: Factory.rate_limit_error).then
+          .to_return(status: 429, body: Factory.rate_limit_error).then
+          .to_return(status: 429, body: Factory.rate_limit_error)
+
+        assert_raises_rate_limit_error(retries: 2) { client.validate_address(Factory.valid_address_params) }
+
+        assert_equal(3, on_response_received.calls.count, 'should be called three times')
+
+        arg_call_1 = on_response_received.calls[0].args[0]
+        assert_kind_of(::ShipEngine::Subscriber::ResponseReceivedEvent, arg_call_1, 'on_request_sent should be called with a ResponseReceivedEvent')
+        assert_equal(0, arg_call_1.retries)
+
+        assert_kind_of(Hash, arg_call_1.body)
+        assert_equal('You have exceeded the rate limit.', arg_call_1.body['error']['message'],
+
+          'on_response_received hould be passed the response body (as a hash)')
+
+        timestamp_diff = DateTime.now - arg_call_1.datetime
+        assert_equal(true, timestamp_diff > 0 && timestamp_diff < 1, 'timestamp_d should be less than a second from now')
+
+        assert_equal('Received an HTTP 429 response from the ShipEngine address.validate.v1 API', arg_call_1.message, 'should have a message')
+        assert_equal(::ShipEngine::Subscriber::EventType::RESPONSE_RECEIVED, arg_call_1.type, 'should have a type')
+
+        arg_call_2 = on_response_received.calls[1].args[0]
+        assert_equal(1, arg_call_2.retries)
+
+        arg_call_3 = on_response_received.calls[2].args[0]
+        assert_equal(2, arg_call_3.retries)
+      end
+
+      it 'should dispatch an on_request_sent once' do
+        class MyEventEmitter < ShipEngine::Subscriber::EventEmitter
+          def on_request_sent(event); end
+        end
+
+        subscriber = MyEventEmitter.new
+        on_request_sent = Spy.on(subscriber, :on_request_sent)
+
+        client = ShipEngine::Client.new(api_key: 'abc123', subscriber: subscriber) # emitter = MyEventEmitter.double(MyEventEmitter)
+
+        stub_request(:post, base_url)
+          .to_return(status: 200, body: Factory.valid_address_res_json)
+
+        response = client.validate_address(Factory.valid_address_params)
+        assert response
+        assert_equal(1, on_request_sent.calls.count, 'should be called once')
+
+        arg_call_1 = on_request_sent.calls[0].args[0]
+        assert_kind_of(::ShipEngine::Subscriber::RequestSentEvent, arg_call_1, 'on_request_sent should be called with a RequestSentEvent')
+        assert_equal(::ShipEngine::Subscriber::EventType::REQUEST_SENT, arg_call_1.type, 'should have a type')
+        assert_equal(0, arg_call_1.retries, 'should say the number of retries')
+
+        assert_kind_of(Hash, arg_call_1.body)
+        assert_kind_of(Hash, arg_call_1.body.dig('params', 'address'), 'on_request_sent should be passed the body (as a hash)')
+
+        assert_equal('Calling the ShipEngine address.validate.v1 API at https://simengine.herokuapp.com/jsonrpc', arg_call_1.message,
+          'should have a message')
       end
 
       it 'should make requests immediately if retryAfter is set to 0' do
@@ -295,9 +380,9 @@ describe 'Internal Client Tests' do
         stub = stub_request(:post, base_url)
           .to_return(status: 429, body: Factory.rate_limit_error(data: { retryAfter: 0 })).then
           .to_return(status: 429, body: Factory.rate_limit_error(data: { retryAfter: 0 })).then
-          .to_return(status: 200, body: valid_address_res)
+          .to_return(status: 200, body: Factory.valid_address_res_json)
         start = Time.now
-        client.validate_address(valid_address_params)
+        client.validate_address(Factory.valid_address_params)
         diff = Time.now - start
         assert_operator(diff, :<, 1, 'should take less than 1 second')
         assert_requested(stub, times: retries + 1)
@@ -311,9 +396,9 @@ describe 'Internal Client Tests' do
           .to_return(status: 429, body: Factory.rate_limit_error(data: { retryAfter: 1 })).then
           .to_return(status: 429, body: Factory.rate_limit_error(data: { retryAfter: 1 })).then
           .to_return(status: 429, body: Factory.rate_limit_error(data: { retryAfter: 1 })).then
-          .to_return(status: 200, body: valid_address_res)
+          .to_return(status: 200, body: Factory.valid_address_res_json)
         start = Time.now
-        client.validate_address(valid_address_params)
+        client.validate_address(Factory.valid_address_params)
         diff = Time.now - start
         assert(diff > 3 && diff < 4, 'should take between 3 and 4 seconds')
         assert_requested(stub, times: retries + 1)
@@ -323,10 +408,10 @@ describe 'Internal Client Tests' do
     describe 'api_key' do
       it 'should have header: API-Key if api-key passed during initialization' do
         stub = stub_request(:post, base_url)
-          .with(body: /.*/, headers: { 'API-Key' => 'foo' }).to_return(status: 200, body: valid_address_res)
+          .with(body: /.*/, headers: { 'API-Key' => 'foo' }).to_return(status: 200, body: Factory.valid_address_res_json)
 
         client = ::ShipEngine::Client.new(api_key: 'foo')
-        client.validate_address(valid_address_params)
+        client.validate_address(Factory.valid_address_params)
         assert_requested(stub)
       end
 
@@ -340,7 +425,7 @@ describe 'Internal Client Tests' do
 
         stub = stub_request(:post, base_url)
           .with(body: /.*/)
-          .to_return(status: 200, body: valid_address_res)
+          .to_return(status: 200, body: Factory.valid_address_res_json)
 
         # configuration during insantiation
         assert_raises_shipengine_validation(api_key_err) do
@@ -351,13 +436,13 @@ describe 'Internal Client Tests' do
         assert_raises_shipengine_validation(api_key_err) do
           client = ShipEngine::Client.new(api_key: 'abc1234')
           client.configuration.api_key = nil
-          client.validate_address(valid_address_params)
+          client.validate_address(Factory.valid_address_params)
         end
 
         # config during method call
         assert_raises_shipengine_validation(api_key_err) do
           client = ShipEngine::Client.new(api_key: 'foo')
-          client.validate_address(valid_address_params, { api_key: nil })
+          client.validate_address(Factory.valid_address_params, { api_key: nil })
         end
 
         assert_not_requested(stub)

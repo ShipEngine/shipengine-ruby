@@ -8,6 +8,9 @@ group :development do
   gem 'pry'
   gem 'solargraph', require: false
   gem 'yard'
+  gem 'debase', require: false
+  gem 'ruby-debug-ide', require: false
+
 end
 
 group :test do
