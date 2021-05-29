@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-require 'shipengine/utils/request_id'
-require 'shipengine/exceptions'
-require 'shipengine/version'
-require 'logger'
-require 'faraday_middleware'
-require 'json'
+require "shipengine/utils/request_id"
+require "shipengine/exceptions"
+require "shipengine/version"
+require "logger"
+require "faraday_middleware"
+require "json"
 
 class ShipEngineErrorLogger
   def self.log(msg, data = nil)
@@ -21,7 +21,7 @@ module ShipEngine
         # @param datetime [DateTime]
         # @return [Float] - time elapsed in SECONDS
         def calculate_time_elapsed_in_sec(datetime)
-          ((DateTime.now - datetime) * 24 * 60 * 60).to_f
+          ((Time.now - datetime) * 24 * 60 * 60).to_f
         end
 
         # @param str [String]
@@ -29,7 +29,7 @@ module ShipEngine
         def safe_json_parse(str, default = nil)
           JSON.parse(str)
         rescue ::StandardError => e
-          ShipEngineErrorLogger.log('JSON parse error', e)
+          ShipEngineErrorLogger.log("JSON parse error", e)
           default
         end
       end
@@ -47,10 +47,10 @@ module ShipEngine
       def on_complete(env)
         body = env[:body]
         status = env[:status]
-        return env unless (status == 429) && body.is_a?(Hash) && body['error']
+        return env unless (status == 429) && body.is_a?(Hash) && body["error"]
 
         # ShipEngineErrorLogger.log('Retrying...attempt: #{ @retries}')
-        env[:response_headers]['Retry-After'] ||= body.dig('error', 'data', 'retryAfter').to_s
+        env[:response_headers]["Retry-After"] ||= body.dig("error", "data", "retryAfter").to_s
         @retries += 1
         env[:retries] = @retries
         env
@@ -70,8 +70,8 @@ module ShipEngine
       def build_request_sent_event(env)
         parsed_request_body = Utils.safe_json_parse(env[:request_body])
         url = env.url
-        method = parsed_request_body['method'] if parsed_request_body
-        request_id = parsed_request_body['id'] if parsed_request_body
+        method = parsed_request_body["method"] if parsed_request_body
+        request_id = parsed_request_body["id"] if parsed_request_body
         retries = env[:retries]
         ::ShipEngine::Subscriber::RequestSentEvent.new(
           message: "Calling the ShipEngine #{method} API at #{url}",
@@ -119,7 +119,7 @@ module ShipEngine
         parsed_response_body = Utils.safe_json_parse(env[:response_body])
         status =  env[:status]
         headers = env[:response_headers]
-        method, request_id = parsed_request_body.values_at('method', 'id') if parsed_request_body
+        method, request_id = parsed_request_body.values_at("method", "id") if parsed_request_body
         url = env[:url]
         retries = env[:retries]
         elapsed_sec = Utils.calculate_time_elapsed_in_sec(env[:first_event_datetime]) unless env[:first_event_datetime].nil?
@@ -184,7 +184,7 @@ module ShipEngine
 
       assert_shipengine_rpc_success(response, config_with_overrides)
 
-      result, id = response.body.values_at('result', 'id')
+      result, id = response.body.values_at("result", "id")
       InternalClientResponseSuccess.new(result: result, request_id: id)
     end
 
@@ -200,21 +200,21 @@ module ShipEngine
       subscriber = config.subscriber
 
       Faraday.new(url: base_url, request: { timeout: timeout }) do |f|
-        f.request :json
-        f.request :retry, {
+        f.request(:json)
+        f.request(:retry, {
           max: retries,
           retry_statuses: [429], # even though this seems self-evident, this field is neccessary for Retry-After to be respected.
-          methods: Faraday::Request::Retry::IDEMPOTENT_METHODS + [:post] # :post is not a "retry-able request by default"
-        }
-        f.request :retry_after_header # should go after :retry
+          methods: Faraday::Request::Retry::IDEMPOTENT_METHODS + [:post], # :post is not a "retry-able request by default"
+        })
+        f.request(:retry_after_header) # should go after :retry
         f.request(:request_sent, subscriber: subscriber)
         f.headers = {
-          'API-Key' => api_key,
-          'Content-Type' => 'application/json',
-          'Accept' => 'application/json',
-          'User-Agent' => "shipengine-ruby/#{VERSION} (#{RUBY_PLATFORM})"
+          "API-Key" => api_key,
+          "Content-Type" => "application/json",
+          "Accept" => "application/json",
+          "User-Agent" => "shipengine-ruby/#{VERSION} (#{RUBY_PLATFORM})",
         }
-        f.response :json
+        f.response(:json)
         f.response(:response_received, subscriber: subscriber)
       end
     end
@@ -224,10 +224,10 @@ module ShipEngine
     # @return [Hash] - JSON:RPC response
     def build_jsonrpc_request_body(method, params)
       {
-        jsonrpc: '2.0',
+        jsonrpc: "2.0",
         id: Utils::RequestId.create,
         method: method,
-        params: params
+        params: params,
       }
     end
 
@@ -237,15 +237,15 @@ module ShipEngine
       body = response.body
       unless body.is_a?(Hash)
         # this should not happen
-        ShipEngineErrorLogger.log('response body is NOT a hash', [status: response.status, body: response.body])
+        ShipEngineErrorLogger.log("response body is NOT a hash", [status: response.status, body: response.body])
         raise Exceptions.create_invariant_error(response)
       end
 
-      error, request_id = body.values_at('error', 'id')
+      error, request_id = body.values_at("error", "id")
       return nil unless error
 
-      message, data = error.values_at('message', 'data')
-      source, type, code = data.values_at('source', 'type', 'code')
+      message, data = error.values_at("message", "data")
+      source, type, code = data.values_at("source", "type", "code")
       raise Exceptions.create_error_instance(type: type, message: message, code: code, request_id: request_id, source: source, config: config)
     end
   end

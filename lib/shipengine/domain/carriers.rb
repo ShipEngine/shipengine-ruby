@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require 'shipengine/utils/validate'
-require 'shipengine/constants'
+require "shipengine/utils/validate"
+require "shipengine/constants"
 
 module ShipEngine
   class Carrier
@@ -15,10 +15,10 @@ module ShipEngine
 
     # {"carrier_code" => "name"}
     CARRIER_MAP = {
-      'ups' => 'United Parcel Service',
-      'fedex' => 'FedEx',
-      'usps' => 'U.S. Postal Service',
-      'stamps_com' => 'Stamps.com'
+      "ups" => "United Parcel Service",
+      "fedex" => "FedEx",
+      "usps" => "U.S. Postal Service",
+      "stamps_com" => "Stamps.com",
     }.freeze
   end
 
@@ -45,14 +45,14 @@ module ShipEngine
       end
 
       def list_accounts(config:, carrier_code: nil)
-        response = @internal_client.make_request('carrier.listAccounts.v1', { carrierCode: carrier_code }.compact, config)
-        accounts = response.result['carrierAccounts']
+        response = @internal_client.make_request("carrier.listAccounts.v1", { carrierCode: carrier_code }.compact, config)
+        accounts = response.result["carrierAccounts"]
         accounts.map do |account|
           CarrierAccount.new(
-            carrier_code: account['carrierCode'],
-            account_id: account['accountID'],
-            account_number: account['accountNumber'],
-            name: account['name']
+            carrier_code: account["carrierCode"],
+            account_id: account["accountID"],
+            account_number: account["accountNumber"],
+            name: account["name"]
           )
         end
       end

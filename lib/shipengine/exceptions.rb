@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-require_relative 'exceptions/error_code'
-require_relative 'exceptions/error_type'
+require_relative "exceptions/error_code"
+require_relative "exceptions/error_type"
 
 module ShipEngine
   module Exceptions
-    DEFAULT_SOURCE = 'shipengine'
+    DEFAULT_SOURCE = "shipengine"
     # 400 error, or other "user exceptions"
     class ShipEngineError < StandardError
       # message is inherited
@@ -70,7 +70,7 @@ module ShipEngine
     class RateLimitError < SystemError
       attr_reader :retries
 
-      def initialize(retries: nil, message: 'You have exceeded the rate limit.', source: nil, request_id: nil)
+      def initialize(retries: nil, message: "You have exceeded the rate limit.", source: nil, request_id: nil)
         super(
           message: message,
           code: ErrorCode.get(:RATE_LIMIT_EXCEEDED),

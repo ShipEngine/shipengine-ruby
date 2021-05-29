@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require 'test_helper'
-require 'shipengine'
-require 'json'
+require "test_helper"
+require "shipengine"
+require "json"
 
 #
 # <Description>
@@ -19,27 +19,27 @@ end
 # @param response [::ShipEngine::CarrierAccount]
 # @return [<Type>] <description>
 def assert_carrier_account(expected, actual_carrier_account)
-  raise 'Should have account_id / account_number' unless actual_carrier_account.account_id && actual_carrier_account.account_number
+  raise "Should have account_id / account_number" unless actual_carrier_account.account_id && actual_carrier_account.account_number
 
-  assert_equal(expected[:account_id], actual_carrier_account.account_id, '~> account_id') if expected.key?(:account_id)
+  assert_equal(expected[:account_id], actual_carrier_account.account_id, "~> account_id") if expected.key?(:account_id)
 
-  assert_equal(expected[:account_number], actual_carrier_account.account_number, '~> account_number') if expected.key?(:account_number)
+  assert_equal(expected[:account_number], actual_carrier_account.account_number, "~> account_number") if expected.key?(:account_number)
   return unless expected.key?(:carrier)
 
   expected_carrier = expected[:carrier]
-  assert_equal(expected_carrier[:code], actual_carrier_account.carrier.code, '~> carrier.code')
-  assert_equal(expected_carrier[:name], actual_carrier_account.carrier.name, '~> carrier.name')
+  assert_equal(expected_carrier[:code], actual_carrier_account.carrier.code, "~> carrier.code")
+  assert_equal(expected_carrier[:name], actual_carrier_account.carrier.name, "~> carrier.name")
 end
 
-describe 'List Carrier Accounts: Functional' do
-  client = ::ShipEngine::Client.new(api_key: 'abc123')
-  it 'should have an optional argument of carrier_accounts' do
+describe "List Carrier Accounts: Functional" do
+  client = ::ShipEngine::Client.new(api_key: "abc123")
+  it "should have an optional argument of carrier_accounts" do
     expected = [
       {
-        account_id: 'car_1knseddGBrseWTiw',
-        account_number: '1169350',
-        name: 'My UPS Account'
-      }
+        account_id: "car_1knseddGBrseWTiw",
+        account_number: "1169350",
+        name: "My UPS Account",
+      },
     ]
     actual_response = client.list_carrier_accounts
     assert_list_carrier_response(expected, actual_response)
@@ -49,69 +49,69 @@ describe 'List Carrier Accounts: Functional' do
   end
 
   # DX-983
-  it 'handles a successful response' do
+  it "handles a successful response" do
     expected = [
       {
-        account_id: 'car_1knseddGBrseWTiw',
+        account_id: "car_1knseddGBrseWTiw",
         carrier: {
-          code: 'ups',
-          name: 'United Parcel Service'
+          code: "ups",
+          name: "United Parcel Service",
         },
-        account_number: '1169350',
-        name: 'My UPS Account'
-      }
+        account_number: "1169350",
+        name: "My UPS Account",
+      },
     ]
-    actual_response = client.list_carrier_accounts(carrier_code: 'ups')
+    actual_response = client.list_carrier_accounts(carrier_code: "ups")
     assert_list_carrier_response(expected, actual_response)
   end
 
   # DX-985 Multiple Carriers
-  it 'handles multiple carriers' do
+  it "handles multiple carriers" do
     expected = [
       {
-        account_id: 'car_kfUjTZSEAQ8gHeT',
-        carrier_code: 'fedex',
-        account_number: '41E-4928-29314AAX',
-        name: 'FedEx Account #1'
+        account_id: "car_kfUjTZSEAQ8gHeT",
+        carrier_code: "fedex",
+        account_number: "41E-4928-29314AAX",
+        name: "FedEx Account #1",
       },
       {
-        account_id: 'car_3a76b06902f812d14b33d6847',
-        carrier_code: 'fedex',
-        account_number: '41E-4911-851657ABW',
-        name: 'FedEx Account #3'
-      }
+        account_id: "car_3a76b06902f812d14b33d6847",
+        carrier_code: "fedex",
+        account_number: "41E-4911-851657ABW",
+        name: "FedEx Account #3",
+      },
     ]
 
-    actual_response = client.list_carrier_accounts(carrier_code: 'fedex')
+    actual_response = client.list_carrier_accounts(carrier_code: "fedex")
 
     assert_list_carrier_response(expected, actual_response)
   end
 
   # DX-984 No accounts setup yet
-  it 'handles if no accounts are setup' do
+  it "handles if no accounts are setup" do
     expected = []
 
-    actual_response = client.list_carrier_accounts(carrier_code: 'purolator_canada')
+    actual_response = client.list_carrier_accounts(carrier_code: "purolator_canada")
 
     assert_list_carrier_response(expected, actual_response)
   end
 
   # DX-987
-  it 'handles an error with an invalid carrier code or other server error' do
+  it "handles an error with an invalid carrier code or other server error" do
     expected_err = {
-      code: 'invalid_field_value',
-      request_id: :__REGEX_MATCH__
+      code: "invalid_field_value",
+      request_id: :__REGEX_MATCH__,
     }
     assert_raises_shipengine(::ShipEngine::Exceptions::ValidationError, expected_err) do
-      client.list_carrier_accounts(carrier_code: 'I_DONT_EXIST')
+      client.list_carrier_accounts(carrier_code: "I_DONT_EXIST")
     end
 
     expected_err = {
-      code: 'unspecified',
-      request_id: :__REGEX_MATCH__
+      code: "unspecified",
+      request_id: :__REGEX_MATCH__,
     }
     assert_raises_shipengine(::ShipEngine::Exceptions::SystemError, expected_err) do
-      client.list_carrier_accounts(carrier_code: 'access_worldwide')
+      client.list_carrier_accounts(carrier_code: "access_worldwide")
     end
   end
 end

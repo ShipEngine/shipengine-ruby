@@ -115,6 +115,8 @@ GEM
       unicode-display_width (>= 1.4.0, < 3.0)
     rubocop-ast (1.6.0)
       parser (>= 3.0.1.1)
+    rubocop-shopify (2.1.0)
+      rubocop (~> 1.13)
     ruby-debug-ide (0.7.2)
       rake (>= 0.8.1)
     ruby-progressbar (1.11.0)
@@ -166,6 +168,7 @@ DEPENDENCIES
   pry
   rake
   rubocop
+  rubocop-shopify
   ruby-debug-ide
   shipengine!
   simplecov

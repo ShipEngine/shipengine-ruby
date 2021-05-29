@@ -1,15 +1,15 @@
 # frozen_string_literal: true
 
 # for client class
-require 'shipengine/internal_client'
-require 'shipengine/domain'
+require "shipengine/internal_client"
+require "shipengine/domain"
 
 # just for exporting
-require 'shipengine/version'
-require 'shipengine/exceptions'
-require 'shipengine/utils/validate'
-require 'shipengine/constants'
-require 'observer'
+require "shipengine/version"
+require "shipengine/exceptions"
+require "shipengine/utils/validate"
+require "shipengine/constants"
+require "observer"
 
 module ShipEngine
   class Configuration
@@ -17,7 +17,7 @@ module ShipEngine
 
     def initialize(api_key:, retries: nil, timeout: nil, page_size: nil, base_url: nil, subscriber: nil)
       @api_key = api_key
-      @base_url = base_url || (ENV['USE_SIMENGINE'] == 'true' ? 'https://simengine.herokuapp.com/jsonrpc' : 'https://api.shipengine.com')
+      @base_url = base_url || (ENV["USE_SIMENGINE"] == "true" ? "https://simengine.herokuapp.com/jsonrpc" : "https://api.shipengine.com")
       @retries = retries || 1
       @timeout = timeout || 5 # https://github.com/lostisland/faraday/issues/708
       @page_size = page_size || 50
@@ -46,30 +46,30 @@ module ShipEngine
     protected
 
     def validate
-      Utils::Validate.str('A ShipEngine API key', @api_key)
-      Utils::Validate.str('Base URL', @base_url)
-      Utils::Validate.non_neg_int('Retries', @retries)
-      Utils::Validate.positive_int('Timeout', @timeout)
-      Utils::Validate.positive_int('Page size', @page_size)
+      Utils::Validate.str("A ShipEngine API key", @api_key)
+      Utils::Validate.str("Base URL", @base_url)
+      Utils::Validate.non_neg_int("Retries", @retries)
+      Utils::Validate.positive_int("Timeout", @timeout)
+      Utils::Validate.positive_int("Page size", @page_size)
     end
   end
 
   module Subscriber
     class Event
-      require 'date'
-      require 'uri'
+      require "date"
+      require "uri"
       attr_reader :datetime, :type, :message
       def initialize(type:, message:)
         @type = type
         @message = message
-        @datetime = DateTime.now
+        @datetime = Time.now
       end
     end
 
     class EventType
-      RESPONSE_RECEIVED = 'response_received'
-      REQUEST_SENT = 'request_sent'
-      ERROR = 'error'
+      RESPONSE_RECEIVED = "response_received"
+      REQUEST_SENT = "request_sent"
+      ERROR = "error"
     end
 
     class HttpEvent < Event
