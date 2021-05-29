@@ -28,6 +28,6 @@ describe "timeout" do
     end
 
     assert_not_requested(stub)
-    ShipEngine::Client.new(api_key: "abc1234", timeout: 5) # valid timeout
+    ShipEngine::Client.new(api_key: "abc1234", timeout: 5000) # valid timeout
   end
 end

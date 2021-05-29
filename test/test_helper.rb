@@ -9,8 +9,14 @@ require "minitest/focus"
 require "minitest/fail_fast"
 require "webmock/minitest"
 require "spy"
+require "minitest/tagz"
 WebMock.enable_net_connect!
 Minitest::Reporters.use!([Minitest::Reporters::ProgressReporter.new])
+
+
+# bundle exec rake test TAGS=fast
+# bundle exec rake test TAGS=slow
+Minitest::Tagz.choose_tags(*ENV["TAGS"].split(",")) if ENV["TAGS"]
 
 # local modules
 ENV["USE_SIMENGINE"] = "true"

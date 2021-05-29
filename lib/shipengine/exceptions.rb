@@ -9,15 +9,16 @@ module ShipEngine
     # 400 error, or other "user exceptions"
     class ShipEngineError < StandardError
       # message is inherited
-      attr_reader :request_id, :source, :type, :code
+      attr_reader :request_id, :source, :type, :code, :url
 
-      def initialize(message:, source:, type:, code:, request_id:)
+      def initialize(message:, source:, type:, code:, request_id:, url: nil)
         code = Exceptions::ErrorCode.get_by_str(code) if code.is_a?(String)
         super(message)
         @request_id = request_id
         @source = source || DEFAULT_SOURCE
         @type = type
         @code = code
+        @url = url
       end
     end
 
@@ -62,8 +63,14 @@ module ShipEngine
     end
 
     class SystemError < ShipEngineError
-      def initialize(message:, code:, request_id: nil, source: nil)
-        super(message: message, source: source, type: Exceptions::ErrorType.get(:SYSTEM), code: code, request_id: request_id)
+      def initialize(message:, code:, request_id: nil, source: nil, url: nil)
+        super(message: message, source: source, type: Exceptions::ErrorType.get(:SYSTEM), code: code, request_id: request_id, url: url)
+      end
+    end
+
+    class TimeoutError < SystemError
+      def initialize(message:, source: nil, request_id: nil)
+        super(message: message, url: URI("https://www.shipengine.com/docs/rate-limits"), code: ErrorCode.get(:TIMEOUT), request_id: request_id, source: source || DEFAULT_SOURCE)
       end
     end
 
@@ -76,14 +83,9 @@ module ShipEngine
           code: ErrorCode.get(:RATE_LIMIT_EXCEEDED),
           request_id: request_id,
           source: source,
+          url: URI("https://www.shipengine.com/docs/rate-limits"),
         )
         @retries = retries
-      end
-    end
-
-    class TimeoutError < SystemError
-      def initialize(message:, source: ::Exceptions::DEFAULT_SOURCE, request_id: nil)
-        super(message: message, code: ErrorCode.get(:TIMEOUT), request_id: request_id, source: source)
       end
     end
 

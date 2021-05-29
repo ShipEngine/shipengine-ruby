@@ -18,10 +18,29 @@ module ShipEngine
   module CustomMiddleware
     class Utils
       class << self
-        # @param datetime [DateTime]
+        # @param datetime [Time]
         # @return [Float] - time elapsed in SECONDS
         def calculate_time_elapsed_in_sec(datetime)
           ((Time.now - datetime) * 24 * 60 * 60).to_f
+        end
+
+        def get_retry_after(headers)
+          headers["Retry-After"]
+        end
+
+        def get_retry_after_from_body(body)
+          body.dig("error", "data", "retryAfter")
+        end
+
+        def set_retry_after(headers, value)
+          headers["Retry-After"] = value
+        end
+
+        def assert_retry_after(timeout, retry_after, request_id)
+          if (timeout / 1000) < (retry_after or 0)
+            raise ::ShipEngine::Exceptions::TimeoutError.new(message: "The request took longer than the #{timeout} milliseconds allowed",
+              request_id: request_id)
+          end
         end
 
         # @param str [String]
@@ -50,7 +69,7 @@ module ShipEngine
         return env unless (status == 429) && body.is_a?(Hash) && body["error"]
 
         # ShipEngineErrorLogger.log('Retrying...attempt: #{ @retries}')
-        env[:response_headers]["Retry-After"] ||= body.dig("error", "data", "retryAfter").to_s
+        env[:response_headers]["Retry-After"] ||= Utils.get_retry_after_from_body(body).to_s
         @retries += 1
         env[:retries] = @retries
         env
@@ -59,10 +78,11 @@ module ShipEngine
 
     # Middleware that exists to emit a RequestSentEvent
     class RequestSentEmitter < Faraday::Middleware
-      def initialize(app, subscriber:)
+      def initialize(app, subscriber:, timeout:)
         super(app)
         @app = app
         @subscriber = subscriber
+        @timeout = timeout
       end
 
       # @param env [Faraday::Env]
@@ -80,7 +100,7 @@ module ShipEngine
           url: url,
           headers: env,
           retries: retries || 0,
-          timeout: 0
+          timeout: @timeout
         )
       end
 
@@ -106,10 +126,11 @@ module ShipEngine
 
     # Middleware that exists to emit a ResponseReceivedEvent
     class ResponseRecievedEmitter < Faraday::Middleware
-      def initialize(app, subscriber:)
+      def initialize(app, subscriber:, timeout:)
         super(app)
         @app = app
         @subscriber = subscriber
+        @timeout = timeout
       end
 
       # @param env [Faraday::Env]
@@ -127,6 +148,7 @@ module ShipEngine
         ::ShipEngine::Subscriber::ResponseReceivedEvent.new(
           message: "Received an HTTP #{status} response from the ShipEngine #{method} API",
           request_id: request_id,
+          status_code: status,
           body: parsed_response_body,
           url: url,
           headers: headers,
@@ -137,7 +159,12 @@ module ShipEngine
 
       # @param env [Faraday::Env]
       def on_complete(env)
-        @subscriber&.on_response_received(build_response_received_event(env))
+        event = build_response_received_event(env)
+        @subscriber&.on_response_received(event)
+
+        # wait until event has been dispatched to throw error.
+        retry_after = Utils.get_retry_after_from_body(event.body)
+        Utils.assert_retry_after(@timeout, retry_after, event.request_id)
       end
     end
   end
@@ -199,7 +226,7 @@ module ShipEngine
       timeout = config.timeout
       subscriber = config.subscriber
 
-      Faraday.new(url: base_url, request: { timeout: timeout }) do |f|
+      Faraday.new(url: base_url, request: { timeout: timeout / 1000 }) do |f|
         f.request(:json)
         f.request(:retry, {
           max: retries,
@@ -207,7 +234,7 @@ module ShipEngine
           methods: Faraday::Request::Retry::IDEMPOTENT_METHODS + [:post], # :post is not a "retry-able request by default"
         })
         f.request(:retry_after_header) # should go after :retry
-        f.request(:request_sent, subscriber: subscriber)
+        f.request(:request_sent, subscriber: subscriber, timeout: timeout)
         f.headers = {
           "API-Key" => api_key,
           "Content-Type" => "application/json",
@@ -215,7 +242,7 @@ module ShipEngine
           "User-Agent" => "shipengine-ruby/#{VERSION} (#{RUBY_PLATFORM})",
         }
         f.response(:json)
-        f.response(:response_received, subscriber: subscriber)
+        f.response(:response_received, subscriber: subscriber, timeout: timeout)
       end
     end
 

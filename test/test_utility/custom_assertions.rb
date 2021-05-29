@@ -4,6 +4,41 @@ require "minitest/assertions"
 
 module CustomAssertions
   include Minitest::Assertions
+
+  def assert_equal_field(some_hash, some_class, property_symbols)
+    property_symbols.each do |symbol|
+      if symbol == :request_id
+        assert_request_id_equal(expected_event[symbol], response_event.request_id)
+        next
+      end
+      assert_equal(some_hash[symbol], some_class.call(symbol), "-> #{symbol}") if expected_event.key?(symbol)
+    end
+  end
+
+  # @param expected_event [Hash]
+  # @param response_event [::ShipEngine::Subscriber::RequestSentEvent]
+  def assert_request_sent_event(expected_event, request_sent_event)
+    assert_kind_of(request_sent_event, ::ShipEngine::Subscriber::RequestSentEvent)
+    # assert_equal_field(expected_event, request_sent_event, [:retries, :datetime, :message, :type, :timeout, :request_id])
+
+    assert_equal(expected_event[:datetime], request_sent_event.datetime) if expected_event.key?(:datetime)
+    assert_equal(expected_event[:message], request_sent_event.message) if expected_event.key?(:message)
+    assert_equal(expected_event[:type], request_sent_event.type) if expected_event.key?(:type)
+    assert_equal(expected_event[:timeout], request_sent_event.timeout) if expected_event.key?(:timeout)
+  end
+
+  # @param expected_event [Hash]
+  # @param response_event [::ShipEngine::Subscriber::ResponseReceivedEvent]
+  def assert_response_received_event(expected_event, response_event)
+    assert_kind_of(response_event, ::ShipEngine::Subscriber::ResponseReceivedEvent)
+    assert_equal(expected_event[:retries], response_event.retries) if expected_event.key?(:retries)
+    assert_equal(expected_event[:datetime], response_event.datetime) if expected_event.key?(:datetime)
+    assert_equal(expected_event[:message], response_event.message) if expected_event.key?(:message)
+    assert_equal(expected_event[:type], response_event.type) if expected_event.key?(:type)
+    assert_equal(expected_event[:elapsed], response_event.elapsed) if expected_event.key?(:elapsed)
+    assert_request_id_equal(expected_event[:request_id], response_event.request_id) if expected_event.key?(:request_id)
+  end
+
   def assert_response_error(expected_err, response_err)
     if expected_err.key?(:message)
       assert_equal(expected_err[:message],
@@ -12,6 +47,7 @@ module CustomAssertions
     assert_equal(expected_err[:code], response_err.code) if expected_err.key?(:code)
     assert_equal(expected_err[:source], response_err.source) if expected_err.key?(:source)
     assert_equal(expected_err[:type], response_err.type) if expected_err.key?(:type)
+    assert_equal(expected_err[:url], response_err.url) if expected_err.key?(:url)
     assert_request_id_equal(expected_err[:request_id], response_err.request_id) if expected_err.key?(:request_id)
   end
 
@@ -40,6 +76,15 @@ module CustomAssertions
     copy_expected_err[:source] = "shipengine"
     copy_expected_err[:type] = "validation"
     assert_raises_shipengine(ShipEngine::Exceptions::ValidationError, copy_expected_err, &block)
+  end
+
+  def assert_raises_shipengine_timeout(expected_err, &block)
+    copy_expected_err = expected_err.clone
+    copy_expected_err[:source] = "shipengine"
+    copy_expected_err[:type] = "system"
+    copy_expected_err[:url] = URI("https://www.shipengine.com/docs/rate-limits")
+    copy_expected_err[:request_id] = :__REGEX_MATCH__
+    assert_raises_shipengine(ShipEngine::Exceptions::TimeoutError, copy_expected_err, &block)
   end
 
   def assert_normalized_address(expected_address, response_address)
@@ -76,7 +121,7 @@ module CustomAssertions
                                      message: "You have exceeded the rate limit.",
                                      source: "shipengine",
     }, &block)
-    assert_equal(retries, err.retries) unless retries.nil?
+    assert_equal(retries, err.retries, "Rtries should be the same") unless retries.nil?
   end
 
   # @param expected_messages [Array<Hash>]

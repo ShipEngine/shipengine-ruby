@@ -19,7 +19,7 @@ module ShipEngine
       @api_key = api_key
       @base_url = base_url || (ENV["USE_SIMENGINE"] == "true" ? ShipEngine::Constants::SIMENGINE_URL : ShipEngine::Constants::PROD_URL)
       @retries = retries || 1
-      @timeout = timeout || 5 # https://github.com/lostisland/faraday/issues/708
+      @timeout = timeout || 30_000
       @page_size = page_size || 50
       @subscriber = subscriber || Subscriber::EventEmitter.new
       validate
@@ -95,11 +95,12 @@ module ShipEngine
     end
 
     class ResponseReceivedEvent < HttpEvent
-      attr_reader :elapsed
-      def initialize(message:, request_id:, body:, headers:, url:, retries:, elapsed:)
+      attr_reader :elapsed, :status_code
+      def initialize(message:, request_id:, body:,  retries:, headers:, url:, elapsed:, status_code:)
         super(type: EventType::RESPONSE_RECEIVED, message: message, request_id: request_id, body: body, headers: headers, url: url, retries: retries)
         # The amount of time that elapsed between when the request was sent and when the response was received. For languages that have a native time span data type, this should be that type. Otherwise, it should be an integer that represents the number of milliseconds.
         @elapsed = elapsed
+        @status_code = status_code
       end
     end
 

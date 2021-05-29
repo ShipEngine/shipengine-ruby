@@ -8,7 +8,7 @@ describe "Configuration" do
       client = ::ShipEngine::Client.new(api_key: "foo")
 
       # the global configuration should not be mutated
-      assert_equal 5, client.configuration.timeout
+      assert_equal 30_000, client.configuration.timeout
       assert_equal 50, client.configuration.page_size
     end
     it "the global config should not be mutated if overridden at method call time" do
@@ -16,19 +16,19 @@ describe "Configuration" do
         .with(body: /.*/, headers: { "API-Key" => "baz" })
         .to_return(status: 200, body: Factory.valid_address_res_json)
 
-      client = ::ShipEngine::Client.new(api_key: "foo", timeout: 111)
+      client = ::ShipEngine::Client.new(api_key: "foo", timeout: 111_000)
       assert_equal "foo", client.configuration.api_key
-      assert_equal 111, client.configuration.timeout
+      assert_equal 111_000, client.configuration.timeout
 
       # override
       client.configuration.api_key = "bar"
-      client.configuration.timeout = 222
-      client.validate_address(Factory.valid_address_params, { api_key: "baz", timeout: 222 })
+      client.configuration.timeout = 222_000
+      client.validate_address(Factory.valid_address_params, { api_key: "baz", timeout: 222_000 })
       assert_requested(stub)
 
       # the global configuration should not be mutated
       assert_equal "bar", client.configuration.api_key
-      assert_equal 222, client.configuration.timeout
+      assert_equal 222_000, client.configuration.timeout
 
       # any default arguments should continue to be passed down.
       assert_equal 50, client.configuration.page_size

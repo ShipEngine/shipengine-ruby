@@ -79,6 +79,8 @@ GEM
       builder
       minitest (>= 5.0)
       ruby-progressbar
+    minitest-tagz (1.7.0)
+      minitest (~> 5)
     multipart-post (2.1.1)
     nenv (0.3.0)
     nokogiri (1.11.6)
@@ -165,6 +167,7 @@ DEPENDENCIES
   minitest-hooks
   minitest-line
   minitest-reporters
+  minitest-tagz
   pry
   rake
   rubocop

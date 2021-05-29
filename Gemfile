@@ -19,6 +19,7 @@ group :test do
   gem "minitest-focus"
   gem "minitest-hooks"
   gem "minitest-line"
+  gem "minitest-tagz"
   gem "minitest-reporters"
   gem "simplecov", require: false
   gem "webmock"

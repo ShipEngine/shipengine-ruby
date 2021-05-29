@@ -3,6 +3,9 @@
 require "test_helper"
 
 describe "retries" do
+  after do
+    WebMock.reset!
+  end
   it "Should throw an error if retries is invalid at instantiation or at method call" do
     retries_err = { message: "Retries must be zero or greater.", code: ::ShipEngine::Exceptions::ErrorCode.get(:INVALID_FIELD_VALUE) }
 
@@ -108,11 +111,7 @@ describe "retries" do
   end
 
   it "should dispatch an on_request_sent three times (once to start and twice more for every retry)" do
-    class MyEventEmitter < ShipEngine::Subscriber::EventEmitter
-      def on_request_sent(event); end
-    end
-
-    subscriber = MyEventEmitter.new
+    subscriber = ShipEngine::Subscriber::EventEmitter.new
     on_request_sent = Spy.on(subscriber, :on_request_sent)
 
     client = ShipEngine::Client.new(api_key: "abc123", retries: 2, subscriber: subscriber) # emitter = MyEventEmitter.double(MyEventEmitter)
@@ -189,11 +188,7 @@ describe "retries" do
   end
 
   it "should dispatch an on_request_sent once" do
-    class MyEventEmitter < ShipEngine::Subscriber::EventEmitter
-      def on_request_sent(event); end
-    end
-
-    subscriber = MyEventEmitter.new
+    subscriber = ShipEngine::Subscriber::EventEmitter.new
     on_request_sent = Spy.on(subscriber, :on_request_sent)
 
     client = ShipEngine::Client.new(api_key: "abc123", subscriber: subscriber) # emitter = MyEventEmitter.double(MyEventEmitter)
@@ -210,6 +205,7 @@ describe "retries" do
     assert_equal(::ShipEngine::Subscriber::EventType::REQUEST_SENT, arg_call_1.type, "should have a type")
     assert_equal(0, arg_call_1.retries, "should say the number of retries")
 
+    assert_kind_of(Time, arg_call_1.datetime)
     assert_kind_of(Hash, arg_call_1.body)
     assert_kind_of(Hash, arg_call_1.body.dig("params", "address"), "on_request_sent should be passed the body (as a hash)")
 
@@ -234,7 +230,54 @@ describe "retries" do
     assert_requested(stub, times: retries + 1)
   end
 
-  it "SLOW: should use the retryAfter field in errors to dictate how long it should wait to retry" do
+  # DX-1497
+  it "^ similar test, but uses simengine to complete the AC in DX-1497 (make requests immediately if retryAfter is set to 0)" do
+    subscriber = ShipEngine::Subscriber::EventEmitter.new
+    on_request_sent = Spy.on(subscriber, :on_request_sent)
+    on_response_received = Spy.on(subscriber, :on_response_received)
+    client = ShipEngine::Client.new(api_key: "abc123", retries: 0, subscriber: subscriber)
+    client.validate_address(Factory.valid_address_params)
+
+    assert_equal(1, on_request_sent.calls.count, "one http request event should have occurred")
+    assert_equal(1, on_response_received.calls.count, "one http response events should have occurred")
+    request_sent_event = on_request_sent.calls[0].args[0]
+    response_received_event = on_response_received.calls[0].args[0]
+    assert_raises_rate_limit_error(retries: 0) do
+      client.validate_address(Factory.rate_limit_address_params)
+    end
+    assert_equal(0, request_sent_event.retries, "request sent retries should be 0")
+    assert_equal(0, response_received_event.retries, "response received retries should be 0")
+  end
+
+  # DX-1500
+  it "Functional test: Should retry 1 time after waiting 3 seconds" do
+    class MyEventEmitter < ShipEngine::Subscriber::EventEmitter
+      def on_request_sent(event); end
+
+      def on_response_received(event); end
+    end
+
+    subscriber = MyEventEmitter.new
+    on_request_sent = Spy.on(subscriber, :on_request_sent)
+    on_response_received = Spy.on(subscriber, :on_response_received)
+
+    client = ShipEngine::Client.new(api_key: "abc123", subscriber: subscriber)
+
+    start = Time.now
+    assert_raises_rate_limit_error { client.validate_address({ street: ["429 Rate Limit Error"], postal_code: "78751", country: "US" }) }
+    diff = Time.now - start
+    assert(diff > 3 && diff < 4, "should take between 3 and 4 seconds. Took #{diff} seconds.")
+    assert_equal(2, on_request_sent.calls.count, "two http request events occurred")
+    assert_equal(2, on_response_received.calls.count, "two http response events occurred")
+
+    event_1_time = on_request_sent.calls[0].args[0].datetime
+    event_2_time = on_request_sent.calls[1].args[0].datetime
+    diff = event_2_time - event_1_time
+    assert_operator(diff, :>=, 3, "the timestamps of each event should be at least 3 seconds apart. Diff: #{diff} seconds")
+  end
+
+  tag :slow
+  it "Should retry 3 times, waiting 1 second on each retry" do
     retries = 3
     client = ShipEngine::Client.new(api_key: "abc123", retries: retries)
     stub = stub_request(:post, SIMENGINE_URL)
@@ -247,5 +290,26 @@ describe "retries" do
     diff = Time.now - start
     assert(diff > 3 && diff < 4, "should take between 3 and 4 seconds")
     assert_requested(stub, times: retries + 1)
+  end
+
+  tag :slow, :simengine
+  # DX-1499 - Retry after should never exceed the timeout config value
+  it "Functional test: Retry after should never exceed the timeout config value" do
+    subscriber = ShipEngine::Subscriber::EventEmitter.new
+    on_request_sent = Spy.on(subscriber, :on_request_sent)
+    on_response_received = Spy.on(subscriber, :on_response_received)
+
+    client = ShipEngine::Client.new(api_key: "abc123", subscriber: subscriber, timeout: 1000)
+
+    assert_raises_shipengine_timeout({ message: "The request took longer than the 1000 milliseconds allowed" }) do
+      client.validate_address(Factory.rate_limit_address_params)
+    end
+
+    assert_equal(1, on_request_sent.calls.count, "one http request event should have occurred")
+    assert_equal(1, on_response_received.calls.count, "one http response events should have occurred")
+    request_sent_event = on_request_sent.calls[0].args[0]
+
+    assert_equal(0, request_sent_event.retries, "retries should be 0")
+    assert_equal(1000, request_sent_event.timeout, "timeout should be 1000 ms")
   end
 end
