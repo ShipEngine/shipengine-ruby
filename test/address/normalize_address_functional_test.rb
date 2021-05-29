@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 require "test_helper"
-require "shipengine"
-require "json"
 
 describe "Normalize Address: Functional" do
   # https://github.com/ShipEngine/shipengine-js/blob/main/test/specs/normalize-address.spec.js

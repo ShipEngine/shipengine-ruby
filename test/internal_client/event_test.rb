@@ -1,9 +1,6 @@
 # frozen_string_literal: true
 
 require "test_helper"
-require "shipengine/exceptions"
-require "shipengine"
-require "json"
 
 include ShipEngine::Subscriber
 describe "EventEmitter" do

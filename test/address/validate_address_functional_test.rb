@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "test_helper"
-require "shipengine"
 require "json"
 
 def get_address(overrides = {})
