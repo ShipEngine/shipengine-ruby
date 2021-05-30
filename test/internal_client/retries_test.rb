@@ -125,19 +125,21 @@ describe "retries" do
     assert_equal(3, on_request_sent.calls.count, "should be called three times")
 
     arg_call_1 = on_request_sent.calls[0].args[0]
-    assert_kind_of(::ShipEngine::Subscriber::RequestSentEvent, arg_call_1, "on_request_sent should be called with a RequestSentEvent")
-    assert_equal(Factory.valid_address_params[:street], arg_call_1.body.dig("params", "address", "street"),
-      "on_request_sent should be passed the body (as a hash)")
-    assert_equal(0, arg_call_1.retries, "should say the number of retries")
-    assert_equal("Calling the ShipEngine address.validate.v1 API at https://simengine.herokuapp.com/jsonrpc", arg_call_1.message,
-      "should have a message")
-    assert_equal(::ShipEngine::Subscriber::EventType::REQUEST_SENT, arg_call_1.type, "should have a type")
+    assert_request_sent_event({
+      retries:  0,
+      message: "Calling the ShipEngine address.validate.v1 API at https://simengine.herokuapp.com/jsonrpc",
+    }, arg_call_1)
+    assert_equal(Factory.valid_address_params[:street], arg_call_1.body.dig("params", "address", "street"))
 
     arg_call_2 = on_request_sent.calls[1].args[0]
-    assert_equal(1, arg_call_2.retries)
+    assert_request_sent_event({
+      retries: 1,
+    }, arg_call_2)
 
     arg_call_3 = on_request_sent.calls[2].args[0]
-    assert_equal(2, arg_call_3.retries)
+    assert_request_sent_event({
+      retries: 2,
+    }, arg_call_3)
   end
 
   it "should dispatch an on_response_received three times (once to start and twice more for every retry)" do
@@ -159,32 +161,29 @@ describe "retries" do
 
     assert_equal(3, on_response_received.calls.count, "should be called three times")
 
+    # Event 1
     arg_call_1 = on_response_received.calls[0].args[0]
-    assert_kind_of(
-      ::ShipEngine::Subscriber::ResponseReceivedEvent,
-      arg_call_1,
-      "on_request_sent should be called with a ResponseReceivedEvent"
-    )
-    assert_equal(0, arg_call_1.retries)
-
-    assert_kind_of(Hash, arg_call_1.body)
-    assert_equal(
-      "You have exceeded the rate limit.",
-      arg_call_1.body["error"]["message"],
-      "on_response_received hould be passed the response body (as a hash)"
-    )
-
     timestamp_diff = Time.now - arg_call_1.datetime
     assert_equal(true, timestamp_diff > 0 && timestamp_diff < 1, "timestamp_d should be less than a second from now")
+    assert_kind_of(Hash, arg_call_1.body)
 
-    assert_equal("Received an HTTP 429 response from the ShipEngine address.validate.v1 API", arg_call_1.message, "should have a message")
-    assert_equal(::ShipEngine::Subscriber::EventType::RESPONSE_RECEIVED, arg_call_1.type, "should have a type")
+    assert_response_received_event({
+      retries: 0,
+      message: "Received an HTTP 429 response from the ShipEngine address.validate.v1 API",
+      status_code: 429,
+    }, arg_call_1)
 
+    # Event 2 (retry 1)
     arg_call_2 = on_response_received.calls[1].args[0]
-    assert_equal(1, arg_call_2.retries)
+    assert_response_received_event({
+      retries: 1,
+    }, arg_call_2)
 
+    # Event 3 (retry 2)
     arg_call_3 = on_response_received.calls[2].args[0]
-    assert_equal(2, arg_call_3.retries)
+    assert_response_received_event({
+      retries: 2,
+    }, arg_call_3)
   end
 
   it "should dispatch an on_request_sent once" do

@@ -18,19 +18,23 @@ module CustomAssertions
   # @param expected_event [Hash]
   # @param response_event [::ShipEngine::Subscriber::RequestSentEvent]
   def assert_request_sent_event(expected_event, request_sent_event)
-    assert_kind_of(request_sent_event, ::ShipEngine::Subscriber::RequestSentEvent)
+    assert_kind_of(::ShipEngine::Subscriber::RequestSentEvent, request_sent_event)
+    assert_equal(::ShipEngine::Subscriber::EventType::REQUEST_SENT, request_sent_event.type)
+    assert_request_id_equal(:__REGEX_MATCH__, request_sent_event.request_id)
     # assert_equal_field(expected_event, request_sent_event, [:retries, :datetime, :message, :type, :timeout, :request_id])
-
+    assert_equal(expected_event[:retries], request_sent_event.retries) if expected_event.key?(:retries)
     assert_equal(expected_event[:datetime], request_sent_event.datetime) if expected_event.key?(:datetime)
     assert_equal(expected_event[:message], request_sent_event.message) if expected_event.key?(:message)
-    assert_equal(expected_event[:type], request_sent_event.type) if expected_event.key?(:type)
     assert_equal(expected_event[:timeout], request_sent_event.timeout) if expected_event.key?(:timeout)
   end
 
   # @param expected_event [Hash]
   # @param response_event [::ShipEngine::Subscriber::ResponseReceivedEvent]
   def assert_response_received_event(expected_event, response_event)
-    assert_kind_of(response_event, ::ShipEngine::Subscriber::ResponseReceivedEvent)
+    assert_kind_of(::ShipEngine::Subscriber::ResponseReceivedEvent, response_event)
+    assert_equal(::ShipEngine::Subscriber::EventType::RESPONSE_RECEIVED, response_event.type)
+    assert_request_id_equal(:__REGEX_MATCH__, response_event.request_id)
+    assert_equal(expected_event[:status_code], response_event.status_code) if expected_event.key?(:status_code)
     assert_equal(expected_event[:retries], response_event.retries) if expected_event.key?(:retries)
     assert_equal(expected_event[:datetime], response_event.datetime) if expected_event.key?(:datetime)
     assert_equal(expected_event[:message], response_event.message) if expected_event.key?(:message)
