@@ -5,13 +5,27 @@ require "minitest/assertions"
 module CustomAssertions
   include Minitest::Assertions
 
-  def assert_equal_field(some_hash, some_class, property_symbols)
-    property_symbols.each do |symbol|
-      if symbol == :request_id
-        assert_request_id_equal(expected_event[symbol], response_event.request_id)
-        next
-      end
-      assert_equal(some_hash[symbol], some_class.call(symbol), "-> #{symbol}") if expected_event.key?(symbol)
+  def assert_within_secs_from_now(secs, time)
+    diff = Time.now - time
+    assert_operator(diff, :<, secs, "should be #{secs} from now. Got diff: #{diff}")
+  end
+
+  def assert_content_type_json(headers)
+    assert_match(%r{application/json}i, fuzzy_get_header("Content-Type", headers), "should have content-type application/json. headers #{headers}")
+  end
+
+  def assert_between(greater_than_this_value, less_than_this_value, value)
+    assert(value > greater_than_this_value && value < less_than_this_value,
+      "value should be between #{greater_than_this_value} and #{less_than_this_value}. Got #{value}")
+  end
+
+  def assert_equal_value(key, value1, value2)
+    assert_equal(value1, value2, "-> #{key}")
+  end
+
+  def assert_equal_fields(some_hash, some_class)
+    some_hash.keys.each do |symbol|
+      assert_equal(some_hash[symbol], some_class.send(symbol), "-> #{symbol}") if expected_event.key?(symbol)
     end
   end
 
@@ -36,6 +50,11 @@ module CustomAssertions
     assert_equal(::ShipEngine::Subscriber::EventType::RESPONSE_RECEIVED, response_event.type)
     assert_request_id_equal(:__REGEX_MATCH__, response_event.request_id)
     assert_equal(expected_event[:status_code], response_event.status_code) if expected_event.key?(:status_code)
+    if expected_event.key?(:headers)
+      expected_headers = expected_event[:headers]
+      response_headers = response_event.headers
+      assert_equal(expected_headers["Content-Type"], response_headers["Content-Type"])
+    end
     assert_equal(expected_event[:retry_attempt], response_event.retry_attempt) if expected_event.key?(:retry_attempt)
     assert_kind_of(Time, response_event.datetime, "datetime should be a time")
     assert_equal(expected_event[:datetime], response_event.datetime) if expected_event.key?(:datetime)

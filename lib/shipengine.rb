@@ -73,7 +73,7 @@ module ShipEngine
     end
 
     class HttpEvent < Event
-      attr_reader :request_id, :retry_attempt, :body
+      attr_reader :request_id, :retry_attempt, :body, :headers, :url
       def initialize(type:, message:, request_id:, body:, retry_attempt:, headers:, url:)
         super(type: type, message: message)
         url = URI(url)

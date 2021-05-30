@@ -94,12 +94,13 @@ module ShipEngine
         method = parsed_request_body["method"] if parsed_request_body
         request_id = parsed_request_body["id"] if parsed_request_body
         retry_attempt = env[:retry_attempt]
+        headers = env[:request_headers].to_hash
         ::ShipEngine::Subscriber::RequestSentEvent.new(
           message: "Calling the ShipEngine #{method} API at #{url}",
           request_id: request_id,
           body: parsed_request_body,
           url: url,
-          headers: env,
+          headers: headers,
           retry_attempt: retry_attempt || 0,
           timeout: @config.timeout
         )
@@ -133,7 +134,7 @@ module ShipEngine
         parsed_request_body = Utils.safe_json_parse(env[:request_body])
         parsed_response_body = Utils.safe_json_parse(env[:response_body])
         status =  env[:status]
-        headers = env[:response_headers]
+        headers = env[:response_headers].to_hash
         method, request_id = parsed_request_body.values_at("method", "id") if parsed_request_body
         url = env[:url]
         retry_attempt = env[:retry_attempt]

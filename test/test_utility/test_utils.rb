@@ -7,4 +7,12 @@ module TestUtils
   def get_dispatched_events(spy)
     spy.calls.map { |event| event.args[0] }
   end
+
+  def titlecase
+    split(/([[:alpha:]]+)/).map(&:capitalize).join
+  end
+
+  def fuzzy_get_header(header_name_str, headers)
+    headers[header_name_str] || headers[header_name_str.downcase] || headers[titlecase(header_name_str)]
+  end
 end

@@ -183,6 +183,48 @@ describe "retries" do
     }, event_3)
   end
 
+  tag :simengine
+  # DX-1493 - SDKs | Ruby | Config | Tests | Response received event (error)
+  it "should dispatch an on_response_received event and an on_request_received event" do
+    timeout = 666000
+    subscriber = ShipEngine::Subscriber::EventEmitter.new
+    on_response_received = Spy.on(subscriber, :on_response_received)
+    client = ShipEngine::Client.new(api_key: "abc123", retries: 0, timeout: timeout, subscriber: subscriber)
+    assert_raises_rate_limit_error do
+      client.validate_address(Factory.rate_limit_address_params)
+    end
+    response_received_event, _ = get_dispatched_events(on_response_received)
+    assert_response_received_event({
+      message: "Received an HTTP 429 response from the ShipEngine address.validate.v1 API",
+      status_code: 429,
+      timeout: timeout,
+      retry_attempt: 0,
+    }, response_received_event)
+    assert_between(0, 3, response_received_event.elapsed)
+    assert_content_type_json(response_received_event.headers)
+  end
+
+  # DX-1490
+  tag :simengine
+  it "should dispatch an on_request_sent event" do
+    timeout = 666000
+    subscriber = ShipEngine::Subscriber::EventEmitter.new
+    on_request_sent = Spy.on(subscriber, :on_request_sent)
+    client = ShipEngine::Client.new(api_key: "abc123", retries: 0, timeout: timeout, subscriber: subscriber)
+    client.validate_address(Factory.valid_address_params)
+    request_sent_event, _ = get_dispatched_events(on_request_sent)
+    assert_request_sent_event({
+      message: "Calling the ShipEngine address.validate.v1 API at https://simengine.herokuapp.com/jsonrpc",
+      status_code: 200,
+      retry_attempt: 0,
+      timeout: timeout,
+    }, request_sent_event)
+
+    headers = request_sent_event.headers
+    assert_equal("abc123", fuzzy_get_header("API-Key", headers))
+    assert_content_type_json(request_sent_event.headers)
+  end
+
   it "should dispatch an on_request_sent once" do
     subscriber = ShipEngine::Subscriber::EventEmitter.new
     on_request_sent = Spy.on(subscriber, :on_request_sent)
