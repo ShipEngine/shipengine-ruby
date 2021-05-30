@@ -70,7 +70,13 @@ module ShipEngine
 
     class TimeoutError < SystemError
       def initialize(message:, source: nil, request_id: nil)
-        super(message: message, url: URI("https://www.shipengine.com/docs/rate-limits"), code: ErrorCode.get(:TIMEOUT), request_id: request_id, source: source || DEFAULT_SOURCE)
+        super(
+          message: message,
+          url: URI("https://www.shipengine.com/docs/rate-limits"),
+          code: ErrorCode.get(:TIMEOUT),
+          request_id: request_id,
+          source: source || DEFAULT_SOURCE
+        )
       end
     end
 

@@ -18,10 +18,10 @@ module ShipEngine
   module CustomMiddleware
     class Utils
       class << self
-        # @param datetime [Time]
+        # @param time [Time]
         # @return [Float] - time elapsed in SECONDS
-        def calculate_time_elapsed_in_sec(datetime)
-          ((Time.now - datetime) * 24 * 60 * 60).to_f
+        def calculate_time_elapsed_in_sec(time)
+          Time.now - time
         end
 
         def get_retry_after(headers)
@@ -76,15 +76,16 @@ module ShipEngine
       end
     end
 
-    # Middleware that exists to emit a RequestSentEvent
-    class RequestSentEmitter < Faraday::Middleware
-      def initialize(app, subscriber:, timeout:)
+    class Emitter < Faraday::Middleware
+      def initialize(app, config)
         super(app)
         @app = app
-        @subscriber = subscriber
-        @timeout = timeout
+        @config = config
       end
+    end
 
+    # Middleware that exists to emit a RequestSentEvent
+    class RequestSentEmitter < Emitter
       # @param env [Faraday::Env]
       # @return [::ShipEngine::Subscriber::RequestSentEvent]
       def build_request_sent_event(env)
@@ -100,7 +101,7 @@ module ShipEngine
           url: url,
           headers: env,
           retries: retries || 0,
-          timeout: @timeout
+          timeout: @config.timeout
         )
       end
 
@@ -108,7 +109,7 @@ module ShipEngine
       # See: https://github.com/lostisland/faraday/blob/main/docs/middleware/custom.md
       def on_request(env)
         event = build_request_sent_event(env)
-        @subscriber&.on_request_sent(event)
+        @config.subscriber&.on_request_sent(event)
 
         # Store initial event date time in env so it can be used to calculate total time elapsed by the ResponseRecievedEmitter middleware.
         # first_event_datetime is the timestamp of the _initial_ request made by the client, i.e retries are ignored.
@@ -125,14 +126,7 @@ module ShipEngine
     # DX-1492
 
     # Middleware that exists to emit a ResponseReceivedEvent
-    class ResponseRecievedEmitter < Faraday::Middleware
-      def initialize(app, subscriber:, timeout:)
-        super(app)
-        @app = app
-        @subscriber = subscriber
-        @timeout = timeout
-      end
-
+    class ResponseRecievedEmitter < Emitter
       # @param env [Faraday::Env]
       # @return [::ShipEngine::Subscriber::ResponseReceivedEvent]
       def build_response_received_event(env)
@@ -144,6 +138,7 @@ module ShipEngine
         url = env[:url]
         retries = env[:retries]
         elapsed_sec = Utils.calculate_time_elapsed_in_sec(env[:first_event_datetime]) unless env[:first_event_datetime].nil?
+        puts elapsed_sec
         # puts "#{elapsed_sec} seconds have elapsed since request first made"
         ::ShipEngine::Subscriber::ResponseReceivedEvent.new(
           message: "Received an HTTP #{status} response from the ShipEngine #{method} API",
@@ -160,11 +155,11 @@ module ShipEngine
       # @param env [Faraday::Env]
       def on_complete(env)
         event = build_response_received_event(env)
-        @subscriber&.on_response_received(event)
+        @config.subscriber&.on_response_received(event)
 
         # wait until event has been dispatched to throw error.
         retry_after = Utils.get_retry_after_from_body(event.body)
-        Utils.assert_retry_after(@timeout, retry_after, event.request_id)
+        Utils.assert_retry_after(@config.timeout, retry_after, event.request_id)
       end
     end
   end
@@ -204,11 +199,9 @@ module ShipEngine
     def make_request(method, params, config = {})
       config_with_overrides = @configuration.merge(config)
       connection = create_connection(config_with_overrides)
-
       response = connection.post do |req|
         req.body = build_jsonrpc_request_body(method, params)
       end
-
       assert_shipengine_rpc_success(response, config_with_overrides)
 
       result, id = response.body.values_at("result", "id")
@@ -224,26 +217,28 @@ module ShipEngine
       base_url = config.base_url
       api_key = config.api_key
       timeout = config.timeout
-      subscriber = config.subscriber
 
-      Faraday.new(url: base_url, request: { timeout: timeout / 1000 }) do |f|
-        f.request(:json)
-        f.request(:retry, {
-          max: retries,
-          retry_statuses: [429], # even though this seems self-evident, this field is neccessary for Retry-After to be respected.
-          methods: Faraday::Request::Retry::IDEMPOTENT_METHODS + [:post], # :post is not a "retry-able request by default"
-        })
-        f.request(:retry_after_header) # should go after :retry
-        f.request(:request_sent, subscriber: subscriber, timeout: timeout)
-        f.headers = {
+      connection = Faraday.new(url: base_url) do |conn|
+        conn.headers = {
           "API-Key" => api_key,
           "Content-Type" => "application/json",
           "Accept" => "application/json",
           "User-Agent" => "shipengine-ruby/#{VERSION} (#{RUBY_PLATFORM})",
         }
-        f.response(:json)
-        f.response(:response_received, subscriber: subscriber, timeout: timeout)
+        conn.options.timeout = timeout / 1000
+        conn.request(:json)
+        conn.request(:retry, {
+          max: retries,
+          retry_statuses: [429], # even though this seems self-evident, this field is neccessary for Retry-After to be respected.
+          methods: Faraday::Request::Retry::IDEMPOTENT_METHODS + [:post], # :post is not a "retry-able request by default"
+        })
+        conn.request(:retry_after_header) # should go after :retry
+        conn.request(:request_sent, config)
+        conn.response(:json)
+        conn.response(:response_received, config)
       end
+
+      connection
     end
 
     # @param method [String] e.g. "address.validate.v1"

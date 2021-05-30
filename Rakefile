@@ -13,6 +13,8 @@ require "rake/testtask"
 Rake::TestTask.new(:test) do |t|
   t.libs << "test"
   t.libs << "lib"
+  t.verbose = true
+  t.warning = false
   t.pattern = "test/**/*_test.rb"
 end
 
