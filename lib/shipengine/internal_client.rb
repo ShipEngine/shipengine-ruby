@@ -55,11 +55,11 @@ module ShipEngine
     end
 
     # This transforms the `retryAfter` field from our JSON-RPC server to an HTTP header, so this client
-    # can use the standard retry middleware from faraday-middleware.
+    # can use the standard retry_attempt middleware from faraday-middleware.
     class AddRetryAfterHeader < Faraday::Middleware
       def initialize(app)
         super(app)
-        @retries = 0
+        @retry_attempt = 0
         @app = app
       end
 
@@ -70,8 +70,8 @@ module ShipEngine
 
         # ShipEngineErrorLogger.log('Retrying...attempt: #{ @retries}')
         env[:response_headers]["Retry-After"] ||= Utils.get_retry_after_from_body(body).to_s
-        @retries += 1
-        env[:retries] = @retries
+        @retry_attempt += 1
+        env[:retry_attempt] = @retry_attempt
         env
       end
     end
@@ -93,14 +93,14 @@ module ShipEngine
         url = env.url
         method = parsed_request_body["method"] if parsed_request_body
         request_id = parsed_request_body["id"] if parsed_request_body
-        retries = env[:retries]
+        retry_attempt = env[:retry_attempt]
         ::ShipEngine::Subscriber::RequestSentEvent.new(
           message: "Calling the ShipEngine #{method} API at #{url}",
           request_id: request_id,
           body: parsed_request_body,
           url: url,
           headers: env,
-          retries: retries || 0,
+          retry_attempt: retry_attempt || 0,
           timeout: @config.timeout
         )
       end
@@ -113,13 +113,13 @@ module ShipEngine
 
         # Store initial event date time in env so it can be used to calculate total time elapsed by the ResponseRecievedEmitter middleware.
         # first_event_datetime is the timestamp of the _initial_ request made by the client, i.e retries are ignored.
-        env[:first_event_datetime] = event.datetime unless env[:retries]
+        env[:first_event_datetime] = event.datetime unless env[:retry_attempt]
 
         # Fun fact, "app.call" returns  an on_complete method that contains a block that contains response information.
         # (See: https://github.com/lostisland/faraday/blob/main/docs/middleware/custom.md)
         # Tried using that block to emit a ResponseReceivedEvent instead of creating a separate response middleware...
         # However, I encountered a _bug?_ where the initial response_body and response_headers would always be nil
-        # (though any subsequent retry calls had the information populated as usual.)
+        # (though any subsequent retry_attempt calls had the information populated as usual.)
       end
     end
 
@@ -136,7 +136,7 @@ module ShipEngine
         headers = env[:response_headers]
         method, request_id = parsed_request_body.values_at("method", "id") if parsed_request_body
         url = env[:url]
-        retries = env[:retries]
+        retry_attempt = env[:retry_attempt]
         elapsed_sec = Utils.calculate_time_elapsed_in_sec(env[:first_event_datetime]) unless env[:first_event_datetime].nil?
         puts elapsed_sec
         # puts "#{elapsed_sec} seconds have elapsed since request first made"
@@ -147,7 +147,7 @@ module ShipEngine
           body: parsed_response_body,
           url: url,
           headers: headers,
-          retries: retries || 0,
+          retry_attempt: retry_attempt || 0,
           elapsed: elapsed_sec
         )
       end
@@ -230,9 +230,9 @@ module ShipEngine
         conn.request(:retry, {
           max: retries,
           retry_statuses: [429], # even though this seems self-evident, this field is neccessary for Retry-After to be respected.
-          methods: Faraday::Request::Retry::IDEMPOTENT_METHODS + [:post], # :post is not a "retry-able request by default"
+          methods: Faraday::Request::Retry::IDEMPOTENT_METHODS + [:post], # :post is not a "retry_attempt-able request by default"
         })
-        conn.request(:retry_after_header) # should go after :retry
+        conn.request(:retry_after_header) # should go after :retry_attempt
         conn.request(:request_sent, config)
         conn.response(:json)
         conn.response(:response_received, config)

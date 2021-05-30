@@ -122,24 +122,22 @@ describe "retries" do
       .to_return(status: 429, body: Factory.rate_limit_error)
     assert_raises_rate_limit_error(retries: 2) { client.validate_address(Factory.valid_address_params) }
 
-    assert_equal(3, on_request_sent.calls.count, "should be called three times")
+    assert_called(3, on_request_sent)
 
-    arg_call_1 = on_request_sent.calls[0].args[0]
+    event_1, event_2, event_3 = get_dispatched_events(on_request_sent)
     assert_request_sent_event({
-      retries:  0,
+      retry_attempt:  0,
       message: "Calling the ShipEngine address.validate.v1 API at https://simengine.herokuapp.com/jsonrpc",
-    }, arg_call_1)
-    assert_equal(Factory.valid_address_params[:street], arg_call_1.body.dig("params", "address", "street"))
+    }, event_1)
+    assert_equal(Factory.valid_address_params[:street], event_1.body.dig("params", "address", "street"))
 
-    arg_call_2 = on_request_sent.calls[1].args[0]
     assert_request_sent_event({
-      retries: 1,
-    }, arg_call_2)
+      retry_attempt: 1,
+    }, event_2)
 
-    arg_call_3 = on_request_sent.calls[2].args[0]
     assert_request_sent_event({
-      retries: 2,
-    }, arg_call_3)
+      retry_attempt: 2,
+    }, event_3)
   end
 
   it "should dispatch an on_response_received three times (once to start and twice more for every retry)" do
@@ -159,31 +157,30 @@ describe "retries" do
 
     assert_raises_rate_limit_error(retries: 2) { client.validate_address(Factory.valid_address_params) }
 
-    assert_equal(3, on_response_received.calls.count, "should be called three times")
+    assert_called(3, on_response_received)
+
+    event_1, event_2, event_3 = get_dispatched_events(on_response_received)
 
     # Event 1
-    arg_call_1 = on_response_received.calls[0].args[0]
-    timestamp_diff = Time.now - arg_call_1.datetime
+    timestamp_diff = Time.now - event_1.datetime
     assert_equal(true, timestamp_diff > 0 && timestamp_diff < 1, "timestamp_d should be less than a second from now")
-    assert_kind_of(Hash, arg_call_1.body)
+    assert_kind_of(Hash, event_1.body)
 
     assert_response_received_event({
-      retries: 0,
+      retry_attempt: 0,
       message: "Received an HTTP 429 response from the ShipEngine address.validate.v1 API",
       status_code: 429,
-    }, arg_call_1)
+    }, event_1)
 
-    # Event 2 (retry 1)
-    arg_call_2 = on_response_received.calls[1].args[0]
+    # Event 2 (retry_attempt 1)
     assert_response_received_event({
-      retries: 1,
-    }, arg_call_2)
+      retry_attempt: 1,
+    }, event_2)
 
-    # Event 3 (retry 2)
-    arg_call_3 = on_response_received.calls[2].args[0]
+    # Event 3 (retry_attempt 2)
     assert_response_received_event({
-      retries: 2,
-    }, arg_call_3)
+      retry_attempt: 2,
+    }, event_3)
   end
 
   it "should dispatch an on_request_sent once" do
@@ -197,20 +194,17 @@ describe "retries" do
 
     response = client.validate_address(Factory.valid_address_params)
     assert response
-    assert_equal(1, on_request_sent.calls.count, "should be called once")
+    assert_called(1, on_request_sent)
 
-    arg_call_1 = on_request_sent.calls[0].args[0]
-    assert_kind_of(::ShipEngine::Subscriber::RequestSentEvent, arg_call_1, "on_request_sent should be called with a RequestSentEvent")
-    assert_equal(::ShipEngine::Subscriber::EventType::REQUEST_SENT, arg_call_1.type, "should have a type")
-    assert_equal(0, arg_call_1.retries, "should say the number of retries")
+    event_1, _ = get_dispatched_events(on_request_sent)
 
-    assert_kind_of(Time, arg_call_1.datetime)
-    assert_kind_of(Hash, arg_call_1.body)
-    assert_kind_of(Hash, arg_call_1.body.dig("params", "address"), "on_request_sent should be passed the body (as a hash)")
+    assert_request_sent_event({ retry_attempt: 0 }, event_1)
+    assert_kind_of(Hash, event_1.body)
+    assert_kind_of(Hash, event_1.body.dig("params", "address"), "on_request_sent should be passed the body (as a hash)")
 
     assert_equal(
       "Calling the ShipEngine address.validate.v1 API at https://simengine.herokuapp.com/jsonrpc",
-      arg_call_1.message,
+      event_1.message,
       "should have a message"
     )
   end
@@ -237,15 +231,16 @@ describe "retries" do
     client = ShipEngine::Client.new(api_key: "abc123", retries: 0, subscriber: subscriber)
     client.validate_address(Factory.valid_address_params)
 
-    assert_equal(1, on_request_sent.calls.count, "one http request event should have occurred")
-    assert_equal(1, on_response_received.calls.count, "one http response events should have occurred")
-    request_sent_event = on_request_sent.calls[0].args[0]
-    response_received_event = on_response_received.calls[0].args[0]
+    assert_called(1, on_request_sent)
+    assert_called(1, on_response_received)
+
+    request_sent_event, _ = get_dispatched_events(on_request_sent)
+    response_received_event, _ = get_dispatched_events(on_response_received)
     assert_raises_rate_limit_error(retries: 0) do
       client.validate_address(Factory.rate_limit_address_params)
     end
-    assert_equal(0, request_sent_event.retries, "request sent retries should be 0")
-    assert_equal(0, response_received_event.retries, "response received retries should be 0")
+    assert_request_sent_event({ retry_attempt: 0 }, request_sent_event)
+    assert_response_received_event({ retry_attempt: 0 }, response_received_event)
   end
 
   # DX-1500
@@ -266,11 +261,12 @@ describe "retries" do
     assert_raises_rate_limit_error { client.validate_address({ street: ["429 Rate Limit Error"], postal_code: "78751", country: "US" }) }
     diff = Time.now - start
     assert(diff > 3 && diff < 4, "should take between 3 and 4 seconds. Took #{diff} seconds.")
-    assert_equal(2, on_request_sent.calls.count, "two http request events occurred")
-    assert_equal(2, on_response_received.calls.count, "two http response events occurred")
+    assert_called(2, on_request_sent)
+    assert_called(2, on_response_received)
 
-    event_1_time = on_request_sent.calls[0].args[0].datetime
-    event_2_time = on_request_sent.calls[1].args[0].datetime
+    event1, event2 = get_dispatched_events(on_request_sent)
+    event_1_time = event1.datetime
+    event_2_time = event2.datetime
     diff = event_2_time - event_1_time
     assert_operator(diff, :>=, 3, "the timestamps of each event should be at least 3 seconds apart. Diff: #{diff} seconds")
   end
@@ -304,11 +300,10 @@ describe "retries" do
       client.validate_address(Factory.rate_limit_address_params)
     end
 
-    assert_equal(1, on_request_sent.calls.count, "one http request event should have occurred")
-    assert_equal(1, on_response_received.calls.count, "one http response events should have occurred")
-    request_sent_event = on_request_sent.calls[0].args[0]
+    assert_called(1, on_request_sent)
+    assert_called(1, on_response_received)
 
-    assert_equal(0, request_sent_event.retries, "retries should be 0")
-    assert_equal(1000, request_sent_event.timeout, "timeout should be 1000 ms")
+    request_sent_event, _ = get_dispatched_events(on_request_sent)
+    assert_request_sent_event({ retry_attempt: 0, timeout: 1000 }, request_sent_event)
   end
 end

@@ -22,7 +22,8 @@ module CustomAssertions
     assert_equal(::ShipEngine::Subscriber::EventType::REQUEST_SENT, request_sent_event.type)
     assert_request_id_equal(:__REGEX_MATCH__, request_sent_event.request_id)
     # assert_equal_field(expected_event, request_sent_event, [:retries, :datetime, :message, :type, :timeout, :request_id])
-    assert_equal(expected_event[:retries], request_sent_event.retries) if expected_event.key?(:retries)
+    assert_equal(expected_event[:retry_attempt], request_sent_event.retry_attempt) if expected_event.key?(:retry_attempt)
+    assert_kind_of(Time, request_sent_event.datetime, "datetime should be a time")
     assert_equal(expected_event[:datetime], request_sent_event.datetime) if expected_event.key?(:datetime)
     assert_equal(expected_event[:message], request_sent_event.message) if expected_event.key?(:message)
     assert_equal(expected_event[:timeout], request_sent_event.timeout) if expected_event.key?(:timeout)
@@ -35,7 +36,8 @@ module CustomAssertions
     assert_equal(::ShipEngine::Subscriber::EventType::RESPONSE_RECEIVED, response_event.type)
     assert_request_id_equal(:__REGEX_MATCH__, response_event.request_id)
     assert_equal(expected_event[:status_code], response_event.status_code) if expected_event.key?(:status_code)
-    assert_equal(expected_event[:retries], response_event.retries) if expected_event.key?(:retries)
+    assert_equal(expected_event[:retry_attempt], response_event.retry_attempt) if expected_event.key?(:retry_attempt)
+    assert_kind_of(Time, response_event.datetime, "datetime should be a time")
     assert_equal(expected_event[:datetime], response_event.datetime) if expected_event.key?(:datetime)
     assert_equal(expected_event[:message], response_event.message) if expected_event.key?(:message)
     assert_equal(expected_event[:type], response_event.type) if expected_event.key?(:type)
@@ -139,5 +141,11 @@ module CustomAssertions
       assert_equal(message.fetch(:type), r_msg.type)
       assert_equal(message.fetch(:message), r_msg.message)
     end
+  end
+
+  # @param number [Int] - number of times spy method should be called
+  # @param spy [Spy] - spy from "Spy" library
+  def assert_called(number, spy)
+    assert_equal(number, spy.calls.count, "Should be called #{number} times.")
   end
 end
