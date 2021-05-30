@@ -8,6 +8,7 @@ module Factory
         street: ["104 Foo Street"], postal_code: "78751", country: "US"
       }
     end
+
     def rate_limit_address_params
       { street: ["429 Rate Limit Error"], postal_code: "78751", country: "US" }
     end

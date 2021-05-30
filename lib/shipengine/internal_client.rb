@@ -37,7 +37,7 @@ module ShipEngine
         end
 
         def assert_retry_after(timeout, retry_after, request_id)
-          if (timeout / 1000) < (retry_after or 0)
+          if (timeout / 1000) < (retry_after || 0)
             raise ::ShipEngine::Exceptions::TimeoutError.new(message: "The request took longer than the #{timeout} milliseconds allowed",
               request_id: request_id)
           end

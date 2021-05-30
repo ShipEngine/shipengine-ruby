@@ -96,7 +96,7 @@ module ShipEngine
 
     class ResponseReceivedEvent < HttpEvent
       attr_reader :elapsed, :status_code
-      def initialize(message:, request_id:, body:,  retries:, headers:, url:, elapsed:, status_code:)
+      def initialize(message:, request_id:, body:, retries:, headers:, url:, elapsed:, status_code:)
         super(type: EventType::RESPONSE_RECEIVED, message: message, request_id: request_id, body: body, headers: headers, url: url, retries: retries)
         # The amount of time that elapsed between when the request was sent and when the response was received. For languages that have a native time span data type, this should be that type. Otherwise, it should be an integer that represents the number of milliseconds.
         @elapsed = elapsed
