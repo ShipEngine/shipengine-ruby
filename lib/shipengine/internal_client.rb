@@ -76,7 +76,7 @@ module ShipEngine
       end
     end
 
-    class Emitter < Faraday::Middleware
+    class FaradayMiddlewareEmitter < Faraday::Middleware
       def initialize(app, config)
         super(app)
         @app = app
@@ -85,9 +85,9 @@ module ShipEngine
     end
 
     # Middleware that exists to emit a RequestSentEvent
-    class RequestSentEmitter < Emitter
+    class RequestSentEmitter < FaradayMiddlewareEmitter
       # @param env [Faraday::Env]
-      # @return [::ShipEngine::Subscriber::RequestSentEvent]
+      # @return [::ShipEngine::Emitter::RequestSentEvent]
       def build_request_sent_event(env)
         parsed_request_body = Utils.safe_json_parse(env[:request_body])
         url = env.url
@@ -95,7 +95,7 @@ module ShipEngine
         request_id = parsed_request_body["id"] if parsed_request_body
         retry_attempt = env[:retry_attempt]
         headers = env[:request_headers].to_hash
-        ::ShipEngine::Subscriber::RequestSentEvent.new(
+        ::ShipEngine::Emitter::RequestSentEvent.new(
           message: "Calling the ShipEngine #{method} API at #{url}",
           request_id: request_id,
           body: parsed_request_body,
@@ -110,7 +110,7 @@ module ShipEngine
       # See: https://github.com/lostisland/faraday/blob/main/docs/middleware/custom.md
       def on_request(env)
         event = build_request_sent_event(env)
-        @config.subscriber&.on_request_sent(event)
+        @config.emitter&.on_request_sent(event)
 
         # Store initial event date time in env so it can be used to calculate total time elapsed by the ResponseRecievedEmitter middleware.
         # first_event_datetime is the timestamp of the _initial_ request made by the client, i.e retries are ignored.
@@ -127,9 +127,9 @@ module ShipEngine
     # DX-1492
 
     # Middleware that exists to emit a ResponseReceivedEvent
-    class ResponseRecievedEmitter < Emitter
+    class ResponseRecievedEmitter < FaradayMiddlewareEmitter
       # @param env [Faraday::Env]
-      # @return [::ShipEngine::Subscriber::ResponseReceivedEvent]
+      # @return [::ShipEngine::Emitter::ResponseReceivedEvent]
       def build_response_received_event(env)
         parsed_request_body = Utils.safe_json_parse(env[:request_body])
         parsed_response_body = Utils.safe_json_parse(env[:response_body])
@@ -141,7 +141,7 @@ module ShipEngine
         elapsed_sec = Utils.calculate_time_elapsed_in_sec(env[:first_event_datetime]) unless env[:first_event_datetime].nil?
         puts elapsed_sec
         # puts "#{elapsed_sec} seconds have elapsed since request first made"
-        ::ShipEngine::Subscriber::ResponseReceivedEvent.new(
+        ::ShipEngine::Emitter::ResponseReceivedEvent.new(
           message: "Received an HTTP #{status} response from the ShipEngine #{method} API",
           request_id: request_id,
           status_code: status,
@@ -156,7 +156,7 @@ module ShipEngine
       # @param env [Faraday::Env]
       def on_complete(env)
         event = build_response_received_event(env)
-        @config.subscriber&.on_response_received(event)
+        @config.emitter&.on_response_received(event)
 
         # wait until event has been dispatched to throw error.
         retry_after = Utils.get_retry_after_from_body(event.body)

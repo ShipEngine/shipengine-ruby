@@ -13,15 +13,15 @@ require "observer"
 
 module ShipEngine
   class Configuration
-    attr_accessor :api_key, :retries, :base_url, :timeout, :page_size, :subscriber
+    attr_accessor :api_key, :retries, :base_url, :timeout, :page_size, :emitter
 
-    def initialize(api_key:, retries: nil, timeout: nil, page_size: nil, base_url: nil, subscriber: nil)
+    def initialize(api_key:, retries: nil, timeout: nil, page_size: nil, base_url: nil, emitter: nil)
       @api_key = api_key
       @base_url = base_url || (ENV["USE_SIMENGINE"] == "true" ? ShipEngine::Constants::SIMENGINE_URL : ShipEngine::Constants::PROD_URL)
       @retries = retries || 1
       @timeout = timeout || 30_000
       @page_size = page_size || 50
-      @subscriber = subscriber || Subscriber::EventEmitter.new
+      @emitter = emitter || Emitter::EventEmitter.new
       validate
     end
 
@@ -37,7 +37,7 @@ module ShipEngine
       copy.retries =  config[:retries] if config.key?(:retries)
       copy.timeout =  config[:timeout] if config.key?(:timeout)
       copy.page_size = config[:page_size] if config.key?(:page_size)
-      copy.subscriber = config[:subscriber] if config.key?(:subscriber)
+      copy.emitter = config[:emitter] if config.key?(:emitter)
       copy.validate
       copy
     end
@@ -54,7 +54,7 @@ module ShipEngine
     end
   end
 
-  module Subscriber
+  module Emitter
     class Event
       require "date"
       require "uri"
@@ -117,14 +117,14 @@ module ShipEngine
   class Client
     attr_accessor :configuration
 
-    def initialize(api_key:, retries: nil, timeout: nil, page_size: nil, base_url: nil, subscriber: nil)
+    def initialize(api_key:, retries: nil, timeout: nil, page_size: nil, base_url: nil, emitter: nil)
       @configuration = Configuration.new(
         api_key: api_key,
         retries: retries,
         base_url: base_url,
         timeout: timeout,
         page_size: page_size,
-        subscriber: subscriber
+        emitter: emitter
       )
       internal_client = InternalClient.new(@configuration)
       @address = Domain::Address.new(internal_client)

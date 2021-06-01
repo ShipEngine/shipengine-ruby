@@ -111,10 +111,10 @@ describe "retries" do
   end
 
   it "should dispatch an on_request_sent three times (once to start and twice more for every retry)" do
-    subscriber = ShipEngine::Subscriber::EventEmitter.new
-    on_request_sent = Spy.on(subscriber, :on_request_sent)
+    emitter = ShipEngine::Emitter::EventEmitter.new
+    on_request_sent = Spy.on(emitter, :on_request_sent)
 
-    client = ShipEngine::Client.new(api_key: "abc123", retries: 2, subscriber: subscriber) # emitter = MyEventEmitter.double(MyEventEmitter)
+    client = ShipEngine::Client.new(api_key: "abc123", retries: 2, emitter: emitter) # emitter = MyEventEmitter.double(MyEventEmitter)
 
     stub_request(:post, SIMENGINE_URL)
       .to_return(status: 429, body: Factory.rate_limit_error).then
@@ -126,7 +126,7 @@ describe "retries" do
 
     event_1, event_2, event_3 = get_dispatched_events(on_request_sent)
     assert_request_sent_event({
-      retry_attempt:  0,
+      retry_attempt: 0,
       message: "Calling the ShipEngine address.validate.v1 API at https://simengine.herokuapp.com/jsonrpc",
     }, event_1)
     assert_equal(Factory.valid_address_params[:street], event_1.body.dig("params", "address", "street"))
@@ -141,14 +141,14 @@ describe "retries" do
   end
 
   it "should dispatch an on_response_received three times (once to start and twice more for every retry)" do
-    class MyEventEmitter < ShipEngine::Subscriber::EventEmitter
+    class MyEventEmitter < ShipEngine::Emitter::EventEmitter
       def on_response_received(event); end
     end
 
-    subscriber = MyEventEmitter.new
-    on_response_received = Spy.on(subscriber, :on_response_received)
+    emitter = MyEventEmitter.new
+    on_response_received = Spy.on(emitter, :on_response_received)
 
-    client = ShipEngine::Client.new(api_key: "abc123", retries: 2, subscriber: subscriber) # emitter = MyEventEmitter.double(MyEventEmitter)
+    client = ShipEngine::Client.new(api_key: "abc123", retries: 2, emitter: emitter) # emitter = MyEventEmitter.double(MyEventEmitter)
 
     stub_request(:post, SIMENGINE_URL)
       .to_return(status: 429, body: Factory.rate_limit_error).then
@@ -187,9 +187,9 @@ describe "retries" do
   # DX-1493 - SDKs | Ruby | Config | Tests | Response received event (error)
   it "should dispatch an on_response_received event and an on_request_received event" do
     timeout = 666000
-    subscriber = ShipEngine::Subscriber::EventEmitter.new
-    on_response_received = Spy.on(subscriber, :on_response_received)
-    client = ShipEngine::Client.new(api_key: "abc123", retries: 0, timeout: timeout, subscriber: subscriber)
+    emitter = ShipEngine::Emitter::EventEmitter.new
+    on_response_received = Spy.on(emitter, :on_response_received)
+    client = ShipEngine::Client.new(api_key: "abc123", retries: 0, timeout: timeout, emitter: emitter)
     assert_raises_rate_limit_error do
       client.validate_address(Factory.rate_limit_address_params)
     end
@@ -208,9 +208,9 @@ describe "retries" do
   tag :simengine
   it "should dispatch an on_request_sent event" do
     timeout = 666000
-    subscriber = ShipEngine::Subscriber::EventEmitter.new
-    on_request_sent = Spy.on(subscriber, :on_request_sent)
-    client = ShipEngine::Client.new(api_key: "abc123", retries: 0, timeout: timeout, subscriber: subscriber)
+    emitter = ShipEngine::Emitter::EventEmitter.new
+    on_request_sent = Spy.on(emitter, :on_request_sent)
+    client = ShipEngine::Client.new(api_key: "abc123", retries: 0, timeout: timeout, emitter: emitter)
     client.validate_address(Factory.valid_address_params)
     request_sent_event, _ = get_dispatched_events(on_request_sent)
     assert_request_sent_event({
@@ -226,10 +226,10 @@ describe "retries" do
   end
 
   it "should dispatch an on_request_sent once" do
-    subscriber = ShipEngine::Subscriber::EventEmitter.new
-    on_request_sent = Spy.on(subscriber, :on_request_sent)
+    emitter = ShipEngine::Emitter::EventEmitter.new
+    on_request_sent = Spy.on(emitter, :on_request_sent)
 
-    client = ShipEngine::Client.new(api_key: "abc123", subscriber: subscriber) # emitter = MyEventEmitter.double(MyEventEmitter)
+    client = ShipEngine::Client.new(api_key: "abc123", emitter: emitter) # emitter = MyEventEmitter.double(MyEventEmitter)
 
     stub_request(:post, SIMENGINE_URL)
       .to_return(status: 200, body: Factory.valid_address_res_json)
@@ -267,10 +267,10 @@ describe "retries" do
 
   # DX-1497
   it "^ similar test, but uses simengine to complete the AC in DX-1497 (make requests immediately if retryAfter is set to 0)" do
-    subscriber = ShipEngine::Subscriber::EventEmitter.new
-    on_request_sent = Spy.on(subscriber, :on_request_sent)
-    on_response_received = Spy.on(subscriber, :on_response_received)
-    client = ShipEngine::Client.new(api_key: "abc123", retries: 0, subscriber: subscriber)
+    emitter = ShipEngine::Emitter::EventEmitter.new
+    on_request_sent = Spy.on(emitter, :on_request_sent)
+    on_response_received = Spy.on(emitter, :on_response_received)
+    client = ShipEngine::Client.new(api_key: "abc123", retries: 0, emitter: emitter)
     client.validate_address(Factory.valid_address_params)
 
     assert_called(1, on_request_sent)
@@ -287,17 +287,17 @@ describe "retries" do
 
   # DX-1500
   it "Functional test: Should retry 1 time after waiting 3 seconds" do
-    class MyEventEmitter < ShipEngine::Subscriber::EventEmitter
+    class MyEventEmitter < ShipEngine::Emitter::EventEmitter
       def on_request_sent(event); end
 
       def on_response_received(event); end
     end
 
-    subscriber = MyEventEmitter.new
-    on_request_sent = Spy.on(subscriber, :on_request_sent)
-    on_response_received = Spy.on(subscriber, :on_response_received)
+    emitter = MyEventEmitter.new
+    on_request_sent = Spy.on(emitter, :on_request_sent)
+    on_response_received = Spy.on(emitter, :on_response_received)
 
-    client = ShipEngine::Client.new(api_key: "abc123", subscriber: subscriber)
+    client = ShipEngine::Client.new(api_key: "abc123", emitter: emitter)
 
     start = Time.now
     assert_raises_rate_limit_error { client.validate_address({ street: ["429 Rate Limit Error"], postal_code: "78751", country: "US" }) }
@@ -332,11 +332,11 @@ describe "retries" do
   tag :slow, :simengine
   # DX-1499 - Retry after should never exceed the timeout config value
   it "Functional test: Retry after should never exceed the timeout config value" do
-    subscriber = ShipEngine::Subscriber::EventEmitter.new
-    on_request_sent = Spy.on(subscriber, :on_request_sent)
-    on_response_received = Spy.on(subscriber, :on_response_received)
+    emitter = ShipEngine::Emitter::EventEmitter.new
+    on_request_sent = Spy.on(emitter, :on_request_sent)
+    on_response_received = Spy.on(emitter, :on_response_received)
 
-    client = ShipEngine::Client.new(api_key: "abc123", subscriber: subscriber, timeout: 1000)
+    client = ShipEngine::Client.new(api_key: "abc123", emitter: emitter, timeout: 1000)
 
     assert_raises_shipengine_timeout({ message: "The request took longer than the 1000 milliseconds allowed" }) do
       client.validate_address(Factory.rate_limit_address_params)

@@ -2,7 +2,7 @@
 
 require "test_helper"
 
-include ShipEngine::Subscriber
+include ShipEngine::Emitter
 describe "EventEmitter" do
   it "responds to events" do
     methods = EventEmitter.instance_methods
