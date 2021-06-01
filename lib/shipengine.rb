@@ -104,12 +104,25 @@ module ShipEngine
       end
     end
 
+    #
+    # This class allows the user to substibe to error events.
+    #
     class EventEmitter
-      # maybe check that at least _one_ of the following are implemented?
+      #
+      # Implement this method to subscribe to `on_request_sent` events.
+      #
+      # @param request_sent_event [::ShipEngine::Emitter::RequestSentEvent]
       def on_request_sent(request_sent_event); end
 
+      #
+      # Implement this method to subscribe to `on_response_received` events.
+      #
+      # @param request_sent_event [::ShipEngine::Emitter::ResponseReceivedEvent]
       def on_response_received(response_received_event); end
 
+      #
+      # Implement this method to subscribe to `ShipEngine` HTTP Errors events.
+      # @param request_sent_event [::ShipEngine::Emitter::Event]
       def on_error(error_event); end
     end
   end
