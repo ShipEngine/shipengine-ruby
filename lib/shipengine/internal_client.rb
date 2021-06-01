@@ -80,7 +80,8 @@ module ShipEngine
       def initialize(app, config)
         super(app)
         @app = app
-        @config = config
+        @timeout = config.timeout
+        @emitter = config.emitter
       end
     end
 
@@ -102,7 +103,7 @@ module ShipEngine
           url: url,
           headers: headers,
           retry_attempt: retry_attempt || 0,
-          timeout: @config.timeout
+          timeout: @timeout
         )
       end
 
@@ -110,7 +111,7 @@ module ShipEngine
       # See: https://github.com/lostisland/faraday/blob/main/docs/middleware/custom.md
       def on_request(env)
         event = build_request_sent_event(env)
-        @config.emitter&.on_request_sent(event)
+        @emitter&.on_request_sent(event)
 
         # Store initial event date time in env so it can be used to calculate total time elapsed by the ResponseRecievedEmitter middleware.
         # first_event_datetime is the timestamp of the _initial_ request made by the client, i.e retries are ignored.
@@ -156,11 +157,11 @@ module ShipEngine
       # @param env [Faraday::Env]
       def on_complete(env)
         event = build_response_received_event(env)
-        @config.emitter&.on_response_received(event)
+        @emitter&.on_response_received(event)
 
         # wait until event has been dispatched to throw error.
         retry_after = Utils.get_retry_after_from_body(event.body)
-        Utils.assert_retry_after(@config.timeout, retry_after, event.request_id)
+        Utils.assert_retry_after(@timeout, retry_after, event.request_id)
       end
     end
   end
@@ -227,16 +228,17 @@ module ShipEngine
           "User-Agent" => "shipengine-ruby/#{VERSION} (#{RUBY_PLATFORM})",
         }
         conn.options.timeout = timeout / 1000
-        conn.request(:json)
+        conn.request(:json) # auto-coerce bodies to json
         conn.request(:retry, {
           max: retries,
           retry_statuses: [429], # even though this seems self-evident, this field is neccessary for Retry-After to be respected.
           methods: Faraday::Request::Retry::IDEMPOTENT_METHODS + [:post], # :post is not a "retry_attempt-able request by default"
         })
         conn.request(:retry_after_header) # should go after :retry_attempt
-        conn.request(:request_sent, config)
+        config.emitter && conn.request(:request_sent, config)
+
         conn.response(:json)
-        conn.response(:response_received, config)
+        config.emitter && conn.response(:response_received, config)
       end
 
       connection

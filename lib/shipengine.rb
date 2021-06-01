@@ -146,9 +146,9 @@ module ShipEngine
     end
 
     #
-    # Validates an address
+    # Validate an address
+    #
     # @param [Address] address
-    # @param [<Type>] options
     # @param config [Hash?]
     # @option config [String?] :api_key
     # @option config [String?] :base_url
@@ -161,8 +161,8 @@ module ShipEngine
       @address.validate(address, config)
     end
 
+    # Normalize an address
     #
-    # Validates an address
     # @param [Address] address
     # @param config [Hash]
     # @option config [String?] :api_key

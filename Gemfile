@@ -11,6 +11,7 @@ group :development do
   gem "debase", require: false
   gem "ruby-debug-ide", require: false
   gem "rubocop-shopify", require: false
+  gem "awesome_print"
 end
 
 group :test do
