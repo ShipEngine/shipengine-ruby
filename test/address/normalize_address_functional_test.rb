@@ -314,7 +314,7 @@ describe "Normalize Address: Functional" do
 
     assert_raises_shipengine(::ShipEngine::Exceptions::ShipEngineError, {
       code: "invalid_address",
-                               message: "Invalid Address. Invalid City, State, or Zip\nInsufficient or Incorrect Address Data",
+      message: "Invalid Address. Invalid City, State, or Zip\nInsufficient or Incorrect Address Data",
     }) do
       client.normalize_address(params)
     end

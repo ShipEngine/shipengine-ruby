@@ -115,9 +115,7 @@ module ShipEngine
       end
     end
 
-    #
-    # This class allows the user to substibe to error events.
-    #
+    # @abstract Subclass and override {#on_request_sent} / {#on_response_received} / {#on_error} # to implement a custom EventEmitter
     class EventEmitter
       #
       # Implement this method to subscribe to `on_request_sent` events.
@@ -132,8 +130,9 @@ module ShipEngine
       def on_response_received(response_received_event); end
 
       #
-      # Implement this method to subscribe to `ShipEngine` HTTP Errors events.
-      # @param request_sent_event [::ShipEngine::Emitter::Event]
+      # Implement this method to subscribe to `error` events.
+
+      # @param request_sent_event [::ShipEngine::Emitter::ErrorEvent]
       def on_error(error_event); end
     end
   end
@@ -200,6 +199,7 @@ module ShipEngine
     # @option config [String?] :base_url
     # @option config [Number?] :retries
     # @option config [Number?] :timeout
+    # @option config [ShipEngine::Emitter::EventEmitter] :emitter
     #
     # @return [::ShipEngine::NormalizedAddress]
     #

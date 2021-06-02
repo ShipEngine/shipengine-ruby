@@ -183,7 +183,6 @@ describe "retries" do
     }, event_3)
   end
 
-
   it "should make requests immediately if retryAfter is set to 0" do
     retries = 2
     client = ShipEngine::Client.new(api_key: "abc123", retries: retries)

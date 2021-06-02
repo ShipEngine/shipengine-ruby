@@ -3,27 +3,17 @@
 require "test_helper"
 
 describe "Error event" do
-  # * An Error event occurred
-  # * The timestamp is within +/- a couple seconds from now
-  # * The event type is Error
-  # * The message is "An error occurred while validating an address."
-  # * The event contains an error object
-  # * The error source is ShipEngine
-  # * The error type is Validation
-  # * The error code is Field Value Required
-  # * The error message is "Invalid address. At least one address line is required."
-  # * The error's require
   subject do
     emitter = ShipEngine::Emitter::EventEmitter.new
-    on_error = Spy.on(emitter, :on_error)
+    on_error_spy = Spy.on(emitter, :on_error)
 
     client = ShipEngine::Client.new(api_key: "abc123", emitter: emitter)
 
     assert_raises ::ShipEngine::Exceptions::ShipEngineError do
       client.validate_address(Factory.invalid_address_params)
     end
-    puts on_error.calls
-    on_error
+
+    on_error_spy
   end
 
   it "should have one call" do
