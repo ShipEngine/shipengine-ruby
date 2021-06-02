@@ -17,7 +17,7 @@ module ShipEngine
 
     def initialize(api_key:, retries: nil, timeout: nil, page_size: nil, base_url: nil, emitter: nil)
       @api_key = api_key
-      @base_url = base_url || (ENV["USE_SIMENGINE"] == "true" ? ShipEngine::Constants::SIMENGINE_URL : ShipEngine::Constants::PROD_URL)
+      @base_url = base_url || Constants.get_simengine_base_url()
       @retries = retries || 1
       @timeout = timeout || 30_000
       @page_size = page_size || 50
