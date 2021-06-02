@@ -14,9 +14,9 @@ module CustomAssertions
     assert_match(%r{application/json}i, fuzzy_get_header("Content-Type", headers), "should have content-type application/json. headers #{headers}")
   end
 
-  def assert_between(greater_than_this_value, less_than_this_value, value)
+  def assert_between(greater_than_this_value, less_than_this_value, value, field = "value")
     assert(value > greater_than_this_value && value < less_than_this_value,
-      "value should be between #{greater_than_this_value} and #{less_than_this_value}. Got #{value}")
+      "#{field} should be between #{greater_than_this_value} and #{less_than_this_value}. Got #{value}")
   end
 
   def assert_equal_value(key, value1, value2)
@@ -27,6 +27,21 @@ module CustomAssertions
     some_hash.keys.each do |symbol|
       assert_equal(some_hash[symbol], some_class.send(symbol), "-> #{symbol}") if expected_event.key?(symbol)
     end
+  end
+
+  # @param expected_event [Hash]
+  # @param response_event [::ShipEngine::Emitter::ErrorEvent]
+  def assert_error_event(expected_event, actual_event)
+    assert(actual_event, "ErrorEvent should exist.")
+    assert_kind_of(::ShipEngine::Emitter::ErrorEvent, actual_event)
+    assert_equal(expected_event[:error_code], actual_event.error_code) if expected_event.key?(:error_code)
+    assert_equal(expected_event[:message], actual_event.message) if expected_event.key?(:message)
+    assert_equal(expected_event[:error_type], actual_event.error_type) if expected_event.key?(:error_type)
+    assert_equal(expected_event[:error_source], actual_event.error_source) if expected_event.key?(:error_source)
+    # assert_equal_field(expected_event, actual_event, [:retries, :datetime, :message, :type, :timeout, :request_id])
+    assert_kind_of(Time, actual_event.datetime, "datetime should be a time")
+    assert_equal(expected_event[:datetime], actual_event.datetime) if expected_event.key?(:datetime)
+    assert_equal(expected_event[:timeout], actual_event.timeout) if expected_event.key?(:timeout)
   end
 
   # @param expected_event [Hash]

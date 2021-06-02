@@ -13,6 +13,10 @@ module Factory
       { street: ["429 Rate Limit Error"], postal_code: "78751", country: "US" }
     end
 
+    def invalid_address_params
+      { street: [], postal_code: "78751", country: "US" }
+    end
+
     def valid_address_res
       {
         jsonrpc: "2.0",

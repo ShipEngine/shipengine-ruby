@@ -72,6 +72,17 @@ module ShipEngine
       ERROR = "error"
     end
 
+    class ErrorEvent < Event
+      attr_reader :request_id, :error_source, :error_code, :error_type
+      def initialize(message:, request_id: nil, error_source: nil, error_code: nil, error_type:)
+        super(type: EventType::ERROR, message: message)
+        @request_id = request_id
+        @error_source = error_source
+        @error_code = error_code
+        @error_type = error_type
+      end
+    end
+
     class HttpEvent < Event
       attr_reader :request_id, :retry_attempt, :body, :headers, :url
       def initialize(type:, message:, request_id:, body:, retry_attempt:, headers:, url:)
@@ -139,10 +150,28 @@ module ShipEngine
         page_size: page_size,
         emitter: emitter
       )
+
       internal_client = InternalClient.new(@configuration)
       @address = Domain::Address.new(internal_client)
       @package = Domain::Package.new(internal_client)
       @carriers = Domain::Carrier.new(internal_client)
+    end
+
+    # wrap methods in a block to "catch" and emit the errors
+    # this could maybe be improved with some metapraogramming, but this is a straightforward approach with minimal cost.
+    def with_emit_error(emitter)
+      yield
+    rescue ::ShipEngine::Exceptions::ShipEngineError => err
+      emitter ||= configuration.emitter
+      error_event = ShipEngine::Emitter::ErrorEvent.new(
+        message: err.message,
+        request_id: err.request_id,
+        error_source: err.source,
+        error_code: err.code,
+        error_type: err.type,
+      )
+      emitter.on_error(error_event)
+      raise err
     end
 
     #
@@ -158,7 +187,9 @@ module ShipEngine
     # @return [::ShipEngine::AddressValidationResult] <description>
     #
     def validate_address(address, config = {})
-      @address.validate(address, config)
+      with_emit_error(config[:emitter]) do
+        @address.validate(address, config)
+      end
     end
 
     # Normalize an address
@@ -173,19 +204,27 @@ module ShipEngine
     # @return [::ShipEngine::NormalizedAddress]
     #
     def normalize_address(address, config = {})
-      @address.normalize(address, config)
+      with_emit_error(config[:emitter]) do
+        @address.normalize(address, config)
+      end
     end
 
     def list_carrier_accounts(carrier_code: nil, config: {})
-      @carriers.list_accounts(carrier_code: carrier_code, config: config)
+      with_emit_error(config[:emitter]) do
+        @carriers.list_accounts(carrier_code: carrier_code, config: config)
+      end
     end
 
     def track_package_by_id(package_id, config = {})
-      @package.track_by_id(package_id, config)
+      with_emit_error(config[:emitter]) do
+        @package.track_by_id(package_id, config)
+      end
     end
 
     def track_package_by_tracking_number(tracking_number, carrier_code, config = {})
-      @package.track_by_tracking_number(tracking_number, carrier_code, config)
+      with_emit_error(config[:emitter]) do
+        @package.track_by_tracking_number(tracking_number, carrier_code, config)
+      end
     end
   end
 end
