@@ -33,7 +33,7 @@ The Official Ruby SDK for ShipEngine
 > guard
 [1] guard(main)> require 'shipengine'
 => true
-[2]> client = ShipEngine::Client.new(api_key: "foo123")
+[2]> client = ShipEngine::Client.new("foo123")
 #<ShipEngine::Client:0x00007f87d72d7d08
  @address=
   #<ShipEngine::Domain::Address:0x00007f87d72d7bf0

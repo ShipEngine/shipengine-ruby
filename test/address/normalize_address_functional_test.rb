@@ -4,7 +4,7 @@ require "test_helper"
 
 describe "Normalize Address: Functional" do
   # https://github.com/ShipEngine/shipengine-js/blob/main/test/specs/normalize-address.spec.js
-  client = ::ShipEngine::Client.new(api_key: "abc123")
+  client = ::ShipEngine::Client.new("abc123")
   # DX-965
   it "handles server-side errors" do
     params = {

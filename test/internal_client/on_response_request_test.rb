@@ -19,7 +19,7 @@ describe "request/response events" do
     timeout = 666000
     emitter = ShipEngine::Emitter::EventEmitter.new
     on_request_sent = Spy.on(emitter, :on_request_sent)
-    client = ShipEngine::Client.new(api_key: "abc123", retries: 0, timeout: timeout, emitter: emitter)
+    client = ShipEngine::Client.new("abc123", retries: 0, timeout: timeout, emitter: emitter)
     client.validate_address(Factory.valid_address_params)
     request_sent_event, _ = get_dispatched_events(on_request_sent)
     assert_request_sent_event({
@@ -38,7 +38,7 @@ describe "request/response events" do
     emitter = ShipEngine::Emitter::EventEmitter.new
     on_request_sent = Spy.on(emitter, :on_request_sent)
 
-    client = ShipEngine::Client.new(api_key: "abc123", emitter: emitter)
+    client = ShipEngine::Client.new("abc123", emitter: emitter)
 
     stub_request(:post, SIMENGINE_URL)
       .to_return(status: 200, body: Factory.valid_address_res_json)
@@ -66,7 +66,7 @@ describe "request/response events" do
     timeout = 666000
     emitter = ShipEngine::Emitter::EventEmitter.new
     on_response_received = Spy.on(emitter, :on_response_received)
-    client = ShipEngine::Client.new(api_key: "abc123", retries: 0, timeout: timeout, emitter: emitter)
+    client = ShipEngine::Client.new("abc123", retries: 0, timeout: timeout, emitter: emitter)
     assert_raises_rate_limit_error do
       client.validate_address(Factory.rate_limit_address_params)
     end

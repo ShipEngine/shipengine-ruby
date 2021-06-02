@@ -11,23 +11,23 @@ describe "timeout" do
 
     # configuration during insantiation
     assert_raises_shipengine_validation(timeout_err) do
-      ::ShipEngine::Client.new(api_key: "abc1234", timeout: 0)
+      ::ShipEngine::Client.new("abc1234", timeout: 0)
     end
 
     # config during instantiation and method call
     assert_raises_shipengine_validation(timeout_err) do
-      client = ::ShipEngine::Client.new(api_key: "abc1234")
+      client = ::ShipEngine::Client.new("abc1234")
       client.configuration.timeout = -1
       client.validate_address(Factory.valid_address_params)
     end
 
     # config during method call
     assert_raises_shipengine_validation(timeout_err) do
-      client = ShipEngine::Client.new(api_key: "abc1234")
+      client = ShipEngine::Client.new("abc1234")
       client.validate_address(Factory.valid_address_params, { timeout: -1 })
     end
 
     assert_not_requested(stub)
-    ShipEngine::Client.new(api_key: "abc1234", timeout: 5000) # valid timeout
+    ShipEngine::Client.new("abc1234", timeout: 5000) # valid timeout
   end
 end

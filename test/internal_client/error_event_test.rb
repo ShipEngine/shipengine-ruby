@@ -7,7 +7,7 @@ describe "Error event" do
     emitter = ShipEngine::Emitter::EventEmitter.new
     on_error_spy = Spy.on(emitter, :on_error)
 
-    client = ShipEngine::Client.new(api_key: "abc123", emitter: emitter)
+    client = ShipEngine::Client.new("abc123", emitter: emitter)
 
     assert_raises ::ShipEngine::Exceptions::ShipEngineError do
       client.validate_address(Factory.invalid_address_params)

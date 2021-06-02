@@ -140,7 +140,7 @@ module ShipEngine
   class Client
     attr_accessor :configuration
 
-    def initialize(api_key:, retries: nil, timeout: nil, page_size: nil, base_url: nil, emitter: nil)
+    def initialize(api_key, retries: nil, timeout: nil, page_size: nil, base_url: nil, emitter: nil)
       @configuration = Configuration.new(
         api_key: api_key,
         retries: retries,

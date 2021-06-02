@@ -16,7 +16,8 @@ def get_address(overrides = {})
 end
 
 describe "Validate Address: Functional" do
-  client = ::ShipEngine::Client.new(api_key: "abc123")
+  client = ::ShipEngine::Client.new("abc123")
+
   # DX-938 -
   it "handles server-side errors" do
     params = {

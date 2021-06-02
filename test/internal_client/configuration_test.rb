@@ -4,8 +4,14 @@ require "test_helper"
 
 describe "Configuration" do
   describe "common functionality" do
+    it "should accept an api_key only constructor" do
+      client = ::ShipEngine::Client.new("foo")
+
+      # the global configuration should not be mutated
+      assert_equal "foo", client.configuration.api_key
+    end
     it "default values should be passed" do
-      client = ::ShipEngine::Client.new(api_key: "foo")
+      client = ::ShipEngine::Client.new("foo")
 
       # the global configuration should not be mutated
       assert_equal 30_000, client.configuration.timeout
@@ -16,7 +22,7 @@ describe "Configuration" do
         .with(body: /.*/, headers: { "API-Key" => "baz" })
         .to_return(status: 200, body: Factory.valid_address_res_json)
 
-      client = ::ShipEngine::Client.new(api_key: "foo", timeout: 111_000)
+      client = ::ShipEngine::Client.new("foo", timeout: 111_000)
       assert_equal "foo", client.configuration.api_key
       assert_equal 111_000, client.configuration.timeout
 
@@ -45,24 +51,24 @@ describe "Configuration" do
 
       # configuration during insantiation
       assert_raises_shipengine_validation(page_size_err) do
-        ::ShipEngine::Client.new(api_key: "abc1234", page_size: 0)
+        ::ShipEngine::Client.new("abc1234", page_size: 0)
       end
 
       # config during instantiation and method call
       assert_raises_shipengine_validation(page_size_err) do
-        client = ::ShipEngine::Client.new(api_key: "abc1234")
+        client = ::ShipEngine::Client.new("abc1234")
         client.configuration.page_size = 0
         client.validate_address(Factory.valid_address_params)
       end
 
       # config during method call
       assert_raises_shipengine_validation(page_size_err) do
-        client = ShipEngine::Client.new(api_key: "abc1234")
+        client = ShipEngine::Client.new("abc1234")
         client.validate_address(Factory.valid_address_params, { page_size: 0 })
       end
 
       assert_not_requested(stub)
-      ShipEngine::Client.new(api_key: "abc1234", page_size: 5)
+      ShipEngine::Client.new("abc1234", page_size: 5)
     end
   end
 
@@ -71,7 +77,7 @@ describe "Configuration" do
       stub = stub_request(:post, SIMENGINE_URL)
         .with(body: /.*/, headers: { "API-Key" => "foo" }).to_return(status: 200, body: Factory.valid_address_res_json)
 
-      client = ::ShipEngine::Client.new(api_key: "foo")
+      client = ::ShipEngine::Client.new("foo")
       client.validate_address(Factory.valid_address_params)
       assert_requested(stub)
     end
@@ -90,26 +96,26 @@ describe "Configuration" do
 
       # configuration during insantiation
       assert_raises_shipengine_validation(api_key_err) do
-        ShipEngine::Client.new(api_key: nil)
+        ShipEngine::Client.new(nil)
       end
 
       # config during instantiation and method call
       assert_raises_shipengine_validation(api_key_err) do
-        client = ShipEngine::Client.new(api_key: "abc1234")
+        client = ShipEngine::Client.new("abc1234")
         client.configuration.api_key = nil
         client.validate_address(Factory.valid_address_params)
       end
 
       # config during method call
       assert_raises_shipengine_validation(api_key_err) do
-        client = ShipEngine::Client.new(api_key: "foo")
+        client = ShipEngine::Client.new("foo")
         client.validate_address(Factory.valid_address_params, { api_key: nil })
       end
 
       assert_not_requested(stub)
 
-      ShipEngine::Client.new(api_key: "abc1234") # valid
-      ShipEngine::Client.new(api_key: "abc1234") # valid
+      ShipEngine::Client.new("abc1234") # valid
+      ShipEngine::Client.new("abc1234") # valid
     end
   end
 end

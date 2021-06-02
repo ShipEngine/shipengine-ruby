@@ -4,7 +4,7 @@ require "test_helper"
 require "shipengine"
 
 describe "Validate Address" do
-  client = ::ShipEngine::Client.new(api_key: "abc123")
+  client = ::ShipEngine::Client.new("abc123")
   it "Should successfully validate an address" do
     params = {
       street: ["501 Crawford St"],

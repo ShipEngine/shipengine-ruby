@@ -15,26 +15,26 @@ describe "retries" do
 
     # configuration during insantiation
     assert_raises_shipengine_validation(retries_err) do
-      ShipEngine::Client.new(api_key: "abc1234", retries: -1)
+      ShipEngine::Client.new("abc1234", retries: -1)
     end
 
     # config during instantiation and method call
     assert_raises_shipengine_validation(retries_err) do
-      client = ShipEngine::Client.new(api_key: "abc1234")
+      client = ShipEngine::Client.new("abc1234")
       client.configuration.retries = -1
       client.validate_address(Factory.valid_address_params)
     end
 
     # config during method call
     assert_raises_shipengine_validation(retries_err) do
-      client = ShipEngine::Client.new(api_key: "abc1234")
+      client = ShipEngine::Client.new("abc1234")
       client.validate_address(Factory.valid_address_params, { retries: -1 })
     end
 
     assert_not_requested(stub)
 
-    ShipEngine::Client.new(api_key: "abc1234", retries: 5) # valid
-    ShipEngine::Client.new(api_key: "abc1234", retries: 0) # valid
+    ShipEngine::Client.new("abc1234", retries: 5) # valid
+    ShipEngine::Client.new("abc1234", retries: 0) # valid
   end
 
   it "Should not throw an error if retries is valid" do
@@ -42,7 +42,7 @@ describe "retries" do
       .with(body: /.*/)
       .to_return(status: 200, body: Factory.valid_address_res_json)
 
-    client = ShipEngine::Client.new(api_key: "abc1234")
+    client = ShipEngine::Client.new("abc1234")
     client.configuration.retries = 2
     client.validate_address(Factory.valid_address_params)
     client.configuration.retries = 0
@@ -50,7 +50,7 @@ describe "retries" do
   end
 
   it "should have a default value of 1" do
-    client = ShipEngine::Client.new(api_key: "abc1234")
+    client = ShipEngine::Client.new("abc1234")
     assert_equal(1, client.configuration.retries)
   end
 
@@ -60,14 +60,14 @@ describe "retries" do
       .to_return(status: 429, body: Factory.rate_limit_error).then
       .to_return(status: 200, body: Factory.valid_address_res_json)
 
-    client = ShipEngine::Client.new(api_key: "abc123", retries: 2)
+    client = ShipEngine::Client.new("abc123", retries: 2)
     response = client.validate_address(Factory.valid_address_params)
     assert(response.valid?)
     assert_requested(stub, times: 3)
   end
 
   it "should stop retrying if retries is exhausted (and return rate limit error)" do
-    client = ShipEngine::Client.new(api_key: "abc123", retries: 2)
+    client = ShipEngine::Client.new("abc123", retries: 2)
     stub_request(:post, SIMENGINE_URL)
       .to_return(status: 429, body: Factory.rate_limit_error).then
       .to_return(status: 429, body: Factory.rate_limit_error).then
@@ -77,7 +77,7 @@ describe "retries" do
   end
 
   it "should throw an error with the number of tries" do
-    client = ShipEngine::Client.new(api_key: "abc123", retries: 2)
+    client = ShipEngine::Client.new("abc123", retries: 2)
     stub_request(:post, SIMENGINE_URL)
       .to_return(status: 429, body: Factory.rate_limit_error).then
       .to_return(status: 429, body: Factory.rate_limit_error).then
@@ -86,7 +86,7 @@ describe "retries" do
   end
 
   it "respects the Retry-After header, which can override error.retryAfter" do
-    client = ShipEngine::Client.new(api_key: "abc123", retries: 1)
+    client = ShipEngine::Client.new("abc123", retries: 1)
     stub = stub_request(:post, SIMENGINE_URL)
       .to_return(status: 429, body: Factory.rate_limit_error, headers: { "Retry-After": 1 })
       .then.to_return(status: 200, body: Factory.valid_address_res_json)
@@ -101,7 +101,7 @@ describe "retries" do
   # Can I use: https://auctane.atlassian.net/browse/DX-1497
 
   it "should not make any additional retries if retries is disabled (i.e. set to 0)" do
-    client = ShipEngine::Client.new(api_key: "abc123", retries: 0)
+    client = ShipEngine::Client.new("abc123", retries: 0)
     stub = stub_request(:post, SIMENGINE_URL)
       .to_return(status: 429, body: Factory.rate_limit_error).then
       .to_return(status: 429, body: Factory.rate_limit_error).then
@@ -114,7 +114,7 @@ describe "retries" do
     emitter = ShipEngine::Emitter::EventEmitter.new
     on_request_sent = Spy.on(emitter, :on_request_sent)
 
-    client = ShipEngine::Client.new(api_key: "abc123", retries: 2, emitter: emitter)
+    client = ShipEngine::Client.new("abc123", retries: 2, emitter: emitter)
 
     stub_request(:post, SIMENGINE_URL)
       .to_return(status: 429, body: Factory.rate_limit_error).then
@@ -148,7 +148,7 @@ describe "retries" do
     emitter = MyEventEmitter.new
     on_response_received = Spy.on(emitter, :on_response_received)
 
-    client = ShipEngine::Client.new(api_key: "abc123", retries: 2, emitter: emitter)
+    client = ShipEngine::Client.new("abc123", retries: 2, emitter: emitter)
 
     stub_request(:post, SIMENGINE_URL)
       .to_return(status: 429, body: Factory.rate_limit_error).then
@@ -185,7 +185,7 @@ describe "retries" do
 
   it "should make requests immediately if retryAfter is set to 0" do
     retries = 2
-    client = ShipEngine::Client.new(api_key: "abc123", retries: retries)
+    client = ShipEngine::Client.new("abc123", retries: retries)
     stub = stub_request(:post, SIMENGINE_URL)
       .to_return(status: 429, body: Factory.rate_limit_error(data: { retryAfter: 0 })).then
       .to_return(status: 429, body: Factory.rate_limit_error(data: { retryAfter: 0 })).then
@@ -202,7 +202,7 @@ describe "retries" do
     emitter = ShipEngine::Emitter::EventEmitter.new
     on_request_sent = Spy.on(emitter, :on_request_sent)
     on_response_received = Spy.on(emitter, :on_response_received)
-    client = ShipEngine::Client.new(api_key: "abc123", retries: 0, emitter: emitter)
+    client = ShipEngine::Client.new("abc123", retries: 0, emitter: emitter)
     client.validate_address(Factory.valid_address_params)
 
     assert_called(1, on_request_sent)
@@ -229,7 +229,7 @@ describe "retries" do
     on_request_sent = Spy.on(emitter, :on_request_sent)
     on_response_received = Spy.on(emitter, :on_response_received)
 
-    client = ShipEngine::Client.new(api_key: "abc123", emitter: emitter)
+    client = ShipEngine::Client.new("abc123", emitter: emitter)
 
     start = Time.now
     assert_raises_rate_limit_error { client.validate_address({ street: ["429 Rate Limit Error"], postal_code: "78751", country: "US" }) }
@@ -248,7 +248,7 @@ describe "retries" do
   tag :slow
   it "Should retry 3 times, waiting 1 second on each retry" do
     retries = 3
-    client = ShipEngine::Client.new(api_key: "abc123", retries: retries)
+    client = ShipEngine::Client.new("abc123", retries: retries)
     stub = stub_request(:post, SIMENGINE_URL)
       .to_return(status: 429, body: Factory.rate_limit_error(data: { retryAfter: 1 })).then
       .to_return(status: 429, body: Factory.rate_limit_error(data: { retryAfter: 1 })).then
@@ -268,7 +268,7 @@ describe "retries" do
     on_request_sent = Spy.on(emitter, :on_request_sent)
     on_response_received = Spy.on(emitter, :on_response_received)
 
-    client = ShipEngine::Client.new(api_key: "abc123", emitter: emitter, timeout: 1000)
+    client = ShipEngine::Client.new("abc123", emitter: emitter, timeout: 1000)
 
     assert_raises_shipengine_timeout({ message: "The request took longer than the 1000 milliseconds allowed" }) do
       client.validate_address(Factory.rate_limit_address_params)

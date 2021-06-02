@@ -30,7 +30,7 @@ def assert_carrier_account(expected, actual_carrier_account)
 end
 
 describe "List Carrier Accounts: Functional" do
-  client = ::ShipEngine::Client.new(api_key: "abc123")
+  client = ::ShipEngine::Client.new("abc123")
   it "should have an optional argument of carrier_accounts" do
     expected = [
       {
