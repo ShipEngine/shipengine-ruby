@@ -72,6 +72,20 @@ describe "Configuration" do
     end
   end
 
+  describe "User Agent header" do
+    # DX-1487 - User agent includes correct SDK version
+    it "should pass a user agent header with a version (this tests indirectly per the emitter)" do
+      emitter = ::ShipEngine::Emitter::EventEmitter.new
+      on_request_sent = Spy.on(emitter, :on_request_sent)
+      client = ::ShipEngine::Client.new("abc123", emitter: emitter)
+      client.validate_address(Factory.valid_address_params)
+      request_sent_event, _ = get_dispatched_events(on_request_sent)
+      user_agent = request_sent_event.headers["User-Agent"]
+      refute(user_agent.match(/nil/i))
+      assert_equal(user_agent, "shipengine-ruby/#{::ShipEngine::VERSION} (#{RUBY_PLATFORM})")
+    end
+  end
+
   describe "api_key" do
     it "should have header: API-Key if api-key passed during initialization" do
       stub = stub_request(:post, SIMENGINE_URL)

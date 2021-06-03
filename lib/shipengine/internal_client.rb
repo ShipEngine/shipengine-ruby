@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "shipengine/utils/request_id"
+require "shipengine/utils/user_agent"
 require "shipengine/exceptions"
 require "shipengine/version"
 require "logger"
@@ -221,7 +222,7 @@ module ShipEngine
           "API-Key" => api_key,
           "Content-Type" => "application/json",
           "Accept" => "application/json",
-          "User-Agent" => "shipengine-ruby/#{VERSION} (#{RUBY_PLATFORM})",
+          "User-Agent" => Utils::UserAgent.new.to_s,
         }
         conn.options.timeout = timeout / 1000
         conn.request(:json) # auto-coerce bodies to json
