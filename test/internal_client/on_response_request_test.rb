@@ -61,6 +61,29 @@ describe "request/response events" do
   end
 
   tag :simengine
+  # DX-1492
+  it "should dispatch an on_response_recieved event once" do
+    emitter = ShipEngine::Emitter::EventEmitter.new
+    on_response_received = Spy.on(emitter, :on_response_received)
+
+    client = ShipEngine::Client.new("abc123", emitter: emitter)
+
+    start_time = Time.now
+    response = client.validate_address(Factory.valid_address_params)
+    assert response
+    assert_called(1, on_response_received)
+    response_received_event, _ = get_dispatched_events(on_response_received)
+
+    assert_content_type_json(response_received_event.headers)
+
+    assert_response_received_event(
+      { retry_attempt: 0, status_code: 200, url: URI(client.configuration.base_url),
+        message: "Received an HTTP 200 response from the ShipEngine address.validate.v1 API" }, response_received_event
+    )
+    assert_operator(response_received_event.elapsed, :<, Time.now - start_time, "elapsed time should be less than the test time ")
+  end
+
+  tag :simengine
   # DX-1493 - SDKs | Ruby | Config | Tests | Response received event (error)
   it "should dispatch an on_response_received event and an on_request_received event" do
     timeout = 666000

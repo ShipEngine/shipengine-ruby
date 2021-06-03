@@ -8,8 +8,8 @@ module TestUtils
     spy.calls.map { |event| event.args[0] }
   end
 
-  def titlecase
-    split(/([[:alpha:]]+)/).map(&:capitalize).join
+  def titlecase(str)
+    str.split(/([[:alpha:]]+)/).map(&:capitalize).join
   end
 
   def fuzzy_get_header(header_name_str, headers)

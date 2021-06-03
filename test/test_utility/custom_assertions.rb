@@ -77,6 +77,7 @@ module CustomAssertions
     assert_equal(expected_event[:type], response_event.type) if expected_event.key?(:type)
     assert_equal(expected_event[:elapsed], response_event.elapsed) if expected_event.key?(:elapsed)
     assert_request_id_equal(expected_event[:request_id], response_event.request_id) if expected_event.key?(:request_id)
+    assert_equal(expected_event[:url], response_event.url) if expected_event.key?(:url)
   end
 
   def assert_response_error(expected_err, response_err)
