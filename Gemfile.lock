@@ -3,7 +3,7 @@ PATH
   specs:
     shipengine (0.1.0)
       faraday (~> 1.4)
-      faraday_middleware
+      faraday_middleware (~> 1.0)
 
 GEM
   remote: https://rubygems.org/
@@ -12,28 +12,36 @@ GEM
       public_suffix (>= 2.0.2, < 5.0)
     ansi (1.5.0)
     ast (2.4.2)
+    awesome_print (1.9.2)
     backport (1.1.2)
     benchmark (0.1.1)
     builder (3.2.4)
     coderay (1.1.3)
     crack (0.4.5)
       rexml
-    docile (1.3.5)
+    debase (0.2.4.1)
+      debase-ruby_core_source (>= 0.10.2)
+    debase-ruby_core_source (0.10.12)
+    docile (1.4.0)
     e2mmap (0.1.0)
-    faraday (1.4.1)
+    faraday (1.4.2)
+      faraday-em_http (~> 1.0)
+      faraday-em_synchrony (~> 1.0)
       faraday-excon (~> 1.1)
       faraday-net_http (~> 1.0)
       faraday-net_http_persistent (~> 1.1)
       multipart-post (>= 1.2, < 3)
       ruby2_keywords (>= 0.0.4)
+    faraday-em_http (1.0.0)
+    faraday-em_synchrony (1.0.0)
     faraday-excon (1.1.0)
     faraday-net_http (1.0.1)
     faraday-net_http_persistent (1.1.0)
     faraday_middleware (1.0.0)
       faraday (~> 1.0)
-    ffi (1.15.0)
+    ffi (1.15.1)
     formatador (0.2.5)
-    guard (2.16.2)
+    guard (2.17.0)
       formatador (>= 0.2.4)
       listen (>= 2.7, < 4.0)
       lumberjack (>= 1.0.12, < 2.0)
@@ -57,11 +65,11 @@ GEM
       rb-inotify (~> 0.9, >= 0.9.10)
     lumberjack (1.2.8)
     method_source (1.0.0)
-    mini_portile2 (2.5.0)
+    mini_portile2 (2.5.3)
     minitest (5.14.4)
     minitest-fail-fast (0.1.0)
       minitest (~> 5)
-    minitest-focus (1.2.1)
+    minitest-focus (1.3.1)
       minitest (>= 4, < 6)
     minitest-hooks (1.5.0)
       minitest (> 5.3)
@@ -72,16 +80,18 @@ GEM
       builder
       minitest (>= 5.0)
       ruby-progressbar
+    minitest-tagz (1.7.0)
+      minitest (~> 5)
     multipart-post (2.1.1)
     nenv (0.3.0)
-    nokogiri (1.11.3)
+    nokogiri (1.11.6)
       mini_portile2 (~> 2.5.0)
       racc (~> 1.4)
     notiffany (0.1.3)
       nenv (~> 0.1)
       shellany (~> 0.0)
     parallel (1.20.1)
-    parser (3.0.1.0)
+    parser (3.0.1.1)
       ast (~> 2.4.1)
     pry (0.14.1)
       coderay (~> 1.1)
@@ -90,24 +100,28 @@ GEM
     racc (1.5.2)
     rainbow (3.0.0)
     rake (13.0.3)
-    rb-fsevent (0.10.4)
+    rb-fsevent (0.11.0)
     rb-inotify (0.10.1)
       ffi (~> 1.0)
     regexp_parser (2.1.1)
     reverse_markdown (2.0.0)
       nokogiri
     rexml (3.2.5)
-    rubocop (1.13.0)
+    rubocop (1.16.0)
       parallel (~> 1.10)
       parser (>= 3.0.0.0)
       rainbow (>= 2.2.2, < 4.0)
       regexp_parser (>= 1.8, < 3.0)
       rexml
-      rubocop-ast (>= 1.2.0, < 2.0)
+      rubocop-ast (>= 1.7.0, < 2.0)
       ruby-progressbar (~> 1.7)
       unicode-display_width (>= 1.4.0, < 3.0)
-    rubocop-ast (1.4.1)
-      parser (>= 2.7.1.5)
+    rubocop-ast (1.7.0)
+      parser (>= 3.0.1.1)
+    rubocop-shopify (2.1.0)
+      rubocop (~> 1.13)
+    ruby-debug-ide (0.7.2)
+      rake (>= 0.8.1)
     ruby-progressbar (1.11.0)
     ruby2_keywords (0.0.4)
     shellany (0.0.1)
@@ -116,8 +130,8 @@ GEM
       simplecov-html (~> 0.11)
       simplecov_json_formatter (~> 0.1)
     simplecov-html (0.12.3)
-    simplecov_json_formatter (0.1.2)
-    solargraph (0.40.4)
+    simplecov_json_formatter (0.1.3)
+    solargraph (0.41.1)
       backport (~> 1.1)
       benchmark
       bundler (>= 1.17.2)
@@ -131,10 +145,11 @@ GEM
       thor (~> 1.0)
       tilt (~> 2.0)
       yard (~> 0.9, >= 0.9.24)
+    spy (1.0.1)
     thor (1.1.0)
     tilt (2.0.10)
     unicode-display_width (2.0.0)
-    webmock (3.12.2)
+    webmock (3.13.0)
       addressable (>= 2.3.6)
       crack (>= 0.3.2)
       hashdiff (>= 0.4.0, < 2.0.0)
@@ -144,6 +159,8 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  awesome_print
+  debase
   guard
   guard-minitest
   minitest
@@ -152,14 +169,18 @@ DEPENDENCIES
   minitest-hooks
   minitest-line
   minitest-reporters
+  minitest-tagz
   pry
   rake
   rubocop
+  rubocop-shopify
+  ruby-debug-ide
   shipengine!
   simplecov
   solargraph
+  spy
   webmock
   yard
 
 BUNDLED WITH
-   2.2.16
+   2.2.17

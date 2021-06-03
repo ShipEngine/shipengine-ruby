@@ -37,7 +37,7 @@ module ShipEngine
 
   class NormalizedAddress
     attr_reader :street, :name, :company, :phone, :city_locality, :state_province, :postal_code,
-                :country
+      :country
 
     # @param [Array<String>] street - e.g. ["123 FAKE ST."]
     # @param [String] country - e.g. "US". @see https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes
@@ -48,7 +48,7 @@ module ShipEngine
     # @param [String?] city_locality - e.g. "AUSTIN"
     # @param [String?] state_province - e.g. "TX"
     # @param [Boolean?] residential
-    def initialize(street:, name:, company:, phone:, city_locality:, state_province:, postal_code:, country:, residential:) # rubocop:disable Metrics/ParameterLists
+    def initialize(street:, name:, company:, phone:, city_locality:, state_province:, postal_code:, country:, residential:)
       @street = street
       @name = name
       @company = company
@@ -67,20 +67,20 @@ module ShipEngine
 
   module Domain
     class Address
-      require 'shipengine/utils/validate'
-      require 'shipengine/constants'
+      require "shipengine/utils/validate"
+      require "shipengine/constants"
       class Validate
         class << self
           def assert_state_province(state_province)
-            Utils::Validate.non_whitespace_str('State/province', state_province)
+            Utils::Validate.non_whitespace_str("State/province", state_province)
           end
 
           def assert_city_locality(city_locality)
-            Utils::Validate.non_whitespace_str('City/locality', city_locality)
+            Utils::Validate.non_whitespace_str("City/locality", city_locality)
           end
 
           def assert_postal_code(postal_code)
-            Utils::Validate.non_whitespace_str('Postal code', postal_code)
+            Utils::Validate.non_whitespace_str("Postal code", postal_code)
           end
 
           def assert_either_postal_code_or_city_state(postal_code:, city:, state:)
@@ -91,31 +91,31 @@ module ShipEngine
               Validate.assert_state_province(state)
             else
               raise Exceptions::ValidationError.new(
-                message: 'Invalid address. Either the postal code or the city/locality and state/province must be specified.',
+                message: "Invalid address. Either the postal code or the city/locality and state/province must be specified.",
                 code: Exceptions::ErrorCode.get(:FIELD_VALUE_REQUIRED)
               )
             end
           end
 
           def assert_address_street(street)
-            Utils::Validate.array_of_str('Street', street)
+            Utils::Validate.array_of_str("Street", street)
 
             if street.empty?
-              raise Exceptions::ValidationError.new(message: 'Invalid address. At least one address line is required.',
-                                                    code: Exceptions::ErrorCode.get(:FIELD_VALUE_REQUIRED))
+              raise Exceptions::ValidationError.new(message: "Invalid address. At least one address line is required.",
+                code: Exceptions::ErrorCode.get(:FIELD_VALUE_REQUIRED))
             elsif street.length > 3
               raise Exceptions
-                .create_invalid_field_value_error('Invalid address. No more than 3 street lines are allowed.')
+                .create_invalid_field_value_error("Invalid address. No more than 3 street lines are allowed.")
             end
           end
 
           def assert_country(country)
-            Utils::Validate.not_nil_or_empty_str('Invalid address. The country', country)
+            Utils::Validate.not_nil_or_empty_str("Invalid address. The country", country)
             return if Constants::Country.valid?(country)
 
-            if country.nil? || (country == '')
+            if country.nil? || (country == "")
               raise Exceptions.create_required_error(
-                'Invalid address. The country'
+                "Invalid address. The country"
               )
             end
 
@@ -149,48 +149,51 @@ module ShipEngine
           countryCode: address[:country],
           phone: address[:phone],
           name: address[:name],
-          company: address[:company]
+          company: address[:company],
         }.compact # drop nil
 
         Validate.assert_address_street(address_params[:street])
         Validate.assert_country(address_params[:countryCode])
         Validate.assert_either_postal_code_or_city_state(
           postal_code: address_params[:postalCode],
-          city: address_params[:cityLocality], state: address_params[:stateProvince]
+          city: address_params[:cityLocality],
+          state: address_params[:stateProvince]
         )
 
-        address_api_result = @internal_client.make_request('address.validate.v1',
-                                                           { address: address_params }, config)
+        response = @internal_client.make_request("address.validate.v1",
+          { address: address_params }, config)
+        address_api_result = response.result
+        id = response.request_id
 
-        normalized_address_api_result = address_api_result['normalizedAddress'] || nil
+        normalized_address_api_result = address_api_result["normalizedAddress"] || nil
 
-        messages_classes = address_api_result['messages'].map do |msg|
-          AddressValidationMessage.new(type: msg['type'], code: msg['code'], message: msg['message'])
+        messages_classes = address_api_result["messages"].map do |msg|
+          AddressValidationMessage.new(type: msg["type"], code: msg["code"], message: msg["message"])
         end
 
         AddressValidationResult.new(
-          request_id: address_api_result['requestId'],
-          valid: address_api_result['isValid'],
-          errors: messages_classes.select { |msg| msg.type == 'error' },
-          warnings: messages_classes.select { |msg| msg.type == 'warning' },
-          info: messages_classes.select { |msg| msg.type == 'info' },
+          request_id: id,
+          valid: address_api_result["isValid"],
+          errors: messages_classes.select { |msg| msg.type == "error" },
+          warnings: messages_classes.select { |msg| msg.type == "warning" },
+          info: messages_classes.select { |msg| msg.type == "info" },
           normalized_address: normalized_address_api_result && NormalizedAddress.new(
-            street: normalized_address_api_result['street'],
-            name: normalized_address_api_result['name'],
-            company: normalized_address_api_result['company'],
-            phone: normalized_address_api_result['phone'],
-            country: normalized_address_api_result['countryCode'],
-            postal_code: normalized_address_api_result['postalCode'],
-            state_province: normalized_address_api_result['stateProvince'],
-            city_locality: normalized_address_api_result['cityLocality'],
-            residential: normalized_address_api_result['isResidential']
+            street: normalized_address_api_result["street"],
+            name: normalized_address_api_result["name"],
+            company: normalized_address_api_result["company"],
+            phone: normalized_address_api_result["phone"],
+            country: normalized_address_api_result["countryCode"],
+            postal_code: normalized_address_api_result["postalCode"],
+            state_province: normalized_address_api_result["stateProvince"],
+            city_locality: normalized_address_api_result["cityLocality"],
+            residential: normalized_address_api_result["isResidential"]
           )
         )
       end
 
       # @param response [AddressValidationResult]
       def result_is_successful(response)
-        response.valid? and response.normalized_address and response.errors.empty?
+        response.valid? && response.normalized_address && response.errors.empty?
       end
 
       #
@@ -201,13 +204,12 @@ module ShipEngine
       #
       # @return [ShipEngine::NormalizedAddress] - return a `NormalizedAddress`.
       # Unlike the `validate` method, will throw a `ShipEngineError` if normalized_address is nil.
-      #
       def normalize(address, config)
         result = validate(address, config)
 
         return result.normalized_address if result_is_successful(result)
 
-        err_message = result.errors.map { |err| err.message }.join("\n")
+        err_message = result.errors.map(&:message).join("\n")
         raise Exceptions::BusinessRulesError.new(
           message: "Invalid Address. #{err_message}",
           code: Exceptions::ErrorCode.get(:INVALID_ADDRESS),

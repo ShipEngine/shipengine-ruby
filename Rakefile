@@ -1,30 +1,32 @@
 # frozen_string_literal: true
 
 begin
-  require 'bundler/setup'
+  require "bundler/setup"
 rescue LoadError
-  puts 'You must `gem install bundler` and `bundle install` to run rake tasks'
+  puts "You must `gem install bundler` and `bundle install` to run rake tasks"
 end
 
-require 'rubocop/rake_task'
-require 'bundler/gem_tasks'
-require 'rake/testtask'
+require "rubocop/rake_task"
+require "bundler/gem_tasks"
+require "rake/testtask"
 
 Rake::TestTask.new(:test) do |t|
-  t.libs << 'test'
-  t.libs << 'lib'
-  t.test_files = FileList['test/**/*_test.rb']
+  t.libs << "test"
+  t.libs << "lib"
+  t.verbose = true
+  t.warning = false
+  t.pattern = "test/**/*_test.rb"
 end
 
 RuboCop::RakeTask.new(:lint) do |t|
-  t.options = ['--display-cop-names']
+  t.options = ["--display-cop-names"]
 end
 
 RuboCop::RakeTask.new(:fix) do |t|
-  t.options = ['--auto-correct-all']
+  t.options = ["--auto-correct-all"]
 end
 
 task :default do
-  Rake::Task['test'].execute
-  Rake::Task['lint'].execute
+  Rake::Task["test"].execute
+  Rake::Task["lint"].execute
 end
