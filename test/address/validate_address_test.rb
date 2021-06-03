@@ -84,4 +84,20 @@ describe "Validate Address" do
     assert_equal("Shipmate", response.normalized_address.company)
     assert_equal("John Smith", response.normalized_address.name)
   end
+
+  # DX-1384
+  it "should work with no name, company, or phone" do
+    params = {
+      city_locality: "Toronto",
+      state_province: "On",
+      postal_code: "M6K 3C3",
+      country: "CA",
+      street: ["123 Foo", "Some Other Line"],
+    }
+
+    response = client.validate_address(params)
+    assert_equal("", response.normalized_address.phone)
+    assert_equal("", response.normalized_address.company)
+    assert_equal("", response.normalized_address.name)
+  end
 end
