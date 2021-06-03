@@ -92,8 +92,7 @@ module ShipEngine
       def build_request_sent_event(env)
         parsed_request_body = Utils.safe_json_parse(env[:request_body])
         url = env.url
-        method = parsed_request_body["method"] if parsed_request_body
-        request_id = parsed_request_body["id"] if parsed_request_body
+        method, request_id = parsed_request_body.values_at("method", "id") if parsed_request_body
         retry_attempt = env[:retry_attempt]
         headers = env[:request_headers].to_hash
         ::ShipEngine::Emitter::RequestSentEvent.new(
@@ -140,7 +139,6 @@ module ShipEngine
         url = env[:url]
         retry_attempt = env[:retry_attempt]
         elapsed_sec = Utils.calculate_time_elapsed_in_sec(env[:first_event_datetime]) unless env[:first_event_datetime].nil?
-        puts elapsed_sec
         # puts "#{elapsed_sec} seconds have elapsed since request first made"
         ::ShipEngine::Emitter::ResponseReceivedEvent.new(
           message: "Received an HTTP #{status} response from the ShipEngine #{method} API",
