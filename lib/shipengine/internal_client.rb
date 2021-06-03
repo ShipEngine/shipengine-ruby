@@ -96,7 +96,7 @@ module ShipEngine
         retry_attempt = env[:retry_attempt]
         headers = env[:request_headers].to_hash
         ::ShipEngine::Emitter::RequestSentEvent.new(
-          message: "Calling the ShipEngine #{method} API at #{url}",
+          message: "#{retry_attempt ? "Retrying" : "Calling"} the ShipEngine #{method} API at #{url}",
           request_id: request_id,
           body: parsed_request_body,
           url: url,
@@ -123,8 +123,6 @@ module ShipEngine
         # (though any subsequent retry_attempt calls had the information populated as usual.)
       end
     end
-
-    # DX-1492
 
     # Middleware that exists to emit a ResponseReceivedEvent
     class ResponseRecievedEmitter < FaradayMiddlewareEmitter

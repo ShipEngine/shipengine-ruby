@@ -60,8 +60,34 @@ describe "request/response events" do
     )
   end
 
+  # DX-1491 SDKs | Ruby | Config | Tests | Request sent event (on retries)
   tag :simengine
-  # DX-1492
+  it "retries: should dispatch a modified on_request_sent event" do
+    emitter = ShipEngine::Emitter::EventEmitter.new
+    on_request_sent = Spy.on(emitter, :on_request_sent)
+
+    client = ShipEngine::Client.new("abc123", emitter: emitter)
+
+    assert_raises_rate_limit_error { client.validate_address(Factory.rate_limit_address_params) }
+
+    assert_called(client.configuration.retries + 1, on_request_sent)
+    request_sent_event_1, request_sent_event_2 = get_dispatched_events(on_request_sent)
+
+    assert_content_type_json(request_sent_event_1.headers)
+
+    assert_request_sent_event(
+      { retry_attempt: 0, status_code: 429, url: URI(client.configuration.base_url), timeout: client.configuration.timeout,
+        message: "Calling the ShipEngine address.validate.v1 API at https://simengine.herokuapp.com/jsonrpc" }, request_sent_event_1
+    )
+
+    assert_request_sent_event(
+      { retry_attempt: 1, status_code: 429, url: URI(client.configuration.base_url), timeout: client.configuration.timeout,
+        message: "Retrying the ShipEngine address.validate.v1 API at https://simengine.herokuapp.com/jsonrpc" }, request_sent_event_2
+    )
+  end
+
+  # DX-1492 SDKs | Ruby | Config | Tests | Response received event (success)
+  tag :simengine
   it "should dispatch an on_response_recieved event once" do
     emitter = ShipEngine::Emitter::EventEmitter.new
     on_response_received = Spy.on(emitter, :on_response_received)

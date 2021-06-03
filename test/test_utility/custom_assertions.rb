@@ -44,6 +44,10 @@ module CustomAssertions
     assert_equal(expected_event[:timeout], actual_event.timeout) if expected_event.key?(:timeout)
   end
 
+  def assert_jsonrpc_method_in_body(method, body)
+    assert_equal(body["method"], method)
+  end
+
   # @param expected_event [Hash]
   # @param response_event [::ShipEngine::Emitter::RequestSentEvent]
   def assert_request_sent_event(expected_event, request_sent_event)
@@ -70,6 +74,7 @@ module CustomAssertions
       response_headers = response_event.headers
       assert_equal(expected_headers["Content-Type"], response_headers["Content-Type"])
     end
+    assert_jsonrpc_method_in_body(expected_event[:method], response_event.body) if expected_event.key?(:method)
     assert_equal(expected_event[:retry_attempt], response_event.retry_attempt) if expected_event.key?(:retry_attempt)
     assert_kind_of(Time, response_event.datetime, "datetime should be a time")
     assert_equal(expected_event[:datetime], response_event.datetime) if expected_event.key?(:datetime)
