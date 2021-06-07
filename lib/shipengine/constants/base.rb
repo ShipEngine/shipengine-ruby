@@ -4,7 +4,7 @@ module ShipEngine
     SIMENGINE_URL = "https://simengine.herokuapp.com/jsonrpc"
     PROD_URL = "https://api.shipengine.com"
 
-    def self.get_simengine_base_url
+    def self.base_url
       ENV["USE_SIMENGINE"] == "true" ? ShipEngine::Constants::SIMENGINE_URL : ShipEngine::Constants::PROD_URL
     end
   end
