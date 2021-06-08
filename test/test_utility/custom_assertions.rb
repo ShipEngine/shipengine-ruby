@@ -29,6 +29,15 @@ module CustomAssertions
     end
   end
 
+  # @param expected [Hash]
+  # @param response [::ShipEngine::TrackPackageResult]
+  def assert_track_package_result(expected, actual)
+    raise "no package" unless actual.package
+
+    assert_equal_value("package_id", expected[:package_id], actual.package.package_id) if expected[:package_id]
+    # assert_equal(expected_carrier[:name], actual.carrier.name, "~> carrier.name")
+  end
+
   # @param expected_event [Hash]
   # @param response_event [::ShipEngine::Emitter::ErrorEvent]
   def assert_error_event(expected_event, actual_event)
