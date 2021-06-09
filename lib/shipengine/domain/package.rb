@@ -142,6 +142,8 @@ module ShipEngine
     weight = package["weight"]
     dimensions = package["dimensions"]
     events = events.map { |e| map_event(e) }
+    errors = events.select { |event| event.status == 'Exception' }
+
     TrackPackageResult.new(
       latest_event: events[-1],
       package: TrackPackagePackage.new(
@@ -160,8 +162,8 @@ module ShipEngine
         )
       ),
 
-      errors: [], # TODO
-      has_errors: false, # TODO
+      errors: errors,
+      has_errors: errors.length > 0, # TODO
 
       shipment: shipment && TrackPackageShipment.new(
         carrier_id: shipment["carrierID"],
