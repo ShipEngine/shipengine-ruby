@@ -103,6 +103,8 @@ module ShipEngine
     def has_errors?
       @has_errors
     end
+
+    # TODO: .to_s() override
   end
 
   # TODO: make private
@@ -142,7 +144,7 @@ module ShipEngine
     weight = package["weight"]
     dimensions = package["dimensions"]
     events = events.map { |e| map_event(e) }
-    errors = events.select { |event| event.status == 'Exception' }
+    errors = events.select { |event| event.status == "Exception" }
 
     TrackPackageResult.new(
       latest_event: events[-1],
@@ -163,10 +165,10 @@ module ShipEngine
       ),
 
       errors: errors,
-      has_errors: errors.length > 0, # TODO
+      has_errors: !errors.empty?,
 
       shipment: shipment && TrackPackageShipment.new(
-        carrier_id: shipment["carrierID"],
+        carrier_id: shipment["carrierAccountID"],
         carrier_account: shipment["carrierAccount"],
         carrier: ::ShipEngine::Carrier.new(shipment["carrierCode"]),
         shipment_id: shipment["shipmentID"],

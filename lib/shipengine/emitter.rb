@@ -45,7 +45,15 @@ module ShipEngine
     class RequestSentEvent < HttpEvent
       attr_reader :timeout
       def initialize(message:, request_id:, body:, retry_attempt:, headers:, url:, timeout:)
-        super(type: EventType::REQUEST_SENT, message: message, request_id: request_id, body: body, headers: headers, url: url, retry_attempt: retry_attempt)
+        super(
+          type: EventType::REQUEST_SENT,
+          message: message,
+          request_id: request_id,
+          body: body,
+          headers: headers,
+          url: url,
+          retry_attempt: retry_attempt
+        )
         # The amount of time that will be allowed before this request times out. For languages that have a native time span data type, this should be that type. Otherwise, it should be an integer that represents the number of milliseconds.
         @timeout = timeout
       end
@@ -54,7 +62,15 @@ module ShipEngine
     class ResponseReceivedEvent < HttpEvent
       attr_reader :elapsed, :status_code
       def initialize(message:, request_id:, body:, retry_attempt:, headers:, url:, elapsed:, status_code:)
-        super(type: EventType::RESPONSE_RECEIVED, message: message, request_id: request_id, body: body, headers: headers, url: url, retry_attempt: retry_attempt)
+        super(
+          type: EventType::RESPONSE_RECEIVED,
+          message: message,
+          request_id: request_id,
+          body: body,
+          headers: headers,
+          url: url,
+          retry_attempt: retry_attempt
+        )
         # The amount of time that elapsed between when the request was sent and when the response was received. For languages that have a native time span data type, this should be that type. Otherwise, it should be an integer that represents the number of milliseconds.
         @elapsed = elapsed
         @status_code = status_code

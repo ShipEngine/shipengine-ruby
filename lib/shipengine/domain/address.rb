@@ -17,7 +17,7 @@ module ShipEngine
     attr_reader :normalized_address, :errors, :warnings, :info, :request_id
 
     # @param [Boolean] valid
-    # @param [NormalizedAddress] normalized_address
+    # @param [NormalizedAddress?] normalized_address
     # @param [Array<AddressValidationMessage>] errors
     # @param [Array<AddressValidationMessage>] warnings
     # @param [Array<AddressValidationMessage>] info

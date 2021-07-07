@@ -202,7 +202,6 @@ module ShipEngine
         req.body = build_jsonrpc_request_body(method, params)
       end
       assert_shipengine_rpc_success(response, config_with_overrides)
-
       result, id = response.body.values_at("result", "id")
       InternalClientResponseSuccess.new(result: result, request_id: id)
     end
@@ -217,7 +216,7 @@ module ShipEngine
       api_key = config.api_key
       timeout = config.timeout
 
-      connection = Faraday.new(url: base_url) do |conn|
+      Faraday.new(url: base_url) do |conn|
         conn.headers = {
           "API-Key" => api_key,
           "Content-Type" => "application/json",
@@ -237,8 +236,6 @@ module ShipEngine
         conn.response(:json)
         config.emitter && conn.response(:response_received, config)
       end
-
-      connection
     end
 
     # @param method [String] e.g. "address.validate.v1"
