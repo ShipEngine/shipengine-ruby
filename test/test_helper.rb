@@ -11,7 +11,7 @@ require "webmock/minitest"
 require "spy"
 require "minitest/tagz"
 WebMock.enable_net_connect!
-Minitest::Reporters.use!([Minitest::Reporters::ProgressReporter.new])
+# Minitest::Reporters.use!([Minitest::Reporters::ProgressReporter.new])
 
 # bundle exec rake test TAGS=fast
 # bundle exec rake test TAGS=slow
