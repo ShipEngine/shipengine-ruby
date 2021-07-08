@@ -39,7 +39,7 @@ describe "track package" do
       "The packageId that is returned matches the packageId that was specified."
     )
 
-    # The shipmentId is populated,, is not nil, and is a string.
+    # The shipmentId is populated, is not nil, and is a string.
     assert !result.shipment.shipment_id.nil?
 
     # The carrier_id is populated, is not nil, and is a string.
@@ -49,5 +49,20 @@ describe "track package" do
     # The tracking_number is populated, is not nil, and is a string.
     assert !result.package.tracking_number.nil?
     assert result.package.tracking_number.is_a?(String)
+  end
+
+  it "DX-1011 Tests packageId not found." do
+    package_id = "pkg_123"
+    expected_err = {
+      source: "shipengine",
+      code: "invalid_identifier",
+      type: "validation",
+      message: "Package ID #{package_id} does not exist.",
+      request_id: :__REGEX_MATCH__,
+    }
+
+    assert_raises_shipengine(::ShipEngine::Exceptions::ValidationError, expected_err) do
+      client.track_package_by_id(package_id)
+    end
   end
 end
