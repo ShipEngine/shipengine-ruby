@@ -176,7 +176,7 @@ module CustomAssertions
       message: "You have exceeded the rate limit.",
       source: "shipengine",
     }, &block)
-    assert_equal(retries, err.retries, "Rtries should be the same") unless retries.nil?
+    assert_equal(retries, err.retries, "Retries should be the same") unless retries.nil?
   end
 
   # @param expected_messages [Array<Hash>]

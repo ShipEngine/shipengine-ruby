@@ -303,7 +303,7 @@ describe "Normalize Address: Functional" do
   end
 
   # 959
-  it "Should handle multiple merror messages" do
+  it "Should handle multiple error messages" do
     params = {
       street: ["170 Invalid Blvd"],
       city_locality: "Toronto",
