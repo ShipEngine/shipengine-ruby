@@ -29,8 +29,8 @@ module ShipEngine
 
       internal_client = InternalClient.new(@configuration)
       @address = Domain::Address.new(internal_client)
-      @package = Domain::Package.new(internal_client)
       @carriers = Domain::Carrier.new(internal_client)
+      @package = Domain::Package.new(internal_client, @carriers)
     end
 
     # wrap methods in a block to "catch" and emit the errors

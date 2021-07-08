@@ -49,7 +49,7 @@ begin
     multiline: true,
   }
   AwesomePrint.pry!
-rescue LoadError => err
+rescue err
   puts "gem install awesome_print  # <-- highly recommended"
 end
 

@@ -5,6 +5,7 @@ require "shipengine/utils/validate"
 module ShipEngine
   class TrackPackageLocationCoordinates
     attr_reader :latitude, :longitude
+
     def initialize(latitude:, longitude:)
       @latitude = latitude
       @longitude = longitude
@@ -12,19 +13,44 @@ module ShipEngine
   end
 
   class TrackPackageShipment
-    attr_reader :shipment_id, :carrier_id, :carrier_account, :carrier, :estimated_delivery_datetime, :actual_delivery_datetime
-    def initialize(shipment_id:, carrier_id:, carrier_account:, carrier:, estimated_delivery_datetime:, actual_delivery_datetime:)
+    attr_reader :shipment_id, :carrier_id, :carrier_account, :carrier, :estimated_delivery_datetime, :actual_delivery_datetime, :config, :carriers
+
+    def initialize(
+      shipment_id:,
+      carrier_account_id:,
+      carrier_account:,
+      estimated_delivery_datetime:,
+      actual_delivery_datetime:,
+      config:,
+      carriers:
+    )
+      @carriers = carriers
+      @config = config
       @shipment_id = shipment_id
-      @carrier_id = carrier_id
-      @carrier_account = carrier_account
-      @carrier = carrier
+      @carrier_account_id = carrier_account_id
+      @carrier_account = get_carrier_account(carrier_account, @carrier_account_id)
+      @carrier = carrier_account.carrier
       @estimated_delivery_date = estimated_delivery_datetime
       @actual_delivery_date = actual_delivery_datetime
+    end
+
+    private
+
+    def get_carrier_account(carrier, account_id)
+      target_carrier = []
+      carrier_accounts = @carriers.list_accounts(config: @config, carrier_code: carrier)
+      carrier_accounts.each do |n|
+        if account_id == n.account_id
+          carrier_accounts << target_carrier
+        end
+      end
+      target_carrier[0]
     end
   end
 
   class TrackPackageLocation
     attr_reader :postal_code, :country_code, :city_locality, :coordinates
+
     def initialize(postal_code:, country_code:, city_locality:, coordinates:)
       @postal_code = postal_code
       @country_code = country_code
@@ -35,6 +61,7 @@ module ShipEngine
 
   class TrackPackageEvent
     attr_reader :datetime, :carrier_datetime, :status, :description, :carrier_status_code, :carrier_detail_code, :signer, :location
+
     def initialize(datetime:, carrier_datetime:, status:, description:, carrier_status_code:, carrier_detail_code:, signer:, location:)
       @datetime = datetime
       @carrier_datetime = carrier_datetime
@@ -49,6 +76,7 @@ module ShipEngine
 
   class TrackPackageWeight
     attr_reader :unit, :value
+
     def initialize(unit:, value:)
       @unit = unit
       @value = value
@@ -57,6 +85,7 @@ module ShipEngine
 
   class TrackPackageDimensions
     attr_reader :unit, :height, :length, :width
+
     def initialize(unit:, height:, length:, width:)
       @unit = unit
       @height = height
@@ -84,6 +113,7 @@ module ShipEngine
 
   class TrackPackageResult
     attr_reader :package, :shipment, :events, :latest_event, :errors
+
     def initialize(
       package:,
       shipment:,
@@ -139,8 +169,8 @@ module ShipEngine
   end
 
   # TODO: make private
-  def self.map_track_package_result(result)
-    shipment, package, events, request_id = result.values_at("shipment", "package", "events", "id")
+  def self.map_track_package_result(result, config, carriers)
+    shipment, package, events, _request_id = result.values_at("shipment", "package", "events", "id")
     weight = package["weight"]
     dimensions = package["dimensions"]
     events = events.map { |e| map_event(e) }
@@ -168,12 +198,13 @@ module ShipEngine
       has_errors: !errors.empty?,
 
       shipment: shipment && TrackPackageShipment.new(
-        carrier_id: shipment["carrierAccountID"],
-        carrier_account: shipment["carrierAccount"],
-        carrier: ::ShipEngine::Carrier.new(shipment["carrierCode"]),
+        carrier_account_id: shipment["carrierAccountID"],
+        carrier_account: shipment["carrierCode"],
         shipment_id: shipment["shipmentID"],
         estimated_delivery_datetime: shipment["estimatedDelivery"],
-        actual_delivery_datetime: get_actual_delivery_date(events)
+        actual_delivery_datetime: get_actual_delivery_date(events),
+        config: config,
+        carriers: carriers
       ),
       events: events
     )
@@ -182,8 +213,9 @@ module ShipEngine
   module Domain
     class Package
       # @param [ShipEngine::InternalClient] internal_client
-      def initialize(internal_client)
+      def initialize(internal_client, carriers)
         @internal_client = internal_client
+        @carriers = carriers
       end
 
       # Track package by package_id OR tracking_number / carrier_code
@@ -192,8 +224,9 @@ module ShipEngine
       def track_by_id(package_id, config = {})
         Utils::Validate.not_nil_or_empty_str(package_id, "A package id")
         response = @internal_client.make_request("package.track.v1", { packageID: package_id }, config)
-        ::ShipEngine.map_track_package_result(response.result)
+        ::ShipEngine.map_track_package_result(response.result, config, @carriers)
       end
+
       # TrackPackageResult.new(package:  )
 
       # @param [String] carrier_code - e.g. UPS
@@ -203,7 +236,7 @@ module ShipEngine
         Utils::Validate.not_nil_or_empty_str(tracking_number, "A tracking number")
         Utils::Validate.not_nil_or_empty_str(carrier_code, "A carrier code")
         response = @internal_client.make_request("package.track.v1", { trackingNumber: tracking_number, carrierCode: carrier_code }, config)
-        ::ShipEngine.map_track_package_result(response.result)
+        ::ShipEngine.map_track_package_result(response.result, config, @carriers)
       end
     end
   end
