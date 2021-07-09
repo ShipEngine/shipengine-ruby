@@ -29,7 +29,7 @@ module ShipEngine
       @shipment_id = shipment_id
       @carrier_account_id = carrier_account_id
       @carrier_account = get_carrier_account(carrier_account, @carrier_account_id)
-      @carrier = carrier_account.carrier
+      @carrier = @carrier_account.carrier
       @estimated_delivery_date = estimated_delivery_datetime
       @actual_delivery_date = actual_delivery_datetime
     end
@@ -38,10 +38,11 @@ module ShipEngine
 
     def get_carrier_account(carrier, account_id)
       target_carrier = []
+
       carrier_accounts = @carriers.list_accounts(config: @config, carrier_code: carrier)
       carrier_accounts.each do |n|
         if account_id == n.account_id
-          carrier_accounts << target_carrier
+          target_carrier << n
         end
       end
       target_carrier[0]
