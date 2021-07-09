@@ -1,9 +1,11 @@
 # frozen_string_literal: true
 
 require "shipengine/utils/validate"
+require "shipengine/utils/pretty_print"
 
 module ShipEngine
   class TrackPackageLocationCoordinates
+    include ::ShipEngine::Utils::PrettyPrint
     attr_reader :latitude, :longitude
 
     def initialize(latitude:, longitude:)
@@ -13,12 +15,23 @@ module ShipEngine
   end
 
   class TrackPackageShipment
-    attr_reader :shipment_id, :carrier_id, :carrier_account, :carrier, :estimated_delivery_datetime, :actual_delivery_datetime, :config, :carriers
+    include ::ShipEngine::Utils::PrettyPrint
+    attr_reader(
+      :carriers,
+      :config,
+      :shipment_id,
+      :carrier_account_id,
+      :carrier_account,
+      :carrier,
+      :estimated_delivery_datetime,
+      :actual_delivery_datetime
+    )
 
     def initialize(
+      carrier:,
       shipment_id:,
-      carrier_account_id:,
       carrier_account:,
+      carrier_account_id:,
       estimated_delivery_datetime:,
       actual_delivery_datetime:,
       config:,
@@ -26,10 +39,14 @@ module ShipEngine
     )
       @carriers = carriers
       @config = config
-      @shipment_id = shipment_id
+      @shipment_id = !shipment_id.nil? ? shipment_id : nil
       @carrier_account_id = carrier_account_id
-      @carrier_account = get_carrier_account(carrier_account, @carrier_account_id)
-      @carrier = @carrier_account.carrier
+
+      unless carrier_account.nil?
+        @carrier_account = get_carrier_account(carrier_account, @carrier_account_id)
+      end
+
+      @carrier = carrier
       @estimated_delivery_date = estimated_delivery_datetime
       @actual_delivery_date = actual_delivery_datetime
     end
@@ -50,6 +67,7 @@ module ShipEngine
   end
 
   class TrackPackageLocation
+    include ::ShipEngine::Utils::PrettyPrint
     attr_reader :postal_code, :country_code, :city_locality, :coordinates
 
     def initialize(postal_code:, country_code:, city_locality:, coordinates:)
@@ -61,6 +79,7 @@ module ShipEngine
   end
 
   class TrackPackageEvent
+    include ::ShipEngine::Utils::PrettyPrint
     attr_reader :datetime, :carrier_datetime, :status, :description, :carrier_status_code, :carrier_detail_code, :signer, :location
 
     def initialize(datetime:, carrier_datetime:, status:, description:, carrier_status_code:, carrier_detail_code:, signer:, location:)
@@ -76,6 +95,7 @@ module ShipEngine
   end
 
   class TrackPackageWeight
+    include ::ShipEngine::Utils::PrettyPrint
     attr_reader :unit, :value
 
     def initialize(unit:, value:)
@@ -85,6 +105,7 @@ module ShipEngine
   end
 
   class TrackPackageDimensions
+    include ::ShipEngine::Utils::PrettyPrint
     attr_reader :unit, :height, :length, :width
 
     def initialize(unit:, height:, length:, width:)
@@ -96,6 +117,7 @@ module ShipEngine
   end
 
   class TrackPackagePackage
+    include ::ShipEngine::Utils::PrettyPrint
     attr_reader :package_id, :tracking_number, :tracking_url, :weight, :dimensions
 
     # @param tracking_number [String]
@@ -113,6 +135,7 @@ module ShipEngine
   end
 
   class TrackPackageResult
+    include ::ShipEngine::Utils::PrettyPrint
     attr_reader :package, :shipment, :events, :latest_event, :errors
 
     def initialize(
@@ -134,18 +157,13 @@ module ShipEngine
     def has_errors?
       @has_errors
     end
-
-    # TODO: .to_s() override
   end
-
-  # TODO: make private
 
   def self.get_actual_delivery_date(events)
     delivered_events = events.filter { |e| e.status.downcase == "delivered" }
     delivered_events[-1]
   end
 
-  # TODO: make private
   def self.map_event(event)
     loc = event["location"]
     coordinates = loc && loc["coordinates"]
@@ -169,7 +187,6 @@ module ShipEngine
     )
   end
 
-  # TODO: make private
   def self.map_track_package_result(result, config, carriers)
     shipment, package, events, _request_id = result.values_at("shipment", "package", "events", "id")
     weight = package["weight"]
@@ -199,9 +216,10 @@ module ShipEngine
       has_errors: !errors.empty?,
 
       shipment: shipment && TrackPackageShipment.new(
-        carrier_account_id: shipment["carrierAccountID"],
-        carrier_account: shipment["carrierCode"],
-        shipment_id: shipment["shipmentID"],
+        carrier: !shipment["carrierCode"].nil? ? ::ShipEngine::Carrier.new(shipment["carrierCode"]) : nil,
+        carrier_account_id: !shipment["carrierAccountID"].nil? ? shipment["carrierAccountID"] : nil,
+        carrier_account: !shipment["carrierCode"].nil? ? shipment["carrierCode"] : nil,
+        shipment_id: !shipment["shipmentID"].nil? ? shipment["shipmentID"] : nil,
         estimated_delivery_datetime: shipment["estimatedDelivery"],
         actual_delivery_datetime: get_actual_delivery_date(events),
         config: config,

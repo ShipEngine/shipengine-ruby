@@ -42,9 +42,9 @@ describe "track package" do
     # The shipmentId is populated, is not nil, and is a string.
     assert !result.shipment.shipment_id.nil?
 
-    # The carrier_id is populated, is not nil, and is a string.
-    assert !result.shipment.carrier_id.nil?, "The carrier_id is populated."
-    assert result.shipment.carrier_id.is_a?(String)
+    # The carrier_account_id is populated, is not nil, and is a string.
+    assert !result.shipment.carrier_account_id.nil?, "The carrier_account_id is populated."
+    assert result.shipment.carrier_account_id.is_a?(String)
 
     # The tracking_number is populated, is not nil, and is a string.
     assert !result.package.tracking_number.nil?
