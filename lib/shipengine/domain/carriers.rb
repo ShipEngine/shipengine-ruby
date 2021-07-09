@@ -20,6 +20,7 @@ module ShipEngine
       "usps" => "U.S. Postal Service",
       "stamps_com" => "Stamps.com",
     }.freeze
+    # TODO: update above carrier map to be current, missing several carriers.
   end
 
   class CarrierAccount
@@ -56,8 +57,6 @@ module ShipEngine
           )
         end
       end
-
-      # TODO: move get_carrier_account() in here
     end
   end
 end
