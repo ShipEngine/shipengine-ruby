@@ -1,4 +1,4 @@
 PreCommit:
   RuboCop:
     enabled: true
-    command: ["rake", "lint"]
+    command: ["bundle", "exec", "rubocop"]

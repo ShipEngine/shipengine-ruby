@@ -34,7 +34,8 @@ module ShipEngine
     end
 
     # wrap methods in a block to "catch" and emit the errors
-    # this could maybe be improved with some metapraogramming, but this is a straightforward approach with minimal cost.
+    # this could maybe be improved with some metaprogramming, but this is a
+    # straightforward approach with minimal cost.
     def with_emit_error(emitter)
       yield
     rescue ::ShipEngine::Exceptions::ShipEngineError => err
