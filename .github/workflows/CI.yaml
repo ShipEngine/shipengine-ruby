@@ -1,9 +1,14 @@
 name: CI
 
-on: 
+on:
   push:
+    branches:
+      - main
   pull_request:
-    types: [opened]
+    branches:
+      - main
+    types:
+      - opened
 
 jobs:
   ci:
