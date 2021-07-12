@@ -52,9 +52,19 @@ Install dependencies
 bundle
 ```
 
+Pre-Commit/Pre-Push Hooks
+-------------------------
+This project makes use of [Overcommit](https://github.com/sds/overcommit#usage) to enforce `pre-commit/push hooks`.
+You will need to run `gem install overcommit` and then run the following:
+```bash
+overcommit --install
+```
+- From then on when you commit code `rake lint` will run, and when you push code `rake test` and `rake lint` will run.
+Upon failure of either of these, you can run `rake fix` to auto-fix lint issues and format code, and re-commit/push.
+
 Testing
 -------
-- While you are writing tests as you contribue code you can run tests ad-hoc via `rake` using the following command:
+- While you are writing tests as you contribute code you can run tests ad-hoc via `rake` using the following command:
 ```bash
 rake lint
 ```

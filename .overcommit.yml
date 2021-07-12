@@ -1,3 +1,5 @@
+# https://github.com/sds/overcommit#usage
+
 PreCommit:
   RakeTarget:
     enabled: true
