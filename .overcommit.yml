@@ -1,4 +1,9 @@
 PreCommit:
-  RuboCop:
+  RakeTarget:
     enabled: true
-    command: ["bundle", "exec", "rubocop"]
+    targets:
+      - test
+#  RuboCop:
+#    enabled: true
+#    command: [ "bundle", "exec", "rubocop", "--display-cop-names" ]
+
