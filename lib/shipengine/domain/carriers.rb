@@ -2,9 +2,11 @@
 
 require "shipengine/utils/validate"
 require "shipengine/constants"
+require "shipengine/utils/pretty_print"
 
 module ShipEngine
   class Carrier
+    include ::ShipEngine::Utils::PrettyPrint
     attr_reader :code, :name
 
     # @param code [string] e.g. 'ups' | 'fedex'
@@ -24,6 +26,7 @@ module ShipEngine
   end
 
   class CarrierAccount
+    include ::ShipEngine::Utils::PrettyPrint
     attr_reader :carrier, :account_id, :account_number, :name
 
     # @param carrier [Carrier]
