@@ -3,8 +3,9 @@ PreCommit:
     enabled: true
     targets:
       - lint
-#      - test
-#  RuboCop:
-#    enabled: true
-#    command: [ "bundle", "exec", "rubocop", "--display-cop-names" ]
-
+PrePush:
+  RakeTarget:
+    enabled: true
+    targets:
+      - lint
+      - test
