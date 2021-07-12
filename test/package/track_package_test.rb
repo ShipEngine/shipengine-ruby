@@ -51,18 +51,32 @@ describe "track package" do
     assert result.package.tracking_number.is_a?(String)
   end
 
-  it "DX-997 - Test initial scan tracking event." do
+  it "DX-997 - Test initial scan tracking event" do
     package_id = "pkg_1FedExAccepted"
     result = client.track_package_by_id(package_id)
 
     assert !result.shipment.carrier.code.nil?
     assert !result.package.tracking_number.nil?
     assert result.events.count == 1
-    assert result.shipment.to_hash["actual_delivery_date"].class == Date
-    assert !result.shipment.to_hash["actual_delivery_date"].nil?
+    assert result.shipment.to_hash["estimated_delivery_date"].class == Date
+    assert !result.shipment.to_hash["estimated_delivery_date"].nil?
   end
 
-  it "DX-1011 Tests packageId not found." do
+  it "DX-998 - Test out for delivery tracking event" do
+    package_id = "pkg_1FedExAttempted"
+    result = client.track_package_by_id(package_id)
+
+    assert !result.shipment.carrier.code.nil?
+    assert !result.package.tracking_number.nil?
+    assert result.events.count == 5
+    assert result.events[0].status == "accepted"
+    assert result.events[1].status == "in_transit"
+    assert result.shipment.to_hash["estimated_delivery_date"].class == Date
+    assert !result.shipment.to_hash["estimated_delivery_date"].nil?
+    assert_tracking_events_in_order result.events
+  end
+
+  it "DX-1011 Tests packageId not found" do
     package_id = "pkg_123"
     expected_err = {
       source: "shipengine",

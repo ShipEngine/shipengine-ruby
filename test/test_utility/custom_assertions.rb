@@ -197,4 +197,16 @@ module CustomAssertions
   def assert_called(number, spy)
     assert_equal(number, spy.calls.count, "Should be called #{number} times.")
   end
+
+  def assert_tracking_events_in_order(events)
+    previous_date_time = events[0].datetime
+    events.each do |event|
+      status = event.status
+      assert(
+        event.datetime >= previous_date_time,
+        "Event #{status} has an earlier timestamp that #{previous_date_time}"
+      )
+      previous_date_time = event.datetime
+    end
+  end
 end
