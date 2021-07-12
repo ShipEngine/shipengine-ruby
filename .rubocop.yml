@@ -10,6 +10,7 @@ AllCops:
     - tmp/**/*
     - vendor/**/*
     - lib/shipengine/utils/base58.rb
+    - !ruby/regexp /(foo|bar|baz)\.rb/
 
 Style/Documentation:
   Enabled: false
