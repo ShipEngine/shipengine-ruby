@@ -90,6 +90,21 @@ describe "track package" do
     assert result.events[6].status == "attempted_delivery"
   end
 
+  it "DX-1000 - Test delivered on first try." do
+    package_id = "pkg_1FedExDeLivered"
+    result = client.track_package_by_id(package_id)
+
+    assert !result.nil?
+    assert !result.shipment.carrier.code.nil?
+    assert !result.package.tracking_number.nil?
+    assert result.shipment.to_hash["estimated_delivery_date"].class == Date
+    assert !result.shipment.to_hash["estimated_delivery_date"].nil?
+    assert_tracking_events_in_order result.events
+    assert result.events[0].status == "accepted"
+    assert result.events[1].status == "in_transit"
+    assert result.events[-1].status == "delivered"
+  end
+
   it "DX-1011 Tests packageId not found" do
     package_id = "pkg_123"
     expected_err = {
