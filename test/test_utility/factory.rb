@@ -3,6 +3,10 @@ require "json"
 
 module Factory
   class << self
+    def valid_package_id_accepted
+      "pkg_1FedAccepted"
+    end
+
     def valid_address_params
       {
         street: ["104 Foo Street"], postal_code: "78751", country: "US"

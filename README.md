@@ -1,6 +1,46 @@
 [![ShipEngine](https://shipengine.github.io/img/shipengine-logo-wide.png)](https://shipengine.com)
 
-The Official Ruby SDK for ShipEngine
+ShipEngine Ruby SDK
+===================
+
+> :warning: **WARNING**: This is alpha software under active development and it is not ready for consumer use.
+
+The Official Ruby SDK for [ShipEngine API](https://shipengine.com) offering low-level access as well as convenience methods.
+
+Quick Start
+===========
+
+Install ShipEngine via [RubyGems](https://rubygems.org/)
+```bash
+gem install shipengine_sdk
+```
+- The only configuration requirement is an [API Key](https://www.shipengine.com/docs/auth/#api-keys).
+
+Methods
+-------
+- [validate_address]() - Indicates whether the provided address is valid. If the
+  address is valid, the method returns a normalized version of the address based on the standards of the country in
+  which the address resides.
+- [normalize_address]() - Returns a normalized, or standardized, version of the
+  address. If the address cannot be normalized, an error is returned.
+- [track_package_by_id]() - Track a package by `packageId` (Ideal if you create a shipping label via ShipEngine).
+- [track_package_by_tracking_number]() - Track a package by `carrierCode` and `trackingNumber`.
+
+
+Class Objects
+-------------
+- [ShipEngine]() - A configurable entry point to the ShipEngine API SDK, this class provides convenience methods
+  for various ShipEngine API Services.
+
+Instantiate ShipEngine Class
+----------------------------
+```ruby
+require "shipengine"
+
+api_key = ENV["SHIPENGINE_API_KEY"]
+
+shipengine = ShipEngine.new(api_key)
+```
 
 # Decisions
 
@@ -17,9 +57,15 @@ The Official Ruby SDK for ShipEngine
 
 - coercing empty strings from Address Validation to nil?
 
-## Installation
+## Install dependencies
+- You will need to `gem install bundler` before using the following command to install dependencies from the Gemfile.
+```bash
+bundle
+```
 
-- `bundle`
+Testing
+-------
+
 
 ## Commands
 

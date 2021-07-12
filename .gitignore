@@ -44,4 +44,8 @@
 .vscode
 .idea
 /bin/bundle
-/bin/**
+
+# Locals
+foo.rb
+bar.rb
+baz.rb
