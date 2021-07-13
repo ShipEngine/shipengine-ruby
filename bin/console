@@ -9,10 +9,11 @@ require "shipengine"
 
 # (If you use this, don't forget to add pry to your Gemfile!)
 require "pry"
-Pry.start
-
 # require "irb"
 
 ENV["USE_SIMENGINE"] = "true"
+@shipengine = ShipEngine::Client.new(::ShipEngine::Constants::API_KEY)
+@list_carriers = @shipengine.list_carrier_accounts
 
 # IRB.start(__FILE__)
+Pry.start
