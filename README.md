@@ -2,7 +2,8 @@
 
 ShipEngine Ruby SDK
 ===================
-
+![GitHub Workflow Status](https://img.shields.io/github/workflow/status/ShipEngine/shipengine-ruby/CI?label=shipengine-ruby&logo=github)
+![GitHub](https://img.shields.io/github/license/ShipEngine/shipengine-ruby?color=teal)
 > :warning: **WARNING**: This is alpha software under active development and it is not ready for consumer use.
 
 The Official Ruby SDK for [ShipEngine API](https://shipengine.com) offering low-level access as well as convenience methods.

@@ -90,7 +90,7 @@ describe "track package" do
     assert result.events[6].status == "attempted_delivery"
   end
 
-  it "DX-1000 - Test delivered on first try." do
+  it "DX-1000 - Test delivered on first try" do
     package_id = "pkg_1FedExDeLivered"
     result = client.track_package_by_id(package_id)
 
@@ -105,7 +105,7 @@ describe "track package" do
     assert result.events[-1].status == "delivered"
   end
 
-  it "DX-1001 - Test delivered with signature." do
+  it "DX-1001 - Test delivered with signature" do
     package_id = "pkg_1FedExDeLivered"
     result = client.track_package_by_id(package_id)
 
@@ -122,7 +122,7 @@ describe "track package" do
     assert !result.events[4].signer.nil?
   end
 
-  it "DX-1002 - Test delivered after multiple attempts." do
+  it "DX-1002 - Test delivered after multiple attempts" do
     package_id = "pkg_1FedexDeLiveredAttempted"
     result = client.track_package_by_id(package_id)
 
@@ -135,6 +135,27 @@ describe "track package" do
     assert !result.shipment.estimated_delivery_date.nil?
     assert result.events[0].status == "accepted"
     assert result.events[1].status == "in_transit"
+    assert result.events[4].status == "attempted_delivery"
+    assert result.events[6].status == "attempted_delivery"
+    assert result.events[-1].status == "delivered"
+  end
+
+  it "DX-1003 - Test delivered after exception" do
+    package_id = "pkg_1FedexDeLiveredException"
+    result = client.track_package_by_id(package_id)
+
+    assert !result.shipment.carrier.code.nil?
+    assert !result.package.tracking_number.nil?
+    assert_delivery_date_match result
+    assert_tracking_events_in_order result.events
+    assert result.events.count == 8
+    assert result.shipment.estimated_delivery_date.class == Date
+    assert !result.shipment.estimated_delivery_date.nil?
+    assert result.events[0].status == "accepted"
+    assert result.events[1].status == "in_transit"
+    assert result.events[4].status == "exception"
+    assert result.events[5].status == "exception"
+    assert result.events[-1].status == "delivered"
   end
 
   it "DX-1011 Tests packageId not found" do
