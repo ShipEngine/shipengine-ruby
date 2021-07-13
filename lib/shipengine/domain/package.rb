@@ -23,8 +23,8 @@ module ShipEngine
       :carrier_account_id,
       :carrier_account,
       :carrier,
-      :estimated_delivery_datetime,
-      :actual_delivery_datetime
+      :estimated_delivery_date,
+      :actual_delivery_date
     )
 
     def initialize(
@@ -32,8 +32,8 @@ module ShipEngine
       shipment_id:,
       carrier_account:,
       carrier_account_id:,
-      estimated_delivery_datetime:,
-      actual_delivery_datetime:,
+      estimated_delivery_date:,
+      actual_delivery_date:,
       config:,
       carriers:
     )
@@ -47,8 +47,8 @@ module ShipEngine
       end
 
       @carrier = carrier
-      @estimated_delivery_date = estimated_delivery_datetime
-      @actual_delivery_date = actual_delivery_datetime
+      @estimated_delivery_date = estimated_delivery_date
+      @actual_delivery_date = actual_delivery_date
     end
 
     private
@@ -220,8 +220,8 @@ module ShipEngine
         carrier_account_id: !shipment["carrierAccountID"].nil? ? shipment["carrierAccountID"] : nil,
         carrier_account: !shipment["carrierCode"].nil? ? shipment["carrierCode"] : nil,
         shipment_id: !shipment["shipmentID"].nil? ? shipment["shipmentID"] : nil,
-        estimated_delivery_datetime: Date.iso8601(shipment["estimatedDelivery"]),
-        actual_delivery_datetime: get_actual_delivery_date(events),
+        estimated_delivery_date: Date.iso8601(shipment["estimatedDelivery"]),
+        actual_delivery_date: get_actual_delivery_date(events),
         config: config,
         carriers: carriers
       ),
