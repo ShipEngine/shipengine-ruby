@@ -209,4 +209,12 @@ module CustomAssertions
       previous_date_time = event.datetime
     end
   end
+
+  def assert_delivery_date_match(result)
+    assert_equal(
+      result.shipment.actual_delivery_date,
+      result.events[-1].datetime,
+      "The actual_delivery_datetime"
+    )
+  end
 end
