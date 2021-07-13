@@ -172,6 +172,21 @@ describe "track package" do
     assert result.events[2].status == "exception"
   end
 
+  it "DX-1005 - Test multiple exceptions in tracking events" do
+    package_id = "pkg_1FedexDeLiveredException"
+    result = client.track_package_by_id(package_id)
+
+    assert !result.shipment.carrier.code.nil?
+    assert !result.package.tracking_number.nil?
+    assert_tracking_events_in_order result.events
+    assert result.events.count == 8
+    assert result.shipment.estimated_delivery_date.class == Date
+    assert !result.shipment.estimated_delivery_date.nil?
+    assert result.events[0].status == "accepted"
+    assert result.events[4].status == "exception"
+    assert result.events[5].status == "exception"
+  end
+
   it "DX-1011 Tests packageId not found" do
     package_id = "pkg_123"
     expected_err = {
