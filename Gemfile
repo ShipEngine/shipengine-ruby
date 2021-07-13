@@ -12,6 +12,7 @@ group :development do
   gem "ruby-debug-ide", require: false
   gem "rubocop-shopify", require: false
   gem "awesome_print"
+  gem "overcommit"
 end
 
 group :test do

@@ -51,7 +51,93 @@ describe "track package" do
     assert result.package.tracking_number.is_a?(String)
   end
 
-  it "DX-1011 Tests packageId not found." do
+  it "DX-997 - Test initial scan tracking event" do
+    package_id = "pkg_1FedExAccepted"
+    result = client.track_package_by_id(package_id)
+
+    assert !result.shipment.carrier.code.nil?
+    assert !result.package.tracking_number.nil?
+    assert result.events.count == 1
+    assert result.shipment.estimated_delivery_date.class == Date
+    assert !result.shipment.estimated_delivery_date.nil?
+  end
+
+  it "DX-998 - Test out for delivery tracking event" do
+    package_id = "pkg_1FedExAttempted"
+    result = client.track_package_by_id(package_id)
+
+    assert !result.shipment.carrier.code.nil?
+    assert !result.package.tracking_number.nil?
+    assert result.events.count == 5
+    assert result.events[0].status == "accepted"
+    assert result.events[1].status == "in_transit"
+    assert result.shipment.estimated_delivery_date.class == Date
+    assert !result.shipment.estimated_delivery_date.nil?
+    assert_tracking_events_in_order result.events
+  end
+
+  it "DX-999 - Test multiple delivery attempts" do
+    package_id = "pkg_1FedexDeLiveredAttempted"
+    result = client.track_package_by_id(package_id)
+
+    assert !result.shipment.carrier.code.nil?
+    assert !result.package.tracking_number.nil?
+    assert result.events.count == 9
+    assert result.shipment.estimated_delivery_date.class == Date
+    assert !result.shipment.estimated_delivery_date.nil?
+    assert_tracking_events_in_order result.events
+    assert result.events[4].status == "attempted_delivery"
+    assert result.events[6].status == "attempted_delivery"
+  end
+
+  it "DX-1000 - Test delivered on first try." do
+    package_id = "pkg_1FedExDeLivered"
+    result = client.track_package_by_id(package_id)
+
+    assert !result.nil?
+    assert !result.shipment.carrier.code.nil?
+    assert !result.package.tracking_number.nil?
+    assert result.shipment.estimated_delivery_date.class == Date
+    assert !result.shipment.estimated_delivery_date.nil?
+    assert_tracking_events_in_order result.events
+    assert result.events[0].status == "accepted"
+    assert result.events[1].status == "in_transit"
+    assert result.events[-1].status == "delivered"
+  end
+
+  it "DX-1001 - Test delivered with signature." do
+    package_id = "pkg_1FedExDeLivered"
+    result = client.track_package_by_id(package_id)
+
+    assert !result.shipment.carrier.code.nil?
+    assert !result.package.tracking_number.nil?
+    assert result.events.count > 3
+    assert result.events.count == 5
+    assert result.shipment.estimated_delivery_date.class == Date
+    assert !result.shipment.estimated_delivery_date.nil?
+    assert_tracking_events_in_order result.events
+    assert result.events[0].status == "accepted"
+    assert result.events[1].status == "in_transit"
+    assert result.events[4].status == "delivered"
+    assert !result.events[4].signer.nil?
+  end
+
+  it "DX-1002 - Test delivered after multiple attempts." do
+    package_id = "pkg_1FedexDeLiveredAttempted"
+    result = client.track_package_by_id(package_id)
+
+    assert !result.shipment.carrier.code.nil?
+    assert !result.package.tracking_number.nil?
+    assert_delivery_date_match result
+    assert_tracking_events_in_order result.events
+    assert result.events.count == 9
+    assert result.shipment.estimated_delivery_date.class == Date
+    assert !result.shipment.estimated_delivery_date.nil?
+    assert result.events[0].status == "accepted"
+    assert result.events[1].status == "in_transit"
+  end
+
+  it "DX-1011 Tests packageId not found" do
     package_id = "pkg_123"
     expected_err = {
       source: "shipengine",

@@ -1,0 +1,13 @@
+# https://github.com/sds/overcommit#usage
+
+PreCommit:
+  RakeTarget:
+    enabled: true
+    targets:
+      - lint
+PrePush:
+  RakeTarget:
+    enabled: true
+    targets:
+      - lint
+      - test

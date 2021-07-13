@@ -49,24 +49,32 @@ Install dependencies
 --------------------
 - You will need to `gem install bundler` before using the following command to install dependencies from the Gemfile.
 ```bash
-bundle
+./bin/setup
 ```
 
-Testing
--------
-- While you are writing tests as you contribue code you can run tests ad-hoc via `rake` using the following command:
+Pre-Commit/Pre-Push Hooks
+-------------------------
+This project makes use of [Overcommit](https://github.com/sds/overcommit#usage) to enforce `pre-commit/push hooks`.
+Overcommit will be downloaded and initialized as part of running the `./bin/setup` script, as outlined in the previous section.
+
+- From then on when you commit code `rake lint` will run, and when you push code `rake test` and `rake lint` will run.
+Upon failure of either of these, you can run `rake fix` to auto-fix lint issues and format code, and re-commit/push.
+
+Testing & Development
+---------------------
+- While you are writing tests as you contribute code you can run tests ad-hoc via `rake` using the following command:
 ```bash
-rake lint
+rake test
 ```
-**OR** you can `format code & auto-fix lint errors` with the following:
+- You can run tests and have them re-run when you save changes to a given file with `guard`.
+```bash
+guard
+```
+Lastly, you can `format code & auto-fix lint errors` with the following:
 ```bash
 rake fix
 ```
 
-- Lastly, you can run tests on change when you save changes to a given file with `guard`.
-```bash
-guard
-```
 > Note: `guard` also provides a repl after tests run for quick repl development.
 
 Repl Development
