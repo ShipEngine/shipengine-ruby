@@ -187,6 +187,22 @@ describe "track package" do
     assert result.events[5].status == "exception"
   end
 
+  it "DX-1006 - Test multiple locations in tracking events" do
+    package_id = "pkg_Attempted"
+    result = client.track_package_by_id(package_id)
+
+    assert !result.shipment.carrier.code.nil?
+    assert !result.package.tracking_number.nil?
+    assert_tracking_events_in_order result.events
+    assert result.shipment.estimated_delivery_date.class == Date
+    assert !result.shipment.estimated_delivery_date.nil?
+    assert_nil result.events[0].location
+    assert_nil result.events[4].location.coordinates
+    assert_nil result.events[4].location.coordinates
+    assert !result.events[2].location.coordinates.latitude.nil?
+    assert !result.events[2].location.coordinates.longitude.nil?
+  end
+
   it "DX-1011 Tests packageId not found" do
     package_id = "pkg_123"
     expected_err = {
