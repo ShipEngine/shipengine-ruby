@@ -1,6 +1,8 @@
 # https://github.com/sds/overcommit#usage
 
 PreCommit:
+  YamlSyntax:
+    enabled: true
   RakeTarget:
     enabled: true
     targets:
