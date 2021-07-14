@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "time"
 require "shipengine/utils/validate"
 require "shipengine/utils/pretty_print"
 
@@ -168,8 +169,8 @@ module ShipEngine
     loc = event["location"]
     coordinates = loc && loc["coordinates"]
     TrackPackageEvent.new(
-      datetime: Date.iso8601(event["timestamp"]),
-      carrier_datetime: Date.iso8601(event["carrierTimestamp"]),
+      datetime: Time.parse(event["timestamp"]).iso8601(3),
+      carrier_datetime: Time.parse(event["carrierTimestamp"]).iso8601(3),
       status: event["status"],
       description: event["description"],
       carrier_status_code: event["carrierStatusCode"],
@@ -220,7 +221,7 @@ module ShipEngine
         carrier_account_id: !shipment["carrierAccountID"].nil? ? shipment["carrierAccountID"] : nil,
         carrier_account: !shipment["carrierCode"].nil? ? shipment["carrierCode"] : nil,
         shipment_id: !shipment["shipmentID"].nil? ? shipment["shipmentID"] : nil,
-        estimated_delivery_date: Date.iso8601(shipment["estimatedDelivery"]),
+        estimated_delivery_date: Time.parse(shipment["estimatedDelivery"]).iso8601(3),
         actual_delivery_date: get_actual_delivery_date(events),
         config: config,
         carriers: carriers
