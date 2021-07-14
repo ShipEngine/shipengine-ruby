@@ -58,7 +58,6 @@ describe "track package" do
     assert !result.shipment.carrier.code.nil?
     assert !result.package.tracking_number.nil?
     assert result.events.count == 1
-    assert result.shipment.estimated_delivery_date.class == Date
     assert !result.shipment.estimated_delivery_date.nil?
   end
 
@@ -71,7 +70,6 @@ describe "track package" do
     assert result.events.count == 5
     assert result.events[0].status == "accepted"
     assert result.events[1].status == "in_transit"
-    assert result.shipment.estimated_delivery_date.class == Date
     assert !result.shipment.estimated_delivery_date.nil?
     assert_tracking_events_in_order result.events
   end
@@ -83,7 +81,6 @@ describe "track package" do
     assert !result.shipment.carrier.code.nil?
     assert !result.package.tracking_number.nil?
     assert result.events.count == 9
-    assert result.shipment.estimated_delivery_date.class == Date
     assert !result.shipment.estimated_delivery_date.nil?
     assert_tracking_events_in_order result.events
     assert result.events[4].status == "attempted_delivery"
@@ -97,7 +94,6 @@ describe "track package" do
     assert !result.nil?
     assert !result.shipment.carrier.code.nil?
     assert !result.package.tracking_number.nil?
-    assert result.shipment.estimated_delivery_date.class == Date
     assert !result.shipment.estimated_delivery_date.nil?
     assert_tracking_events_in_order result.events
     assert result.events[0].status == "accepted"
@@ -113,7 +109,6 @@ describe "track package" do
     assert !result.package.tracking_number.nil?
     assert result.events.count > 3
     assert result.events.count == 5
-    assert result.shipment.estimated_delivery_date.class == Date
     assert !result.shipment.estimated_delivery_date.nil?
     assert_tracking_events_in_order result.events
     assert result.events[0].status == "accepted"
@@ -131,7 +126,6 @@ describe "track package" do
     assert_delivery_date_match result
     assert_tracking_events_in_order result.events
     assert result.events.count == 9
-    assert result.shipment.estimated_delivery_date.class == Date
     assert !result.shipment.estimated_delivery_date.nil?
     assert result.events[0].status == "accepted"
     assert result.events[1].status == "in_transit"
@@ -149,7 +143,6 @@ describe "track package" do
     assert_delivery_date_match result
     assert_tracking_events_in_order result.events
     assert result.events.count == 8
-    assert result.shipment.estimated_delivery_date.class == Date
     assert !result.shipment.estimated_delivery_date.nil?
     assert result.events[0].status == "accepted"
     assert result.events[1].status == "in_transit"
@@ -166,7 +159,6 @@ describe "track package" do
     assert !result.package.tracking_number.nil?
     assert_tracking_events_in_order result.events
     assert result.events.count == 3
-    assert result.shipment.estimated_delivery_date.class == Date
     assert !result.shipment.estimated_delivery_date.nil?
     assert result.events[0].status == "accepted"
     assert result.events[2].status == "exception"
@@ -180,7 +172,6 @@ describe "track package" do
     assert !result.package.tracking_number.nil?
     assert_tracking_events_in_order result.events
     assert result.events.count == 8
-    assert result.shipment.estimated_delivery_date.class == Date
     assert !result.shipment.estimated_delivery_date.nil?
     assert result.events[0].status == "accepted"
     assert result.events[4].status == "exception"
@@ -194,13 +185,24 @@ describe "track package" do
     assert !result.shipment.carrier.code.nil?
     assert !result.package.tracking_number.nil?
     assert_tracking_events_in_order result.events
-    assert result.shipment.estimated_delivery_date.class == Date
     assert !result.shipment.estimated_delivery_date.nil?
     assert_nil result.events[0].location
     assert_nil result.events[4].location.coordinates
     assert_nil result.events[4].location.coordinates
     assert !result.events[2].location.coordinates.latitude.nil?
     assert !result.events[2].location.coordinates.longitude.nil?
+  end
+
+  it "DX-1007 - Test carrier datetimes without timezone" do
+    package_id = "pkg_Attempted"
+    result = client.track_package_by_id(package_id)
+    assert_tracking_events_in_order result.events
+    assert result.events.count == 5
+    result.events.each do |event|
+      assert !event.datetime.nil?
+      assert !event.carrier_datetime.nil?
+      assert assert_valid_iso_string_with_no_tz(event.carrier_datetime) == true
+    end
   end
 
   it "DX-1011 Tests packageId not found" do
