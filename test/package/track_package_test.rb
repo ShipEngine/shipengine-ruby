@@ -259,4 +259,19 @@ describe "track package" do
       client.track_package_by_id(package_id)
     end
   end
+
+  it "DX-1012 - Test server side error" do
+    tracking_number = "500 Server Error"
+    carrier_code = "fedex"
+    expected_err = {
+      request_id: :__REGEX_MATCH__,
+      source: "shipengine",
+      type: "system",
+      code: "unspecified",
+      message: "Unable to connect to the database",
+    }
+    assert_raises_shipengine(::ShipEngine::Exceptions::SystemError, expected_err) do
+      client.track_package_by_tracking_number(tracking_number, carrier_code)
+    end
+  end
 end
