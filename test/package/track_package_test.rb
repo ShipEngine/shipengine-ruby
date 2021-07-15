@@ -205,6 +205,21 @@ describe "track package" do
     end
   end
 
+  it "DX-1008 - Test a bad tracking_number" do
+    tracking_number = "abc123"
+    carrier_code = "fedex"
+    expected_err = {
+      request_id: :__REGEX_MATCH__,
+      source: "carrier",
+      type: "business_rules",
+      code: "invalid_identifier",
+      url: nil,
+    }
+    assert_raises_shipengine(::ShipEngine::Exceptions::BusinessRulesError, expected_err) do
+      client.track_package_by_tracking_number(tracking_number, carrier_code)
+    end
+  end
+
   it "DX-1011 Tests packageId not found" do
     package_id = "pkg_123"
     expected_err = {
