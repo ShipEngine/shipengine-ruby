@@ -217,4 +217,20 @@ module CustomAssertions
       "The actual_delivery_datetime"
     )
   end
+
+  def assert_valid_iso_string(iso_string)
+    if !iso_string[::ShipEngine::Constants::VALID_ISO_STRING].nil?
+      true
+    else
+      false
+    end
+  end
+
+  def assert_valid_iso_string_with_no_tz(iso_string)
+    if !iso_string[::ShipEngine::Constants::VALID_ISO_STRING_WITH_NO_TZ].nil?
+      true
+    else
+      false
+    end
+  end
 end
