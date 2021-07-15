@@ -220,6 +220,19 @@ describe "track package" do
   end
 
   it "DX-1009 - Test invalid package_id prefix" do
+    package_id = "car_1FedExAccepted"
+    expected_err = {
+      request_id: :__REGEX_MATCH__,
+      source: "shipengine",
+      type: "validation",
+      code: "invalid_field_value",
+    }
+    assert_raises_shipengine(::ShipEngine::Exceptions::ValidationError, expected_err) do
+      client.track_package_by_id(package_id)
+    end
+  end
+
+  it "DX-1010 - Test invalid package_id" do
     package_id = "pkg_12!@3a s567"
     expected_err = {
       request_id: :__REGEX_MATCH__,
