@@ -5,9 +5,6 @@ module ShipEngine
     # A stub API Key to use in the test suite.
     API_KEY = "baz"
 
-    # Simengine - this is the base_url to use for testing and local development.
-    SIMENGINE_URL = "https://simengine.herokuapp.com/jsonrpc"
-
     # The base_url for the ShipEngine SDK - for use in production environment.
     PROD_URL = "https://api.shipengine.com"
 
@@ -19,7 +16,7 @@ module ShipEngine
 
     # Check env variables to set the appropriate base_url.
     def self.base_url
-      ENV["USE_SIMENGINE"] == "true" ? ShipEngine::Constants::SIMENGINE_URL : ShipEngine::Constants::PROD_URL
+      ShipEngine::Constants::PROD_URL
     end
   end
 end

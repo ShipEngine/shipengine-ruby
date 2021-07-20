@@ -6,62 +6,56 @@ module ShipEngine
 
     # @param type [:info" | :warning | :error"]
     # @param code [String] = e.g. "suite_missing"
-    def initialize(type:, code:, message:)
+    def initialize(type:, code:, message:, detail_code:)
       @type = type
       @code = code
       @message = message
+      @detail_code = detail_code
     end
   end
 
   class AddressValidationResult
-    attr_reader :normalized_address, :errors, :warnings, :info, :request_id
+    attr_reader :status, :original_address, :matched_address, :messages
 
-    # @param [Boolean] valid
-    # @param [NormalizedAddress?] normalized_address
-    # @param [Array<AddressValidationMessage>] errors
-    # @param [Array<AddressValidationMessage>] warnings
-    # @param [Array<AddressValidationMessage>] info
-    def initialize(valid:, normalized_address:, errors:, warnings:, info:, request_id:)
-      @valid = valid
-      @errors = errors
-      @info = info
-      @normalized_address = normalized_address
-      @warnings = warnings
+    # type ["unverified" | "verified" | "warning" | "error"] status
+    # @param [NormalizedAddress] original_address
+    # @param [NormalizedAddress?] matched_address
+    # @param [Array<AddressValidationMessage>] messages
+    def initialize(status:, original_address:, matched_address:, messages:, request_id:)
+      @status = status
+      @original_address = original_address
+      @matched_address = matched_address
+      @messages = messages
       @request_id = request_id
-    end
-
-    def valid?
-      @valid
     end
   end
 
   class NormalizedAddress
-    attr_reader :street, :name, :company, :phone, :city_locality, :state_province, :postal_code,
-      :country
+    attr_reader :address_line1, :address_line2, :address_line3, :name, :company_name, :phone, :city_locality, :state_province, :postal_code, :country_code, :address_residential_indicator
 
-    # @param [Array<String>] street - e.g. ["123 FAKE ST."]
-    # @param [String] country - e.g. "US". @see https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes
+    # @param [String] address_line1 - e.g. ["123 FAKE ST."]
+    # @param [String?] address_line2 - e.g. ["123 FAKE ST."]
+    # @param [String?] address_line3 - e.g. ["123 FAKE ST."]
+    # @param [String] country_code - e.g. "US". @see https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes
     # @param [String] postal_code - e.g "78751"
     # @param [String?] name - e.g. "John Smith"
-    # @param [String?] company - e.g. "ShipEngine"
+    # @param [String?] company_name - e.g. "ShipEngine"
     # @param [String?] phone - e.g. 5551234567
     # @param [String?] city_locality - e.g. "AUSTIN"
     # @param [String?] state_province - e.g. "TX"
-    # @param [Boolean?] residential
-    def initialize(street:, name:, company:, phone:, city_locality:, state_province:, postal_code:, country:, residential:)
-      @street = street
+    # @param [String?] address_residential_indicator
+    def initialize(address_line1:, address_line2:, address_line3:, name:, company_name:, phone:, city_locality:, state_province:, postal_code:, country_code:, address_residential_indicator:)
       @name = name
-      @company = company
+      @company_name = company_name
+      @address_line1 = address_line1
+      @address_line2 = address_line2
+      @address_line3 = address_line3
       @phone = phone
       @city_locality = city_locality
       @state_province = state_province
       @postal_code = postal_code
-      @country = country
-      @residential = residential
-    end
-
-    def residential?
-      @residential
+      @country_code = country_code
+      @address_residential_indicator = address_residential_indicator
     end
   end
 
@@ -97,30 +91,25 @@ module ShipEngine
             end
           end
 
-          def assert_address_street(street)
-            Utils::Validate.array_of_str("Street", street)
-
-            if street.empty?
-              raise Exceptions::ValidationError.new(message: "Invalid address. At least one address line is required.",
+          def assert_address_line1(address_line1)
+            if address_line1.empty?
+              raise Exceptions::ValidationError.new(message: "Invalid address. Address Line 1 is required.",
                 code: Exceptions::ErrorCode.get(:FIELD_VALUE_REQUIRED))
-            elsif street.length > 3
-              raise Exceptions
-                .create_invalid_field_value_error("Invalid address. No more than 3 street lines are allowed.")
             end
           end
 
-          def assert_country(country)
-            Utils::Validate.not_nil_or_empty_str("Invalid address. The country", country)
-            return if Constants::Country.valid?(country)
+          def assert_country_code(country_code)
+            Utils::Validate.not_nil_or_empty_str("Invalid address. The country_code", country_code)
+            return if Constants::Country.valid?(country_code)
 
-            if country.nil? || (country == "")
+            if country_code.nil? || (country_code == "")
               raise Exceptions.create_required_error(
-                "Invalid address. The country"
+                "Invalid address. The country_code"
               )
             end
 
             raise Exceptions.create_invalid_field_value_error(
-              "Invalid address. #{country} is not a valid country code."
+              "Invalid address. #{country_code} is not a valid country_code code."
             )
           end
         end
@@ -131,41 +120,35 @@ module ShipEngine
         @internal_client = internal_client
       end
 
-      # @param [String] street
+      # @param [String] address_line1
+      # @param [String?] address_line2
+      # @param [String?] address_line3
       # @param [String?] city_locality
       # @param [String?] state_province
       # @param [String?] postal_code
-      # @param [String] country
+      # @param [String] country_code
       # @param [String?] phone
       # @param [String?] name
       # @param [String?] company
       # @return [ShipEngine::AddressValidationResult]
       def validate(address, config)
-        address_params = {
-          street: address[:street],
-          cityLocality: address[:city_locality],
-          stateProvince: address[:state_province],
-          postalCode: address[:postal_code],
-          countryCode: address[:country],
-          phone: address[:phone],
-          name: address[:name],
-          company: address[:company],
-        }.compact # drop nil
+        address_params = address.compact # drop nil
 
-        Validate.assert_address_street(address_params[:street])
-        Validate.assert_country(address_params[:countryCode])
+        Validate.assert_address_line1(address[:address_line1])
+        Validate.assert_country_code(address[:country_code])
         Validate.assert_either_postal_code_or_city_state(
-          postal_code: address_params[:postalCode],
-          city: address_params[:cityLocality],
-          state: address_params[:stateProvince]
+          postal_code: address[:postal_code],
+          city: address[:city_locality],
+          state: address[:state_province]
         )
 
-        response = @internal_client.make_request("address.validate.v1",
-          { address: address_params }, config)
+        response = @internal_client.make_request("address.validate.v1", { address: address_params }, config)
         address_api_result = response.result
         id = response.request_id
 
-        normalized_address_api_result = address_api_result["normalizedAddress"] || nil
+        normalized_original_address_api_result = address_api_result["original_address"]
+        normalized_matched_address_api_result = address_api_result["matched_address"] || nil
+        status = address_api_result["status"]
 
         messages_classes = address_api_result["messages"].map do |msg|
           AddressValidationMessage.new(type: msg["type"], code: msg["code"], message: msg["message"])
@@ -173,27 +156,16 @@ module ShipEngine
 
         AddressValidationResult.new(
           request_id: id,
-          valid: address_api_result["isValid"],
-          errors: messages_classes.select { |msg| msg.type == "error" },
-          warnings: messages_classes.select { |msg| msg.type == "warning" },
-          info: messages_classes.select { |msg| msg.type == "info" },
-          normalized_address: normalized_address_api_result && NormalizedAddress.new(
-            street: normalized_address_api_result["street"],
-            name: normalized_address_api_result["name"],
-            company: normalized_address_api_result["company"],
-            phone: normalized_address_api_result["phone"],
-            country: normalized_address_api_result["countryCode"],
-            postal_code: normalized_address_api_result["postalCode"],
-            state_province: normalized_address_api_result["stateProvince"],
-            city_locality: normalized_address_api_result["cityLocality"],
-            residential: normalized_address_api_result["isResidential"]
-          )
+          status: status,
+          messages: messages_classes,
+          original_address: normalized_original_address_api_result,
+          matched_address: normalized_matched_address_api_result,
         )
       end
 
       # @param response [AddressValidationResult]
       def result_is_successful(response)
-        response.valid? && response.normalized_address && response.errors.empty?
+       response.matched_address && response.status != "error"
       end
 
       #
@@ -207,14 +179,13 @@ module ShipEngine
       def normalize(address, config)
         result = validate(address, config)
 
-        return result.normalized_address if result_is_successful(result)
+        return result.matched_address if result_is_successful(result)
 
-        err_message = result.errors.map(&:message).join("\n")
+        err_message = result.messages.map(&:message).join("\n")
         raise Exceptions::BusinessRulesError.new(
           message: "Invalid Address. #{err_message}",
           code: Exceptions::ErrorCode.get(:INVALID_ADDRESS),
           request_id: result.request_id
-          # Even though we are constructing this HERE, this should be something we could just grab from the server
         )
       end
     end
