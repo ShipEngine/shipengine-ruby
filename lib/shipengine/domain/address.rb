@@ -1,16 +1,14 @@
 # frozen_string_literal: true
-
 module ShipEngine
   class AddressValidationMessage
     attr_reader :type, :code, :message
 
     # @param type [:info" | :warning | :error"]
     # @param code [String] = e.g. "suite_missing"
-    def initialize(type:, code:, message:, detail_code:)
+    def initialize(type:, code:, message)
       @type = type
       @code = code
       @message = message
-      @detail_code = detail_code
     end
   end
 
@@ -142,15 +140,15 @@ module ShipEngine
           state: address[:state_province]
         )
 
-        response = @internal_client.make_request("address.validate.v1", { address: address_params }, config)
-        address_api_result = response.result
-        id = response.request_id
+        response = @internal_client.post("/v1/addresses/validate", [address_params], config)
+        address_api_result = response.body
+        id = response.headers["x-shipengine-requestid"]
 
-        normalized_original_address_api_result = address_api_result["original_address"]
-        normalized_matched_address_api_result = address_api_result["matched_address"] || nil
-        status = address_api_result["status"]
+        normalized_original_address_api_result = address_api_result[0]["original_address"]
+        normalized_matched_address_api_result = address_api_result[0]["matched_address"] || nil
+        status = address_api_result[0]["status"]
 
-        messages_classes = address_api_result["messages"].map do |msg|
+        messages_classes = address_api_result[0]["messages"].map do |msg|
           AddressValidationMessage.new(type: msg["type"], code: msg["code"], message: msg["message"])
         end
 
