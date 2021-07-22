@@ -27,6 +27,7 @@ module ShipEngine
       @internal_client = ShipEngine::InternalClient.new(@configuration)
       @addresses = Domain::Addresses.new(@internal_client)
       @carriers = Domain::Carriers.new(@internal_client)
+      @tracking = Domain::Tracking.new(@internal_client)
     end
 
     #
@@ -58,29 +59,27 @@ module ShipEngine
     # @option config [Number?] :timeout
     #
     #
-    # @return [Array<ShipEngine::Domain::Carriers::ListCarriers::Response>]
+    # @return [ShipEngine::Domain::Carriers::ListCarriers::Response]
     #
     # @see https://shipengine.github.io/shipengine-openapi/#operation/list_carriers
     def list_carriers(config: {})
       @carriers.list_carriers(config: config)
     end
 
-    # # Track package by package id (recommended)
-    # #
-    # # @param tracking_number [String] <description>
-    # # @param config [Hash]
-    # # @option config [String?] :api_key
-    # # @option config [String?] :base_url
-    # # @option config [Number?] :retries
-    # # @option config [Number?] :timeout
-    # #
-    # # @return [::ShipEngine::TrackPackageResult]
-    # #
-    # def track_package_by_id(package_id, config = {})
-    #   with_emit_error(config[:emitter]) do
-    #     @package.track_by_id(package_id, config)
-    #   end
-    # end
+    # Track package by package id (recommended)
+    #
+    # @param label_id [String] <description>
+    # @param config [Hash]
+    # @option config [String?] :api_key
+    # @option config [String?] :base_url
+    # @option config [Number?] :retries
+    # @option config [Number?] :timeout
+    #
+    # @return [ShipEngine::Domain::Tracking::TrackUsingLabelId::Response]
+    #
+    def track_using_label_id(label_id, config = {})
+      @tracking.track_using_label_id(label_id, config)
+    end
 
     # #
     # # Track package by tracking number. Tracking by package_id is preferred [@see #track_package_by_id]
