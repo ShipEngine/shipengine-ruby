@@ -74,14 +74,14 @@ describe "Configuration" do
   end
 
   describe "api_key" do
-    it "should have header: API-Key if api-key passed during initialization" do
-      stub = stub_request(:post, "https://api.shipengine.com/v1/addresses/validate")
-        .with(body: /.*/, headers: { "API-Key" => "foo" }).to_return(status: 200, body: Factory.valid_address_res_json)
+    # it "should have header: API-Key if api-key passed during initialization" do
+    #   stub = stub_request(:post, "https://api.shipengine.com/v1/addresses/validate")
+    #     .with(body: /.*/, headers: { "API-Key" => "foo" }).to_return(status: 200, body: Factory.valid_address_res_json)
 
-      client = ::ShipEngine::Client.new("foo")
-      client.validate_addresses(Factory.valid_address_params)
-      assert_requested(stub)
-    end
+    #   client = ::ShipEngine::Client.new("foo")
+    #   client.validate_addresses(Factory.valid_address_params)
+    #   assert_requested(stub)
+    # end
 
     it "should throw an error if api_key is invalid at instantiation or at method call" do
       api_key_err = {
