@@ -13,7 +13,6 @@ group :development do
   gem "rubocop-shopify", require: false
   gem "awesome_print"
   gem "overcommit"
-  gem "hashie"
 end
 
 group :test do

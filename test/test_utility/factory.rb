@@ -9,7 +9,7 @@ module Factory
 
     def valid_address_params
       [{
-        address_line1: "104 Foo Street", postal_code: "78751", country_code: "US"
+        address_line1: "104 Foo Street", postal_code: "78751", country_code: "US",
       }]
     end
 
