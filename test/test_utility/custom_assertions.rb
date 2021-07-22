@@ -162,7 +162,6 @@ module CustomAssertions
   # @param response [::ShipEngine::AddressValidationResult]
   # @param expected_address [Hash]
   def assert_address_validation_result(expected_result, response_result)
-    # rubocop:disable Layout/LineLength
     assert_equal(expected_result[:status], response_result.status) if expected_result.key?(:status)
     assert_messages_equals(expected_result[:messages], response_result.messages) if expected_result.key?(:messages)
 
@@ -172,7 +171,6 @@ module CustomAssertions
     expected_address_matched = expected_result[:matched_address]
     assert_validated_address(expected_address_original, response_result.original_address)
     assert_validated_address(expected_address_matched, response_result.matched_address)
-    # rubocop:enable Layout/LineLength
   end
 
   def assert_raises_rate_limit_error(retries: nil, &block)

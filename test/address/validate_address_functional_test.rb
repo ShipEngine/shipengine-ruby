@@ -89,8 +89,7 @@ describe "Validate Address: Functional" do
                  { type: "info", code: "a1007",
                    message: "This address has been verified down to the house/building level (highest possible accuracy with the provided data)" },
                  { type: "info", code: "a1008",
-                   message: "This record was successfully geocoded down to the rooftop level,
-                   meaning this point is within the property limits (most likely in the center)." }],
+                   message: "This record was successfully geocoded down to the rooftop level, meaning this point is within the property limits (most likely in the center)." }],
     }
 
     response = client.validate_addresses(params)
