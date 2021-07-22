@@ -20,7 +20,6 @@ Minitest::Tagz.choose_tags(*ENV["TAGS"].split(",")) if ENV["TAGS"]
 # local modules
 ENV["USE_SIMENGINE"] = "true"
 require "shipengine"
-require "shipengine/exceptions"
 require "test_utility/custom_assertions"
 require "test_utility/factory"
 require "test_utility/test_utils"

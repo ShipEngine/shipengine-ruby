@@ -142,31 +142,36 @@ module CustomAssertions
     assert_raises_shipengine(ShipEngine::Exceptions::TimeoutError, copy_expected_err, &block)
   end
 
-  def assert_normalized_address(expected_address, response_address)
-    raise "Street is a required key." unless expected_address[:street]
+  def assert_validated_address(expected_address, response_address)
+    raise "address_line1 is a required key." unless expected_address[:address_line1]
 
-    assert_equal(expected_address[:residential], response_address.residential?, "-> residential") if expected_address.key?(:residential)
+    assert_equal(expected_address[:address_line1], response_address.address_line1, "-> address_line1") if expected_address.key?(:address_line1)
+    assert_equal(expected_address[:address_line2], response_address.address_line2, "-> address_line2") if expected_address.key?(:address_line2)
+    assert_equal(expected_address[:address_line3], response_address.address_line3, "-> address_line3") if expected_address.key?(:address_line3)
     assert_equal(expected_address[:name], response_address.name, "-> name") if expected_address.key?(:name)
-    assert_equal(expected_address[:company], response_address.company, "-> company") if expected_address.key?(:company)
+    assert_equal(expected_address[:company_name], response_address.company_name, "-> company_name") if expected_address.key?(:company_name)
     assert_equal(expected_address[:phone], response_address.phone, "-> phone") if expected_address.key?(:phone)
-    assert_equal(expected_address[:street], response_address.street, "-> street")
     assert_equal(expected_address[:city_locality], response_address.city_locality, "-> city_locality") if expected_address.key?(:city_locality)
-    assert_equal(expected_address[:country], response_address.country, "-> country") if expected_address.key?(:country)
+    assert_equal(expected_address[:state_province], response_address.state_province, "-> state_province") if expected_address.key?(:state_province)
+    assert_equal(expected_address[:postal_code], response_address.postal_code, "-> postal_code") if expected_address.key?(:postal_code)
+    assert_equal(expected_address[:country_code], response_address.country_code, "-> country_code") if expected_address.key?(:country_code)
+    assert_equal(expected_address[:address_residential_indicator], response_address.address_residential_indicator,
+      "-> address_residential_indicator") if expected_address.key?(:address_residential_indicator)
   end
 
   # @param response [::ShipEngine::AddressValidationResult]
   # @param expected_address [Hash]
   def assert_address_validation_result(expected_result, response_result)
     # rubocop:disable Layout/LineLength
-    assert_equal(expected_result[:valid], response_result.valid?, "-> valid") if expected_result.key?(:valid)
-    assert_messages_equals(expected_result[:warnings], response_result.warnings) if expected_result.key?(:warnings)
-    assert_messages_equals(expected_result[:info], response_result.info) if expected_result.key?(:info)
-    assert_messages_equals(expected_result[:errors], response_result.errors) if expected_result.key?(:errors)
+    assert_equal(expected_result[:status], response_result.status) if expected_result.key?(:status)
+    assert_messages_equals(expected_result[:messages], response_result.messages) if expected_result.key?(:messages)
 
-    return assert_nil(response_result.normalized_address, "~> normalized_address") if expected_result.key?(:normalized_address) && expected_result[:normalized_address].nil?
+    return assert_nil(response_result.matched_address, "~> matched_address") if expected_result.key?(:matched_address) && expected_result[:matched_address].nil?
 
-    expected_address_normalized = expected_result[:normalized_address]
-    assert_normalized_address(expected_address_normalized, response_result.normalized_address)
+    expected_address_original = expected_result[:original_address]
+    expected_address_matched = expected_result[:matched_address]
+    assert_validated_address(expected_address_original, response_result.original_address)
+    assert_validated_address(expected_address_matched, response_result.matched_address)
     # rubocop:enable Layout/LineLength
   end
 

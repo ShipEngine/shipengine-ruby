@@ -56,6 +56,7 @@ GEM
       guard-compat (~> 1.2)
       minitest (>= 3.0)
     hashdiff (1.0.1)
+    hashie (4.1.0)
     iniparse (1.5.0)
     jaro_winkler (1.5.4)
     kramdown (2.3.1)
@@ -169,6 +170,7 @@ DEPENDENCIES
   debase
   guard
   guard-minitest
+  hashie
   minitest
   minitest-fail-fast
   minitest-focus
@@ -190,4 +192,4 @@ DEPENDENCIES
   yard
 
 BUNDLED WITH
-   2.2.17
+   2.2.24

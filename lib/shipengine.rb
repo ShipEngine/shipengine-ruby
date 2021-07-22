@@ -6,9 +6,8 @@ require "shipengine/domain"
 require "shipengine/configuration"
 
 # just for exporting
-require "shipengine/version"
-require "shipengine/exceptions"
 require "shipengine/utils/validate"
+require "shipengine/version"
 require "shipengine/constants"
 require "observer"
 
@@ -26,23 +25,26 @@ module ShipEngine
       )
 
       @internal_client = ShipEngine::InternalClient.new(@configuration)
-      @address = Domain::Address.new(@internal_client)
+      @addresses = Domain::Addresses.new(@internal_client)
     end
 
     #
-    # Validate an address
+    # Validate an array of address
     #
-    # @param [Address] address
+    # @param addresses [Array<ShipEngine::Domain::Addresses::AddressValidation::Request>]
     # @param config [Hash?]
     # @option config [String?] :api_key
     # @option config [String?] :base_url
     # @option config [Number?] :retries
     # @option config [Number?] :timeout
     #
-    # @return [::ShipEngine::AddressValidationResult] <description>
     #
-    def validate_address(address, config = {})
-      @address.validate(address, config)
+    # @return [Array<ShipEngine::Domain::Addresses::AddressValidation::Response>]
+    #
+    # @see https://shipengine.github.io/shipengine-openapi/#operation/validate_address
+
+    def validate_addresses(address, config = {})
+      @addresses.validate(address, config)
     end
 
     # def list_carrier_accounts(carrier_code: nil, config: {})

@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+Dir[File.expand_path("../../faraday/*.rb", __FILE__)].each { |f| require f }
 require "shipengine/utils/request_id"
 require "shipengine/utils/user_agent"
 require "faraday_middleware"
 require "json"
-require "pry"
+
 # frozen_string_literal: true
 module ShipEngine
   class InternalClient
@@ -42,6 +44,7 @@ module ShipEngine
       base_url = config.base_url
       api_key = config.api_key
       timeout = config.timeout
+
       Faraday.new(url: base_url) do |conn|
         conn.headers = {
           "API-Key" => api_key,
@@ -49,6 +52,7 @@ module ShipEngine
           "Accept" => "application/json",
           "User-Agent" => Utils::UserAgent.new.to_s,
         }
+
         conn.options.timeout = timeout / 1000
         conn.request(:json) # auto-coerce bodies to json
         conn.request(:retry, {
@@ -57,6 +61,7 @@ module ShipEngine
           methods: Faraday::Request::Retry::IDEMPOTENT_METHODS + [:post], # :post is not a "retry_attempt-able request by default"
         })
 
+        conn.use(FaradayMiddleware::RaiseHttpException)
         # conn.request(:retry_after_header) # should go after :retry_attempt
         # conn.request(:request_sent, config)
         conn.response(:json)
