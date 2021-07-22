@@ -26,6 +26,7 @@ module ShipEngine
 
       @internal_client = ShipEngine::InternalClient.new(@configuration)
       @addresses = Domain::Addresses.new(@internal_client)
+      @carriers = Domain::Carriers.new(@internal_client)
     end
 
     #
@@ -47,11 +48,22 @@ module ShipEngine
       @addresses.validate(address, config)
     end
 
-    # def list_carrier_accounts(carrier_code: nil, config: {})
-    #   with_emit_error(config[:emitter]) do
-    #     @carriers.list_accounts(carrier_code: carrier_code, config: config)
-    #   end
-    # end
+    #
+    # List all of the users Carriers
+    #
+    # @param config [Hash?]
+    # @option config [String?] :api_key
+    # @option config [String?] :base_url
+    # @option config [Number?] :retries
+    # @option config [Number?] :timeout
+    #
+    #
+    # @return [Array<ShipEngine::Domain::Carriers::ListCarriers::Response>]
+    #
+    # @see https://shipengine.github.io/shipengine-openapi/#operation/list_carriers
+    def list_carriers(config: {})
+      @carriers.list_carriers(config: config)
+    end
 
     # # Track package by package id (recommended)
     # #
