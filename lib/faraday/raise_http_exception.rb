@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 require "faraday"
-
 # @private
 module FaradayMiddleware
   # @private
@@ -8,9 +7,11 @@ module FaradayMiddleware
     def call(env)
       @app.call(env).on_complete do |response|
         case response[:status].to_i
-        when 400, 401, 404, 429, 500, 502, 503, 504
+        when 400, 401, 404, 500, 502, 503, 504
           raise ShipEngine::Exceptions::ShipEngineError.new(message: error_body(response[:body]), source: error_source(response[:body]),
             type: error_type(response[:body]), code: error_code(response[:body]), request_id: response[:body]["request_id"], url: response[:url].to_s)
+        when 429
+          raise ShipEngine::Exceptions::RateLimitError.new(retries: env.request_headers["Retries"].to_i, source: error_source(response[:body]), request_id: response[:body]["request_id"])
         end
       end
     end

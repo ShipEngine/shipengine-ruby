@@ -59,6 +59,10 @@ module ShipEngine
           max: retries,
           retry_statuses: [429], # even though this seems self-evident, this field is neccessary for Retry-After to be respected.
           methods: Faraday::Request::Retry::IDEMPOTENT_METHODS + [:post], # :post is not a "retry_attempt-able request by default"
+          exceptions: [ShipEngine::Exceptions::RateLimitError],
+          retry_block: proc { |env, _opts, _retries, _exception|
+            env.request_headers["Retries"] = config.retries.to_s
+          },
         })
 
         conn.use(FaradayMiddleware::RaiseHttpException)
