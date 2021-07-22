@@ -146,17 +146,17 @@ module CustomAssertions
     raise "address_line1 is a required key." unless expected_address[:address_line1]
 
     assert_equal(expected_address[:address_line1], response_address.address_line1, "-> address_line1") if expected_address.key?(:address_line1)
-    assert_equal(expected_address[:address_line2], response_address.address_line2, "-> address_line2") if expected_address.key?(:address_line2)
-    assert_equal(expected_address[:address_line3], response_address.address_line3, "-> address_line3") if expected_address.key?(:address_line3)
-    assert_equal(expected_address[:name], response_address.name, "-> name") if expected_address.key?(:name)
-    assert_equal(expected_address[:company_name], response_address.company_name, "-> company_name") if expected_address.key?(:company_name)
-    assert_equal(expected_address[:phone], response_address.phone, "-> phone") if expected_address.key?(:phone)
-    assert_equal(expected_address[:city_locality], response_address.city_locality, "-> city_locality") if expected_address.key?(:city_locality)
-    assert_equal(expected_address[:state_province], response_address.state_province, "-> state_province") if expected_address.key?(:state_province)
-    assert_equal(expected_address[:postal_code], response_address.postal_code, "-> postal_code") if expected_address.key?(:postal_code)
-    assert_equal(expected_address[:country_code], response_address.country_code, "-> country_code") if expected_address.key?(:country_code)
+    assert_equal(expected_address[:address_line2], response_address.address_line2, "-> address_line2") if expected_address.key?(:address_line2) && expected_address[:address_line2]
+    assert_equal(expected_address[:address_line3], response_address.address_line3, "-> address_line3") if expected_address.key?(:address_line3) && expected_address[:address_line3]
+    assert_equal(expected_address[:name], response_address.name, "-> name") if expected_address.key?(:name) && expected_address[:name]
+    assert_equal(expected_address[:company_name], response_address.company_name, "-> company_name") if expected_address.key?(:company_name) && expected_address[:company_name]
+    assert_equal(expected_address[:phone], response_address.phone, "-> phone") if expected_address.key?(:phone) && expected_address[:phone]
+    assert_equal(expected_address[:city_locality], response_address.city_locality, "-> city_locality") if expected_address.key?(:city_locality) && expected_address[:city_locality]
+    assert_equal(expected_address[:state_province], response_address.state_province, "-> state_province") if expected_address.key?(:state_province) && expected_address[:state_province]
+    assert_equal(expected_address[:postal_code], response_address.postal_code, "-> postal_code") if expected_address.key?(:postal_code) && expected_address[:postal_code]
+    assert_equal(expected_address[:country_code], response_address.country_code, "-> country_code") if expected_address.key?(:country_code) && expected_address[:country_code]
     assert_equal(expected_address[:address_residential_indicator], response_address.address_residential_indicator,
-      "-> address_residential_indicator") if expected_address.key?(:address_residential_indicator)
+      "-> address_residential_indicator") if expected_address.key?(:address_residential_indicator) && expected_address[:address_residential_indicator]
   end
 
   # @param response [::ShipEngine::AddressValidationResult]
