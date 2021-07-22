@@ -35,7 +35,7 @@ module ShipEngine
             if package.dimensions
               dimensions = ListCarriers::Carrier::Package::Dimensions.new(
                 unit: package.dimensions.unit,
-                length: package.dimensions.length,
+                length: package.dimensions["length"],
                 width: package.dimensions.width,
                 height: package.dimensions.height,
               )

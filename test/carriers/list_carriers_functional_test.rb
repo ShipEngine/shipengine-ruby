@@ -111,7 +111,7 @@ describe "List Carrier Accounts: Functional" do
     end
   end
 
-  it "handles a successful response" do
+  it "handles a successful response with multiple carriers" do
     stub = stub_request(:get, "https://api.shipengine.com/v1/carriers")
       .to_return(status: 200, body: {
         "carriers": [
@@ -144,6 +144,50 @@ describe "List Carrier Accounts: Functional" do
                 "name": "laptop_box",
                 "dimensions": {
                   "unit": "inch",
+                  "length": 1,
+                  "width": 1,
+                  "height": 1,
+                },
+                "description": "Packaging for laptops",
+              },
+            ],
+            "options": [
+              {
+                "name": "contains_alcohol",
+                "default_value": "false",
+                "description": "string",
+              },
+            ],
+          },
+          {
+            "carrier_id": "se-test",
+            "carrier_code": "se-testing",
+            "account_number": "account_117",
+            "requires_funded_amount": true,
+            "balance": 3799.12,
+            "nickname": "ShipEngine Account 2",
+            "friendly_name": "Stamps.com 2",
+            "primary": false,
+            "has_multi_package_supporting_services": false,
+            "supports_label_messages": false,
+            "services": [
+              {
+                "carrier_id": "se-test",
+                "carrier_code": "se-test",
+                "service_code": "usps_media_mail+test",
+                "name": "USPS First Class Mail test",
+                "domestic": false,
+                "international": false,
+                "is_multi_package_supported": false,
+              },
+            ],
+            "packages": [
+              {
+                "package_id": "se-28529731",
+                "package_code": "+small_flat_rate_box",
+                "name": "laptop_box+test",
+                "dimensions": {
+                  "unit": "centimeters",
                   "length": 4,
                   "width": 1,
                   "height": 1,
@@ -202,6 +246,50 @@ describe "List Carrier Accounts: Functional" do
               name: "laptop_box",
               dimensions: {
                 unit: "inch",
+                length: 1,
+                width: 1,
+                height: 1,
+              },
+              description: "Packaging for laptops",
+            },
+          ],
+          options: [
+            {
+              name: "contains_alcohol",
+              default_value: "false",
+              description: "string",
+            },
+          ],
+        },
+        {
+          carrier_id: "se-test",
+          carrier_code: "se-testing",
+          account_number: "account_117",
+          requires_funded_amount: true,
+          balance: 3799.12,
+          nickname: "ShipEngine Account 2",
+          friendly_name: "Stamps.com 2",
+          primary: false,
+          has_multi_package_supporting_services: false,
+          supports_label_messages: false,
+          services: [
+            {
+              carrier_id: "se-test",
+              carrier_code: "se-test",
+              service_code: "usps_media_mail+test",
+              name: "USPS First Class Mail test",
+              domestic: false,
+              international: false,
+              is_multi_package_supported: false,
+            },
+          ],
+          packages: [
+            {
+              package_id: "se-28529731",
+              package_code: "+small_flat_rate_box",
+              name: "laptop_box+test",
+              dimensions: {
+                unit: "centimeters",
                 length: 4,
                 width: 1,
                 height: 1,
@@ -233,54 +321,4 @@ describe "List Carrier Accounts: Functional" do
     assert_list_carrier_response(expected, actual_response)
     assert_requested(stub, times: 1)
   end
-
-  # # DX-985 Multiple Carriers
-  # it "handles multiple carriers" do
-  #   expected = [
-  #     {
-  #       account_id: "car_kfUjTZSEAQ8gHeT",
-  #       carrier_code: "fedex",
-  #       account_number: "41E-4928-29314AAX",
-  #       name: "FedEx Account #1",
-  #     },
-  #     {
-  #       account_id: "car_3a76b06902f812d14b33d6847",
-  #       carrier_code: "fedex",
-  #       account_number: "41E-4911-851657ABW",
-  #       name: "FedEx Account #3",
-  #     },
-  #   ]
-
-  #   actual_response = client.list_carriers
-
-  #   assert_list_carrier_response(expected, actual_response)
-  # end
-
-  # # DX-984 No accounts setup yet
-  # it "handles if no accounts are setup" do
-  #   expected = []
-
-  #   actual_response = client.list_carriers
-
-  #   assert_list_carrier_response(expected, actual_response)
-  # end
-
-  # # DX-987
-  # it "handles an error with an invalid carrier code or other server error" do
-  #   expected_err = {
-  #     code: "invalid_field_value",
-  #     request_id: :__REGEX_MATCH__,
-  #   }
-  #   assert_raises_shipengine(::ShipEngine::Exceptions::ValidationError, expected_err) do
-  #     client.list_carriers
-  #   end
-
-  #   expected_err = {
-  #     code: "unspecified",
-  #     request_id: :__REGEX_MATCH__,
-  #   }
-  #   assert_raises_shipengine(::ShipEngine::Exceptions::SystemError, expected_err) do
-  #     client.list_carriers
-  #   end
-  # end
 end
