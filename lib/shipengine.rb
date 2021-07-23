@@ -84,6 +84,22 @@ module ShipEngine
       @labels.create_from_rate(rate_id, params, config)
     end
 
+    # Create label from Shipment Details
+    #
+    # @param params [Hash]
+    # @param config [Hash]
+    # @option config [String?] :api_key
+    # @option config [String?] :base_url
+    # @option config [Number?] :retries
+    # @option config [Number?] :timeout
+    #
+    # @return [ShipEngine::Domain::Labels::CreateFromShipmentDetails::Response]
+    #
+    # @see https://shipengine.github.io/shipengine-openapi/#operation/create_label
+    def create_label_from_shipment_details(params, config = {})
+      @labels.create_from_shipment_details(rate_id, params, config)
+    end
+
     # Get Rates with Shipment Details
     #
     # @param Shipment Details [Hash]
