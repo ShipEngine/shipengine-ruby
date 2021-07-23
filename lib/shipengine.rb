@@ -27,6 +27,7 @@ module ShipEngine
       @internal_client = ShipEngine::InternalClient.new(@configuration)
       @addresses = Domain::Addresses.new(@internal_client)
       @carriers = Domain::Carriers.new(@internal_client)
+      @rates = Domain::Rates.new(@internal_client)
       @tracking = Domain::Tracking.new(@internal_client)
     end
 
@@ -66,6 +67,21 @@ module ShipEngine
       @carriers.list_carriers(config: config)
     end
 
+    # Get rates with Shipment Details (recommended)
+    #
+    # @param Shipment Details [Hash]
+    # @param config [Hash]
+    # @option config [String?] :api_key
+    # @option config [String?] :base_url
+    # @option config [Number?] :retries
+    # @option config [Number?] :timeout
+    #
+    # @return [ShipEngine::Domain::Tracking::TrackUsingLabelId::Response]
+    #
+    def get_rates_with_shipment_details(shipment_details, config = {})
+      @rates.get_rates_with_shipment_details(shipment_details, config)
+    end
+
     # Track package by package id (recommended)
     #
     # @param label_id [String] <description>
@@ -92,10 +108,8 @@ module ShipEngine
     # #
     # # @return [::ShipEngine::TrackPackageResult]
     # #
-    # def track_package_by_tracking_number(tracking_number, carrier_code, config = {})
-    #   with_emit_error(config[:emitter]) do
-    #     @package.track_by_tracking_number(tracking_number, carrier_code, config)
-    #   end
-    # end
+    def track_using_carrier_code_and_tracking_number(carrier_code, tracking_number, config = {})
+      @tracking.track_using_carrier_code_and_tracking_number(carrier_code, tracking_number, config)
+    end
   end
 end

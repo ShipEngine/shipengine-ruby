@@ -12,7 +12,7 @@ module ShipEngine
         @internal_client = internal_client
       end
 
-      # @param addresses [Array<ShipEngine::Domain::Addresses::AddressValidationRequest>]
+      # @param addresses [ShipEngine::Domain::Addresses::AddressValidationRequest]
       # @param config [Hash?]
       #
       # @return [Array<ShipEngine::Domain::Addresses::AddressValidationResponse>]

@@ -2,7 +2,7 @@
 module ShipEngine
   module Domain
     class Tracking
-      module TrackUsingLabelId
+      module TrackUsingCarrierCodeAndTrackingNumber
         class Response
           attr_reader :tracking_number, :status_code, :status_description, :carrier_status_code, :carrier_status_description, :shipped_date, :estimated_delivery_date, :actual_delivery_date, :exception_description, :events
 
