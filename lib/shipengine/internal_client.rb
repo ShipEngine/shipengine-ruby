@@ -27,7 +27,7 @@ module ShipEngine
 
     # Perform an HTTP PUT request
     def put(path, options = {}, config = {})
-      request(:get, path, options, config)
+      request(:put, path, options, config)
     end
 
     # Perform an HTTP DELETE request

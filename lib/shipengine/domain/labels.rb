@@ -2,6 +2,7 @@
 require "hashie"
 require_relative "labels/create_from_rate"
 require_relative "labels/create_from_shipment_details"
+require_relative "labels/void_label"
 
 module ShipEngine
   module Domain
@@ -271,6 +272,23 @@ module ShipEngine
           form_download: form_download,
           insurance_claim: insurance_claim,
           packages: packages
+        )
+      end
+
+      # @param label_id [String]
+      # @param config [Hash?]
+      #
+      # @return [ShipEngine::Domain::Labels::CreateFromShipmentDetails::Response]
+      #
+      # @see https://shipengine.github.io/shipengine-openapi/#operation/create_label
+      def void(label_id, config)
+        response = @internal_client.put("/v1/labels/#{label_id}/void", {}, config)
+        label_api_result = response.body
+        mash_result = Hashie::Mash.new(label_api_result)
+
+        VoidLabel::Response.new(
+          approved: mash_result.approved,
+          message: mash_result["message"]
         )
       end
     end
