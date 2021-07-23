@@ -97,7 +97,7 @@ module ShipEngine
     #
     # @see https://shipengine.github.io/shipengine-openapi/#operation/create_label
     def create_label_from_shipment_details(params, config = {})
-      @labels.create_from_shipment_details(rate_id, params, config)
+      @labels.create_from_shipment_details(params, config)
     end
 
     # Void label with Label Id

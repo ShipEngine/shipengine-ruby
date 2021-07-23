@@ -37,13 +37,16 @@ module ShipEngine
           )
         end
 
-        tax_identifiers = mash_result.tax_identifiers.map do |tax_identifier|
-          GetWithShipmentDetails::Response::TaxIdentifier.new(
-            taxable_entity_type: tax_identifier.taxable_entity_type,
-            identifier_type: tax_identifier.identifier_type,
-            issuing_authority: tax_identifier.issuing_authority,
-            value: tax_identifier.value
-          )
+        tax_identifiers = nil
+        if mash_result.tax_identifiers
+          tax_identifiers = mash_result.tax_identifiers.map do |tax_identifier|
+            GetWithShipmentDetails::Response::TaxIdentifier.new(
+              taxable_entity_type: tax_identifier.taxable_entity_type,
+              identifier_type: tax_identifier.identifier_type,
+              issuing_authority: tax_identifier.issuing_authority,
+              value: tax_identifier.value
+            )
+          end
         end
 
         tags = mash_result.tags.map do |tag|
