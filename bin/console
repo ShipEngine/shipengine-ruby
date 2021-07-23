@@ -13,7 +13,7 @@ require "pry"
 
 ENV["USE_SIMENGINE"] = "true"
 @shipengine = ShipEngine::Client.new(::ShipEngine::Constants::API_KEY)
-@list_carriers = @shipengine.list_carrier_accounts
+@list_carriers = @shipengine.list_carriers
 
 # IRB.start(__FILE__)
 Pry.start

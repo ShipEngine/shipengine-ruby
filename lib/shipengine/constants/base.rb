@@ -3,7 +3,7 @@
 module ShipEngine
   module Constants
     # A stub API Key to use in the test suite.
-    API_KEY = "baz"
+    API_KEY = "TEST_ycvJAgX6tLB1Awm9WGJmD8mpZ8wXiQ20WhqFowCk32s"
 
     # The base_url for the ShipEngine SDK - for use in production environment.
     PROD_URL = "https://api.shipengine.com"
