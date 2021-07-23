@@ -98,7 +98,6 @@ module ShipEngine
 
         customs = nil
         if mash_result.customs&.customs_items
-
           customs_items = mash_result.customs.customs_items.map do |customs_item|
             value = nil
             if customs_item.value
