@@ -16,395 +16,345 @@ def get_address(overrides = {})
 end
 
 describe "Validate Address: Functional" do
-  client = ::ShipEngine::Client.new("abc123")
+  after do
+    WebMock.reset!
+  end
+  client = ::ShipEngine::Client.new("TEST_ycvJAgX6tLB1Awm9WGJmD8mpZ8wXiQ20WhqFowCk32s")
 
-  # DX-938 -
-  it "handles server-side errors" do
-    params = {
-      street: ["500 Server Error"],
+  it "handles unauthorized errors" do
+    params = [{
+      address_line1: "500 Server Error",
       city_locality: "Boston",
       state_province: "MA",
       postal_code: "01152",
       country: "US",
+    }]
+
+    stub = stub_request(:post, "https://api.shipengine.com/v1/addresses/validate")
+      .with(body: params.to_json)
+      .to_return(status: 401, body: {
+        "request_id" => "cdc19c7b-eec7-4730-8814-462623a62ddb",
+        "errors" => [{
+          "error_source" => "shipengine",
+          "error_type" => "security",
+          "error_code" => "unauthorized",
+          "message" => "The API key is invalid. Please see https://www.shipengine.com/docs/auth",
+        }],
+      }.to_json)
+
+    expected_err = {
+      source: "shipengine",
+      type: "security",
+      code: "unauthorized",
+      message: "The API key is invalid. Please see https://www.shipengine.com/docs/auth",
     }
+
+    assert_raises_shipengine(::ShipEngine::Exceptions::ShipEngineError, expected_err) do
+      client.validate_addresses(params)
+      assert_requested(stub, times: 1)
+    end
+  end
+
+  it "Throws an error from shipengine" do
+    params = [{
+      name: "John Smith",
+      company_name: "ShipStation",
+      address_line1: "3800 N Lamar Blvd",
+      address_line2: "#220",
+      country_code: "US",
+      address_residential_indicator: false,
+    }]
+
+    stub = stub_request(:post, "https://api.shipengine.com/v1/addresses/validate")
+      .with(body: params.to_json)
+      .to_return(status: 400, body: {
+        "request_id": "27b5f201-5af2-4e93-a13b-833299a8a365",
+        "errors": [
+          {
+            "error_source": "shipengine",
+            "error_type": "system",
+            "error_code": "unspecified",
+            "message": "addresses: Cannot deserialize the current JSON object (e.g. {\"name\":\"value\"})",
+          },
+        ],
+      }.to_json)
+
     expected_err = {
       source: "shipengine",
       type: "system",
       code: "unspecified",
-      message: "Unable to connect to the database",
-      request_id: :__REGEX_MATCH__,
+      message: "addresses: Cannot deserialize the current JSON object (e.g. {\"name\":\"value\"})",
     }
+
     assert_raises_shipengine(::ShipEngine::Exceptions::ShipEngineError, expected_err) do
-      client.validate_address(params)
+      client.validate_addresses(params)
+      assert_requested(stub, times: 1)
     end
   end
-  # DX-936 Multi-line address returned correctly
+
   it "should work with multi-line street addresses" do
-    params = {
-      country: "US",
-      street: ["4 Jersey St.", "Suite 200", "2nd Floor"],
+    params = [{
+      country_code: "US",
+      address_line1: "4 Jersey St.",
+      address_line2: "Suite 200",
+      address_line3: "2nd Floor",
       city_locality: "Boston",
       state_province: "MA",
       postal_code: "02215",
-      request_id: :__REGEX_MATCH__,
-    }
-    expected = {
-      valid: true,
-      normalized_address: {
-        residential: false,
-        country: "US",
-        street: ["4 JERSEY ST STE 200", "2ND FLOOR"],
-        city_locality: "BOSTON",
-        state_province: "MA",
-        postal_code: "02215",
-        name: "",
-        phone: "",
-        company: "",
-      },
-      warnings: [],
-      info: [],
-      errors: [],
-    }
-    response = client.validate_address(params)
-    assert_address_validation_result(expected, response)
-  end
+    }]
 
-  # DX-943 too many address lines
-  it "should throw a client-side error if there are too many address lines" do
-    expected = {
-      code: "invalid_field_value",
-      message: "Invalid address. No more than 3 street lines are allowed.",
-      request_id: nil,
-    }
-    assert_raises_shipengine_validation(expected) do
-      client.validate_address(get_address(street: ["this", "should", "throw", "error"]))
-    end
-  end
+    stub = stub_request(:post, "https://api.shipengine.com/v1/addresses/validate")
+      .with(body: params.to_json)
+      .to_return(status: 200, body: [{
+        status: "verified",
+        original_address: {
+          name: nil,
+          company_name: nil,
+          address_line1: "4 Jersey St.",
+          address_line2: "Suite 200",
+          address_line3: "2nd Floor",
+          phone: nil,
+          city_locality: "Boston",
+          state_province: "MA",
+          postal_code: "02215",
+          country_code: "US",
+          address_residential_indicator: "unknown",
+        },
+        matched_address: {
+          name: nil,
+          company_name: nil,
+          address_line1: "4 JERSEY ST STE 200",
+          address_line2: "",
+          address_line3: "2ND FLOOR",
+          phone: nil,
+          city_locality: "BOSTON",
+          state_province: "MA",
+          postal_code: "02215-4148",
+          country_code: "US",
+          address_residential_indicator: "no",
+        },
+        messages: [],
+      }].to_json)
 
-  # https://github.com/ShipEngine/shipengine-js/blob/main/test/specs/validate-address.spec.js
-  # DX-942 No Address Lines
-  it "should throw a client-side error if there are no address lines" do
-    expected = {
-      code: "field_value_required",
-      message: "Invalid address. At least one address line is required.",
-      request_id: nil,
-    }
-
-    params = get_address({ street: [] })
-    assert_raises_shipengine_validation(expected) do
-      client.validate_address(params)
-    end
-  end
-
-  # DX-935 Valid Residential
-  it "should handle residential" do
-    params = {
-      country: "US",
-      street: ["4 Jersey St", "Apt. 2b"],
-      city_locality: "Boston",
-      state_province: "MA",
-      postal_code: "02215",
-    }
-
-    expected = {
-      valid: true,
-      normalized_address: {
-        residential: true,
-        country: "US",
-        street: ["4 JERSEY ST APT 2B"],
-        city_locality: "BOSTON",
-        state_province: "MA",
-        postal_code: "02215",
-        phone: "",
-        name: "",
-        company: "",
-      },
-      warnings: [],
-      info: [],
-      errors: [],
-    }
-
-    response = client.validate_address(params)
-    assert_address_validation_result(expected, response)
-  end
-
-  # DX-935 Valid Commercial
-  it "should handle commercial" do
-    params = {
-      country: "US",
-      street: ["400 Jersey St"],
-      city_locality: "Boston",
-      state_province: "MA",
-      postal_code: "02215",
-    }
-
-    expected = {
-      valid: true,
-      normalized_address: {
-        residential: false,
-        country: "US",
-        street: ["400 JERSEY ST"],
-        city_locality: "BOSTON",
-        state_province: "MA",
-        postal_code: "02215",
-        name: "",
-        phone: "",
-        company: "",
-      },
-      warnings: [],
-      info: [],
-      errors: [],
-    }
-    response = client.validate_address(params)
-    assert_address_validation_result(expected, response)
-  end
-
-  # DX-935 Valid address of unknown type
-  it "should handle unknown" do
-    params = {
-      country: "US",
-      street: ["4 Jersey St"],
-      city_locality: "Boston",
-      state_province: "MA",
-      postal_code: "02215",
-    }
-
-    expected = {
-      valid: true,
-      normalized_address: {
-        country: "US",
-        street: ["4 JERSEY ST"],
-        city_locality: "BOSTON",
-        state_province: "MA",
-        postal_code: "02215",
-        name: "",
-        company: "",
-      },
-      warnings: [],
-      info: [],
-      errors: [],
-    }
-    response = client.validate_address(params)
-    assert_address_validation_result(expected, response)
-  end
-
-  # DX-939
-  it "handles non-latin characters" do
-    params = {
-      street: ["上鳥羽角田町６８", "validate-with-non-latin-chars"],
-      city_locality: "南区",
-      state_province: "京都",
-      postal_code: "601-8104",
-      country: "JP",
-    }
-
-    expected = {
-      valid: true,
-      normalized_address: {
-        street: ["68 Kamitobatsunodacho"],
-        city_locality: "Kyoto-Shi Minami-Ku",
-        state_province: "Kyoto",
-        postal_code: "601-8104",
-        country: "JP",
-      },
-      warnings: [],
-      info: [],
-      errors: [],
-    }
-    response = client.validate_address(params)
-    assert_address_validation_result(expected, response)
-  end
-
-  # DX-945 Missing Country Code | DX-946 Invalid Country Code
-  it "validates country code / missing country-code" do
-    # missing
-    assert_raises_shipengine_validation({
-      code: "field_value_required",
-      message: "Invalid address. The country must be specified.",
-    }) do
-      client.validate_address({
-        street: ["400 Jersey St"],
+    expected = [{
+      status: "verified",
+      original_address: {
+        name: nil,
+        company_name: nil,
+        address_line1: "4 Jersey St.",
+        address_line2: "Suite 200",
+        address_line3: "2nd Floor",
+        phone: nil,
         city_locality: "Boston",
         state_province: "MA",
         postal_code: "02215",
-      })
-    end
+        country_code: "US",
+        address_residential_indicator: "unknown",
+      },
 
-    assert_raises_shipengine_validation({
-      code: "invalid_field_value",
-      message: "Invalid address. XX is not a valid country code.",
-    }) do
-      client.validate_address({
-        country: "XX",
-        street: ["400 Jersey St"],
-        city_locality: "Boston",
+      matched_address: {
+        name: nil,
+        company_name: nil,
+        address_line1: "4 JERSEY ST STE 200",
+        address_line2: "",
+        address_line3: "2ND FLOOR",
+        phone: nil,
+        city_locality: "BOSTON",
         state_province: "MA",
-        postal_code: "02215",
-      })
-    end
+        postal_code: "02215-4148",
+        country_code: "US",
+        address_residential_indicator: "no",
+      },
+      messages: [],
+    }]
+
+    response = client.validate_addresses(params)
+    assert_address_validation_result(expected[0], response[0])
+    assert_requested(stub, times: 1)
   end
 
-  # DX-944
-  it "handles missing city+state or postal code" do
-    missing_postal_code_or_city = {
-      country: "US",
-      street: ["123 Some St."],
-      state_province: "TX",
-    }
-
-    missing_postal_code_or_state = {
-      country: "US",
-      street: ["123 Some St."],
+  it "Validates a residential address" do
+    params = [{
+      name: "John Smith",
+      address_line1: "3910 Bailey Lane",
       city_locality: "Austin",
-    }
+      state_province: "TX",
+      postal_code: "78756",
+      country_code: "US",
+      address_residential_indicator: true,
+    }]
 
-    missing_postal_code_city_and_state = {
-      country: "US",
-      street: ["123 Some St."],
-    }
+    stub = stub_request(:post, "https://api.shipengine.com/v1/addresses/validate")
+      .with(body: params.to_json)
+      .to_return(status: 200, body: [{
+        status: "verified",
+        original_address: {
+          name: "John Smith",
+          phone: nil,
+          company_name: nil,
+          address_line1: "3910 Bailey Lane",
+          address_line2: nil,
+          address_line3: nil,
+          city_locality: "Austin",
+          state_province: "TX",
+          postal_code: "78756",
+          country_code: "US",
+          address_residential_indicator: "yes",
+        },
+        matched_address: {
+          name: "JOHN SMITH",
+          phone: nil,
+          company_name: nil,
+          address_line1: "3910 BAILEY LN",
+          address_line2: "",
+          address_line3: nil,
+          city_locality: "AUSTIN",
+          state_province: "TX",
+          postal_code: "78756-3924",
+          country_code: "US",
+          address_residential_indicator: "yes",
+        },
+        messages: [],
+      }].to_json)
 
-    expected = {
-      code: "field_value_required",
-      message:
-        "Invalid address. Either the postal code or the city/locality and state/province must be specified.",
-    }
-
-    assert_raises_shipengine_validation(expected) do
-      client.validate_address(missing_postal_code_or_city)
-    end
-
-    assert_raises_shipengine_validation(expected) do
-      client.validate_address(missing_postal_code_or_state)
-    end
-
-    assert_raises_shipengine_validation(expected) do
-      client.validate_address(missing_postal_code_city_and_state)
-    end
-  end
-
-  # DX-937 - numeric postal code
-  it "handles numeric postal code " do
-    params = {
-      country: "US",
-      street: ["4 Jersey St"],
-      city_locality: "Boston",
-      state_province: "MA",
-      postal_code: "02215",
-    }
-
-    response = client.validate_address(params)
-    expected = {
-      valid: true,
-      normalized_address: {
-        country: "US",
-        street: ["4 JERSEY ST"],
-        city_locality: "BOSTON",
-        state_province: "MA",
-        postal_code: "02215",
-        name: "",
-        company: "",
+    expected = [{
+      status: "verified",
+      original_address: {
+        name: "John Smith",
+        phone: nil,
+        company_name: nil,
+        address_line1: "3910 Bailey Lane",
+        address_line2: nil,
+        address_line3: nil,
+        city_locality: "Austin",
+        state_province: "TX",
+        postal_code: "78756",
+        country_code: "US",
+        address_residential_indicator: "yes",
       },
-      warnings: [],
-      info: [],
-      errors: [],
-    }
-    assert_address_validation_result(expected, response)
-  end
-
-  it "handles alphanumeric postal code " do
-    params = {
-      country: "CA",
-      street: ["170 Princes' Blvd"],
-      city_locality: "Toronto",
-      state_province: "On",
-      postal_code: "M6K 3C3",
-    }
-    response = client.validate_address(params)
-    expected = {
-      valid: true,
-      normalized_address: {
-        country: "CA",
-        street: ["170 Princes Blvd"],
-        city_locality: "Toronto",
-        state_province: "On",
-        postal_code: "M6 K 3 C3",
+      matched_address: {
+        name: "JOHN SMITH",
+        phone: nil,
+        company_name: nil,
+        address_line1: "3910 BAILEY LN",
+        address_line2: "",
+        address_line3: nil,
+        city_locality: "AUSTIN",
+        state_province: "TX",
+        postal_code: "78756-3924",
+        country_code: "US",
+        address_residential_indicator: "yes",
       },
-      warnings: [],
-      info: [],
-      errors: [],
-    }
-    assert_address_validation_result(expected, response)
-  end
-  # DX-941
-  it "handles messages: errors" do
-    params = {
-      street: ["170 Invalid Blvd"],
-      city_locality: "Toronto",
-      state_province: "On",
-      postal_code: "M6K 3C3",
-      country: "CA",
-    }
-    response = client.validate_address(params)
-    expected_warning_message = {
-      code: "address_not_found",
-      message: "Address not found",
-      type: "warning",
-    }
+      messages: [],
+    }]
 
-    expected_error_message = {
-      code: "address_not_found",
-      message: "Invalid City, State, or Zip",
-      type: "error",
-    }
-
-    expected_error_message2 = {
-      code: "address_not_found",
-      message: "Insufficient or Incorrect Address Data",
-      type: "error",
-    }
-
-    expected = {
-      normalized_address: nil,
-      warnings: [expected_warning_message],
-      info: [],
-      errors: [expected_error_message, expected_error_message2],
-    }
-    assert_address_validation_result(expected, response)
+    response = client.validate_addresses(params)
+    assert_address_validation_result(expected[0], response[0])
+    assert_requested(stub, times: 1)
   end
 
-  # DX-940
-  it "handles messages: warnings" do
-    params = {
-      street: ["170 Warning Blvd", "Apartment 32-B"],
-      city_locality: "Toronto",
-      state_province: "On",
-      postal_code: "M6K 3C3",
-      country: "CA",
-    }
+  it "Validates an address with messages" do
+    params = [{
+      name: "John Smith",
+      address_line1: "Winchester Blvd",
+      city_locality: "San Jose",
+      state_province: "CA",
+      postal_code: "78756",
+      country_code: "US",
+    }]
 
-    expected_warning_message = {
-      type: "warning",
-      code: "partially_verified_to_premise_level",
-      message:
-        "This address has been verified down to the house/building level (highest possible accuracy with the provided data)",
-    }
+    stub = stub_request(:post, "https://api.shipengine.com/v1/addresses/validate")
+      .with(body: params.to_json)
+      .to_return(status: 200, body: [{
+        status: "error",
+        original_address: {
+          name: "John Smith",
+          phone: nil,
+          company_name: nil,
+          address_line1: "Winchester Blvd",
+          address_line2: nil,
+          address_line3: nil,
+          city_locality: "San Jose",
+          state_province: "CA",
+          postal_code: "78756",
+          country_code: "US",
+          address_residential_indicator: "unknown",
+        },
+        matched_address: {
+          name: "JOHN SMITH",
+          phone: nil,
+          company_name: nil,
+          address_line1: "WINCHESTER BLVD",
+          address_line2: "",
+          address_line3: nil,
+          city_locality: "SAN JOSE",
+          state_province: "CA",
+          postal_code: "95128-2092",
+          country_code: "US",
+          address_residential_indicator: "unknown",
+        },
+        messages: [
+          {
+            code: "a1004",
+            message: "Address not found",
+            type: "warning",
+            detail_code: nil,
+          },
+          {
+            code: "a1004",
+            message: "Insufficient or Incorrect Address Data",
+            type: "warning",
+            detail_code: nil,
+          },
+        ],
+      }].to_json)
 
-    expected = {
-      valid: true,
-      normalized_address: {
-        residential: true,
-        street: ["170 Warning Blvd Apt 32-B"],
-        city_locality: "Toronto",
-        state_province: "On",
-        postal_code: "M6K 3C3",
-        country: "CA",
+    expected = [{
+      status: "error",
+      original_address: {
+        name: "John Smith",
+        phone: nil,
+        company_name: nil,
+        address_line1: "Winchester Blvd",
+        address_line2: nil,
+        address_line3: nil,
+        city_locality: "San Jose",
+        state_province: "CA",
+        postal_code: "78756",
+        country_code: "US",
+        address_residential_indicator: "unknown",
       },
-      warnings: [expected_warning_message],
-      info: [],
-      errors: [],
-    }
+      matched_address: {
+        name: "JOHN SMITH",
+        phone: nil,
+        company_name: nil,
+        address_line1: "WINCHESTER BLVD",
+        address_line2: "",
+        address_line3: nil,
+        city_locality: "SAN JOSE",
+        state_province: "CA",
+        postal_code: "95128-2092",
+        country_code: "US",
+        address_residential_indicator: "unknown",
+      },
+      messages: [
+        {
+          code: "a1004",
+          message: "Address not found",
+          type: "warning",
+          detail_code: nil,
+        },
+        {
+          code: "a1004",
+          message: "Insufficient or Incorrect Address Data",
+          type: "warning",
+          detail_code: nil,
+        },
+      ],
+    }]
 
-    response = client.validate_address(params)
-    assert_address_validation_result(expected, response)
+    response = client.validate_addresses(params)
+    assert_address_validation_result(expected[0], response[0])
+    assert_requested(stub, times: 1)
   end
 end

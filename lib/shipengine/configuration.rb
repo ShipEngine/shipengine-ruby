@@ -1,15 +1,14 @@
 # frozen_string_literal: true
 module ShipEngine
   class Configuration
-    attr_accessor :api_key, :retries, :base_url, :timeout, :page_size, :emitter
+    attr_accessor :api_key, :retries, :base_url, :timeout, :page_size
 
-    def initialize(api_key:, retries: nil, timeout: nil, page_size: nil, base_url: nil, emitter: nil)
+    def initialize(api_key:, retries: nil, timeout: nil, page_size: nil, base_url: nil)
       @api_key = api_key
       @base_url = base_url || Constants.base_url
       @retries = retries || 1
       @timeout = timeout || 30_000
       @page_size = page_size || 50
-      @emitter = emitter
       validate
     end
 
@@ -20,12 +19,11 @@ module ShipEngine
     # @option opts [String] :body ('') The email's bod
     def merge(config)
       copy = clone
-      copy.api_key = config[:api_key] if config.key?(:api_key)
-      copy.base_url = config[:base_url] if config.key?(:base_url)
-      copy.retries =  config[:retries] if config.key?(:retries)
-      copy.timeout =  config[:timeout] if config.key?(:timeout)
+      copy.api_key   = config[:api_key] if config.key?(:api_key)
+      copy.base_url  = config[:base_url] if config.key?(:base_url)
+      copy.retries   =  config[:retries] if config.key?(:retries)
+      copy.timeout   =  config[:timeout] if config.key?(:timeout)
       copy.page_size = config[:page_size] if config.key?(:page_size)
-      copy.emitter = config[:emitter] if config.key?(:emitter)
       copy.validate
       copy
     end

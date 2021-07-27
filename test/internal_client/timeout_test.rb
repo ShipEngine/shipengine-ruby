@@ -1,11 +1,12 @@
 # frozen_string_literal: true
+
 require "test_helper"
 
 describe "timeout" do
   it "Should throw an error if timeout is invalid at instantiation or at method call" do
     timeout_err = { message: "Timeout must be greater than zero.", code: ::ShipEngine::Exceptions::ErrorCode.get(:INVALID_FIELD_VALUE) }
 
-    stub = stub_request(:post, SIMENGINE_URL)
+    stub = stub_request(:post, "https://api.shipengine.com/v1/addresses/validate")
       .with(body: /.*/)
       .to_return(status: 200, body: Factory.valid_address_res_json)
 
@@ -18,13 +19,13 @@ describe "timeout" do
     assert_raises_shipengine_validation(timeout_err) do
       client = ::ShipEngine::Client.new("abc1234")
       client.configuration.timeout = -1
-      client.validate_address(Factory.valid_address_params)
+      client.validate_addresses(Factory.valid_address_params)
     end
 
     # config during method call
     assert_raises_shipengine_validation(timeout_err) do
       client = ShipEngine::Client.new("abc1234")
-      client.validate_address(Factory.valid_address_params, { timeout: -1 })
+      client.validate_addresses(Factory.valid_address_params, { timeout: -1 })
     end
 
     assert_not_requested(stub)

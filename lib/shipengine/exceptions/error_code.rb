@@ -222,7 +222,7 @@ module ShipEngine
         ## Your API key is incorrect expired or missing. Check our authentication
         ## guide to learn more about authentication with ShipEngine.
         # #/
-        Unauthorized: "unauthorized",
+        UNAUTHORIZED: "unauthorized",
 
         ##
         ## This error has not yet been assigned a code. See the notes above about how

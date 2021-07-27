@@ -1,64 +1,93 @@
 # frozen_string_literal: true
 
-require "shipengine/utils/validate"
+require "hashie"
+require_relative "carriers/list_carriers"
 require "shipengine/constants"
-require "shipengine/utils/pretty_print"
+require "pry"
 
 module ShipEngine
-  class Carrier
-    include ::ShipEngine::Utils::PrettyPrint
-    attr_reader :code, :name
-
-    # @param code [string] e.g. 'ups' | 'fedex'
-    def initialize(code)
-      @code = code
-      @name = CARRIER_MAP[code]
-    end
-
-    # {"carrier_code" => "name"}
-    CARRIER_MAP = {
-      "ups" => "United Parcel Service",
-      "fedex" => "FedEx",
-      "usps" => "U.S. Postal Service",
-      "stamps_com" => "Stamps.com",
-    }.freeze
-    # TODO: update above carrier map to be current, missing several carriers.
-  end
-
-  class CarrierAccount
-    include ::ShipEngine::Utils::PrettyPrint
-    attr_reader :carrier, :account_id, :account_number, :name
-
-    # @param carrier [Carrier]
-    # @param account_id [String] The unique ID that is associated with the current carrier account.
-    # @param account_number [String] The account number of the current carrier account.
-    # @param name [String] e.g. The account name of the current carrier account.
-    def initialize(carrier_code:, account_id:, account_number:, name:)
-      @carrier = Carrier.new(carrier_code)
-      @account_id = account_id
-      @account_number = account_number
-      @name = name
-    end
-  end
-
   module Domain
-    class Carrier
+    class Carriers
       # @param [ShipEngine::InternalClient] internal_client
       def initialize(internal_client)
         @internal_client = internal_client
       end
 
-      def list_accounts(config:, carrier_code: nil)
-        response = @internal_client.make_request("carrier.listAccounts.v1", { carrierCode: carrier_code }.compact, config)
-        accounts = response.result["carrierAccounts"]
-        accounts.map do |account|
-          CarrierAccount.new(
-            carrier_code: account["carrierCode"],
-            account_id: account["accountID"],
-            account_number: account["accountNumber"],
-            name: account["name"]
+      def list_carriers(config:)
+        response = @internal_client.get("/v1/carriers", {}, config)
+        carriers_api_result = response.body
+        mash_result = Hashie::Mash.new(carriers_api_result)
+        carriers = mash_result.carriers.map do |carrier|
+          services = carrier.services.map do |service|
+            ListCarriers::Carrier::Service.new(
+              carrier_id: service.carrier_id,
+              carrier_code: service.carrier_code,
+              service_code: service.service_code,
+              name: service.name,
+              domestic: service.domestic,
+              international: service.international,
+              is_multi_package_supported: service.is_multi_package_supported,
+            )
+          end
+
+          packages = carrier.packages.map do |package|
+            dimensions = nil
+            if package.dimensions
+              dimensions = ListCarriers::Carrier::Package::Dimensions.new(
+                unit: package.dimensions.unit,
+                length: package.dimensions["length"],
+                width: package.dimensions.width,
+                height: package.dimensions.height,
+              )
+            end
+            ListCarriers::Carrier::Package.new(
+              package_id: package.package_id,
+              package_code: package.package_code,
+              name: package.name,
+              dimensions: dimensions,
+              description: package.description
+            )
+          end
+
+          options = carrier.options.map do |option|
+            ListCarriers::Carrier::Option.new(
+              name: option.name,
+              default_value: option.default_value,
+              description: option.description
+            )
+          end
+
+          ListCarriers::Carrier.new(
+            carrier_id: carrier.carrier_id,
+            carrier_code: carrier.carrier_code,
+            account_number: carrier.account_number,
+            requires_funded_amount: carrier.requires_funded_amount,
+            balance: carrier.balance,
+            nickname: carrier.nickname,
+            friendly_name: carrier.friendly_name,
+            primary: carrier.primary,
+            has_multi_package_supporting_services: carrier.has_multi_package_supporting_services,
+            supports_label_messages: carrier.supports_label_messages,
+            services: services,
+            packages: packages,
+            options: options
           )
         end
+
+        errors = mash_result.errors.map do |error|
+          ListCarriers::Error.new(
+            error_source: error.error_source,
+            error_type: error.error_type,
+            error_code: error.error_code,
+            message: error["message"]
+          )
+        end
+
+        ListCarriers::Response.new(
+          carriers: carriers,
+          request_id: mash_result.request_id,
+          errors: errors
+        )
       end
     end
   end

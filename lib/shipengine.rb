@@ -3,13 +3,11 @@
 # for client class
 require "shipengine/internal_client"
 require "shipengine/domain"
-require "shipengine/emitter"
 require "shipengine/configuration"
 
 # just for exporting
-require "shipengine/version"
-require "shipengine/exceptions"
 require "shipengine/utils/validate"
+require "shipengine/version"
 require "shipengine/constants"
 require "observer"
 
@@ -17,86 +15,139 @@ module ShipEngine
   class Client
     attr_accessor :configuration
 
-    def initialize(api_key, retries: nil, timeout: nil, page_size: nil, base_url: nil, emitter: nil)
+    def initialize(api_key, retries: nil, timeout: nil, page_size: nil, base_url: nil)
       @configuration = Configuration.new(
         api_key: api_key,
         retries: retries,
         base_url: base_url,
         timeout: timeout,
-        page_size: page_size,
-        emitter: emitter
+        page_size: page_size
       )
 
-      internal_client = InternalClient.new(@configuration)
-      @address = Domain::Address.new(internal_client)
-      @carriers = Domain::Carrier.new(internal_client)
-      @package = Domain::Package.new(internal_client, @carriers)
-    end
-
-    # wrap methods in a block to "catch" and emit the errors
-    # this could maybe be improved with some metaprogramming, but this is a
-    # straightforward approach with minimal cost.
-    def with_emit_error(emitter)
-      yield
-    rescue ::ShipEngine::Exceptions::ShipEngineError => err
-      emitter = @configuration.emitter
-      if emitter
-        error_event = ShipEngine::Emitter::ErrorEvent.new(
-          message: err.message,
-          request_id: err.request_id,
-          error_source: err.source,
-          error_code: err.code,
-          error_type: err.type,
-        )
-        emitter.on_error(error_event)
-      end
-      raise err
+      @internal_client = ShipEngine::InternalClient.new(@configuration)
+      @addresses = Domain::Addresses.new(@internal_client)
+      @carriers = Domain::Carriers.new(@internal_client)
+      @labels = Domain::Labels.new(@internal_client)
+      @rates = Domain::Rates.new(@internal_client)
+      @tracking = Domain::Tracking.new(@internal_client)
     end
 
     #
-    # Validate an address
+    # Validate an array of address
     #
-    # @param [Address] address
+    # @param addresses [Array<ShipEngine::Domain::Addresses::AddressValidation::Request>]
     # @param config [Hash?]
     # @option config [String?] :api_key
     # @option config [String?] :base_url
     # @option config [Number?] :retries
     # @option config [Number?] :timeout
     #
-    # @return [::ShipEngine::AddressValidationResult] <description>
     #
-    def validate_address(address, config = {})
-      with_emit_error(config[:emitter]) do
-        @address.validate(address, config)
-      end
+    # @return [Array<ShipEngine::Domain::Addresses::AddressValidation::Response>]
+    #
+    # @see https://shipengine.github.io/shipengine-openapi/#operation/validate_address
+    def validate_addresses(address, config = {})
+      @addresses.validate(address, config)
     end
 
-    # Normalize an address
     #
-    # @param [Address] address
+    # List all of the users Carriers
+    #
+    # @param config [Hash?]
+    # @option config [String?] :api_key
+    # @option config [String?] :base_url
+    # @option config [Number?] :retries
+    # @option config [Number?] :timeout
+    #
+    #
+    # @return [ShipEngine::Domain::Carriers::ListCarriers::Response]
+    #
+    # @see https://shipengine.github.io/shipengine-openapi/#operation/list_carriers
+    def list_carriers(config: {})
+      @carriers.list_carriers(config: config)
+    end
+
+    # Create label from Rate Id
+    #
+    # @param rate_id [String]
+    # @param params [Hash]
     # @param config [Hash]
     # @option config [String?] :api_key
     # @option config [String?] :base_url
     # @option config [Number?] :retries
     # @option config [Number?] :timeout
-    # @option config [ShipEngine::Emitter::EventEmitter] :emitter
     #
-    # @return [::ShipEngine::NormalizedAddress]
+    # @return [ShipEngine::Domain::Labels::CreateFromRate::Response]
     #
-    def normalize_address(address, config = {})
-      with_emit_error(config[:emitter]) do
-        @address.normalize(address, config)
-      end
+    # @see https://shipengine.github.io/shipengine-openapi/#operation/create_label_from_rate
+    def create_label_from_rate(rate_id, params, config = {})
+      @labels.create_from_rate(rate_id, params, config)
     end
 
-    def list_carrier_accounts(carrier_code: nil, config: {})
-      with_emit_error(config[:emitter]) do
-        @carriers.list_accounts(carrier_code: carrier_code, config: config)
-      end
+    # Create label from Shipment Details
+    #
+    # @param params [Hash]
+    # @param config [Hash]
+    # @option config [String?] :api_key
+    # @option config [String?] :base_url
+    # @option config [Number?] :retries
+    # @option config [Number?] :timeout
+    #
+    # @return [ShipEngine::Domain::Labels::CreateFromShipmentDetails::Response]
+    #
+    # @see https://shipengine.github.io/shipengine-openapi/#operation/create_label
+    def create_label_from_shipment_details(params, config = {})
+      @labels.create_from_shipment_details(params, config)
     end
 
-    # Track package by package id (recommended)
+    # Void label with Label Id
     #
+    # @param label_id [String]
+    # @param config [Hash]
+    # @option config [String?] :api_key
+    # @option config [String?] :base_url
+    # @option config [Number?] :retries
+    # @option config [Number?] :timeout
+    #
+    # @return [ShipEngine::Domain::Labels::CreateFromShipmentDetails::Response]
+    #
+    # @see https://shipengine.github.io/shipengine-openapi/#operation/create_label
+    def void_label_with_label_id(label_id, config = {})
+      @labels.void(label_id, config)
+    end
+
+    # Get Rates with Shipment Details
+    #
+    # @param Shipment Details [Hash]
+    # @param config [Hash]
+    # @option config [String?] :api_key
+    # @option config [String?] :base_url
+    # @option config [Number?] :retries
+    # @option config [Number?] :timeout
+    #
+    # @return [ShipEngine::Domain::Tracking::TrackUsingLabelId::Response]
+    #
+    def get_rates_with_shipment_details(shipment_details, config = {})
+      @rates.get_rates_with_shipment_details(shipment_details, config)
+    end
+
+    # Track Package by package id (recommended)
+    #
+    # @param label_id [String] <description>
+    # @param config [Hash]
+    # @option config [String?] :api_key
+    # @option config [String?] :base_url
+    # @option config [Number?] :retries
+    # @option config [Number?] :timeout
+    #
+    # @return [ShipEngine::Domain::Tracking::TrackUsingLabelId::Response]
+    #
+    def track_using_label_id(label_id, config = {})
+      @tracking.track_using_label_id(label_id, config)
+    end
+
+    #
+    # Track Package by tracking number. Tracking by package_id is preferred [@see #track_package_by_id]
     # @param tracking_number [String] <description>
     # @param config [Hash]
     # @option config [String?] :api_key
@@ -104,29 +155,10 @@ module ShipEngine
     # @option config [Number?] :retries
     # @option config [Number?] :timeout
     #
-    # @return [::ShipEngine::TrackPackageResult]
+    # @return [ShipEngine::Domain::Tracking::TrackUsingCarrierCodeAndTrackingNumber::Response]
     #
-    def track_package_by_id(package_id, config = {})
-      with_emit_error(config[:emitter]) do
-        @package.track_by_id(package_id, config)
-      end
-    end
-
-    #
-    # Track package by tracking number. Tracking by package_id is preferred [@see #track_package_by_id]
-    # @param tracking_number [String] <description>
-    # @param config [Hash]
-    # @option config [String?] :api_key
-    # @option config [String?] :base_url
-    # @option config [Number?] :retries
-    # @option config [Number?] :timeout
-    #
-    # @return [::ShipEngine::TrackPackageResult]
-    #
-    def track_package_by_tracking_number(tracking_number, carrier_code, config = {})
-      with_emit_error(config[:emitter]) do
-        @package.track_by_tracking_number(tracking_number, carrier_code, config)
-      end
+    def track_using_carrier_code_and_tracking_number(carrier_code, tracking_number, config = {})
+      @tracking.track_using_carrier_code_and_tracking_number(carrier_code, tracking_number, config)
     end
   end
 end
