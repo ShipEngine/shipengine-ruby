@@ -79,9 +79,9 @@ module ShipEngine
       response = create_connection(config_with_overrides).send(method) do |request|
         case method
         when :get, :delete
-          request.url(URI.encode(path), options)
+          request.url(path, options)
         when :post, :put
-          request.path = URI.encode(path)
+          request.path = path
           request.body = options unless options.empty?
         end
       end
