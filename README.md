@@ -19,7 +19,7 @@ gem install shipengine_sdk
 
 Methods
 -------
-* [`create_label_from_rate`](./docs/create-label-from-rate.md) - When retrieving rates for shipments using the `getRates` method, the returned information contains a `rate_id` property that can be used to purchase a label without having to refill in the shipment information repeatedly.
+* [`create_label_from_rate`](./docs/create-label-from-rate.md) - When retrieving rates for shipments using the `get_rates` method, the returned information contains a `rate_id` property that can be used to purchase a label without having to refill in the shipment information repeatedly.
 * [`create_label`](./docs/create-label.md) - Purchase and print a label for shipment.
 * [`get_rates`](./docs/get-rates.md) - Given some shipment details and rate options, this method returns a list of rate quotes.
 * [`list_carrier_accounts`](./docs/list-carrier-accounts.md) - Returns a list of carrier accounts that have been connected through
