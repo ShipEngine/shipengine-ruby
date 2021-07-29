@@ -53,6 +53,10 @@ Install dependencies
 ./bin/setup
 ```
 
+Committing
+-------------------------
+This project adheres to the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) specification.
+
 Pre-Commit/Pre-Push Hooks
 -------------------------
 This project makes use of [Overcommit](https://github.com/sds/overcommit#usage) to enforce `pre-commit/push hooks`.
@@ -87,3 +91,6 @@ Repl Development
 > If you prefer `irb` over `pry`, you can follow the instructions in the [./bin/console](./bin/console) file. Please
 DO NOT commit any changes you make to that file, unless they are improvements to the console workflow.
 
+Publishing
+-------------------------
+Publishing new versions of the SDK to [RubyGems](https://rubygems.org/) is handled on GitHub via the [Release Please](https://github.com/googleapis/release-please) GitHub Actions workflow. Learn more about about Release PRs, updating the changelog, and commit messages [here](https://github.com/googleapis/release-please#how-should-i-write-my-commits).
