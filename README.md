@@ -4,7 +4,6 @@ ShipEngine Ruby SDK
 ===================
 ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/ShipEngine/shipengine-ruby/CI?label=shipengine-ruby&logo=github)
 ![GitHub](https://img.shields.io/github/license/ShipEngine/shipengine-ruby?color=teal)
-> :warning: **WARNING**: This is alpha software under active development and it is not ready for consumer use.
 
 The Official Ruby SDK for [ShipEngine API](https://shipengine.com) offering low-level access as well as convenience methods.
 
@@ -20,12 +19,12 @@ gem install shipengine_sdk
 Methods
 -------
 * [`create_label_from_rate`](./docs/create-label-from-rate.md) - When retrieving rates for shipments using the `get_rates` method, the returned information contains a `rate_id` property that can be used to purchase a label without having to refill in the shipment information repeatedly.
-* [`create_label`](./docs/create-label.md) - Purchase and print a label for shipment.
+* [`create_label_from_shipment_details`](./docs/create-label-from-shipment-details.md) - Purchase and print a label for shipment.
 * [`get_rates`](./docs/get-rates.md) - Given some shipment details and rate options, this method returns a list of rate quotes.
 * [`list_carrier_accounts`](./docs/list-carrier-accounts.md) - Returns a list of carrier accounts that have been connected through
 the [ShipEngine dashboard](https://www.shipengine.com/docs/carriers/setup/).
 * [`track_by_label_id`](./docs/track-by-label-id.md) - Track a package by its associated label ID.
-* [`track_by_tracking_number`](./docs/track-by-tracking-number.md) - Track a package by its associated trackng number.
+* [`track_using_carrier_code_and_tracking_number`](./docs/track-by-tracking-number.md) - Track a package by its associated trackng number.
 * [`validate_addresses`](./docs/validate-addresses.md) - Indicates whether the provided addresses are valid. If the addresses are valid, the method returns a normalized version based on the standards of the country in which the address resides. If an address cannot be normalized, an error is returned.
 * [`void_label_by_id`](./docs/void-label-by-id.md) - Void a label by its ID.
 
