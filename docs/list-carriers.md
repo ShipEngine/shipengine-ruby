@@ -10,7 +10,7 @@ The `list_carriers` method returns an array of connected carrier accounts in a r
 Example
 ```ruby
 def list_carriers_demo_function()
-	client = ShipEngine::Client.new("TEST_ycvJAgX6tLB1Awm9WGJmD8mpZ8wXiQ20WhqFowCk32s")
+	client = ShipEngine::Client.new("API-Key")
 	begin
 	  result = client.list_carriers
 		puts result
