@@ -16,7 +16,6 @@ Example
 ```ruby
 def track_using_label_id_demo_function()
 	client = ShipEngine::Client.new("API-Key")
-	client = ShipEngine::Client.new("TEST_ycvJAgX6tLB1Awm9WGJmD8mpZ8wXiQ20WhqFowCk32s")
 	begin
 	  result = client.track_using_label_id("se-73335564")
 		puts result
