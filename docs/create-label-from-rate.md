@@ -25,7 +25,7 @@ def create_label_from_rate_demo_function()
 	}
 
 	begin
-	  result = client.create_label_from_shipment_details('se-795684260', params)
+	  result = client.create_label_from_rate('se-795684260', params)
 		puts result
 	rescue ShipEngine::Exceptions::ShipEngineError => err
 	  puts err
