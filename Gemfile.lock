@@ -4,7 +4,7 @@ PATH
     shipengine (0.1.0)
       faraday (~> 1.4)
       faraday_middleware (~> 1.0)
-      hashie (~> 3.4)
+      hashie (>= 3.4)
 
 GEM
   remote: https://rubygems.org/
