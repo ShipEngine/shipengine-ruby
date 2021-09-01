@@ -10,9 +10,9 @@ The Official Ruby SDK for [ShipEngine API](https://shipengine.com) offering low-
 Quick Start
 ===========
 
-Install ShipEngine via [RubyGems](https://rubygems.org/)
-```bash
-gem install shipengine_sdk
+Install ShipEngine by adding this line to your Gemfile
+```
+gem 'shipengine', github: 'shipengine/shipengine-ruby', branch: 'main'
 ```
 - The only configuration requirement is an [API Key](https://www.shipengine.com/docs/auth/#api-keys).
 
