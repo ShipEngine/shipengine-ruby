@@ -3,7 +3,7 @@
 require_relative "lib/shipengine/version"
 
 Gem::Specification.new do |spec|
-  spec.name          = "shipengine"
+  spec.name          = "shipengine_sdk"
   spec.version       = ShipEngine::VERSION
   spec.authors       = ["ShipEngine Development Team"]
   spec.summary       = "The Official Ruby SDK for ShipEngine."
