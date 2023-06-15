@@ -1,13 +1,14 @@
 # frozen_string_literal: true
-require "hashie"
-require_relative "labels/create_from_rate"
-require_relative "labels/create_from_shipment_details"
-require_relative "labels/void_label"
+
+require 'hashie'
+require_relative 'labels/create_from_rate'
+require_relative 'labels/create_from_shipment_details'
+require_relative 'labels/void_label'
 
 module ShipEngine
   module Domain
-    class Labels
-      require "shipengine/constants"
+    class Labels # rubocop:todo Metrics/ClassLength
+      require 'shipengine/constants'
 
       # @param [ShipEngine::InternalClient] internal_client
       def initialize(internal_client)
@@ -30,7 +31,7 @@ module ShipEngine
         if mash_result.shipment_cost
           shipment_cost = CreateFromRate::Response::MonetaryValue.new(
             currency: mash_result.shipment_cost.currency,
-            amount: mash_result.shipment_cost.amount,
+            amount: mash_result.shipment_cost.amount
           )
         end
 
@@ -38,7 +39,7 @@ module ShipEngine
         if mash_result.insurance_cost
           insurance_cost = CreateFromRate::Response::MonetaryValue.new(
             currency: mash_result.insurance_cost.currency,
-            amount: mash_result.insurance_cost.amount,
+            amount: mash_result.insurance_cost.amount
           )
         end
 
@@ -71,16 +72,16 @@ module ShipEngine
         packages = mash_result.packages.map do |package|
           weight = CreateFromRate::Response::Weight.new(
             value: package.weight.value,
-            unit: package.weight.unit,
+            unit: package.weight.unit
           )
 
           dimensions = nil
           if package.dimensions
             dimensions = CreateFromRate::Response::Dimensions.new(
               unit: package.dimensions.unit,
-              length: package.dimensions["length"],
+              length: package.dimensions['length'],
               width: package.dimensions.width,
-              height: package.dimensions.height,
+              height: package.dimensions.height
             )
           end
 
@@ -88,7 +89,7 @@ module ShipEngine
           if package.insured_value
             insured_value = CreateFromRate::Response::MonetaryValue.new(
               currency: package.insured_value.currency,
-              amount: package.insured_value.amount,
+              amount: package.insured_value.amount
             )
           end
 
@@ -103,11 +104,11 @@ module ShipEngine
 
           CreateFromRate::Response::Package.new(
             package_code: package.package_code,
-            weight: weight,
-            dimensions: dimensions,
-            insured_value: insured_value,
+            weight:,
+            dimensions:,
+            insured_value:,
             tracking_number: package.tracking_number,
-            label_messages: label_messages,
+            label_messages:,
             external_package_id: package.external_package_id
           )
         end
@@ -118,8 +119,8 @@ module ShipEngine
           shipment_id: mash_result.shipment_id,
           ship_date: mash_result.ship_date,
           created_at: mash_result.created_at,
-          shipment_cost: shipment_cost,
-          insurance_cost: insurance_cost,
+          shipment_cost:,
+          insurance_cost:,
           tracking_number: mash_result.tracking_number,
           is_return_label: mash_result.is_return_label,
           rma_number: mash_result.rma_number,
@@ -138,10 +139,10 @@ module ShipEngine
           label_image_id: mash_result.label_image_id,
           carrier_code: mash_result.carrier_code,
           tracking_status: mash_result.tracking_status,
-          label_download: label_download,
-          form_download: form_download,
-          insurance_claim: insurance_claim,
-          packages: packages
+          label_download:,
+          form_download:,
+          insurance_claim:,
+          packages:
         )
       end
 
@@ -152,7 +153,7 @@ module ShipEngine
       #
       # @see https://shipengine.github.io/shipengine-openapi/#operation/create_label
       def create_from_shipment_details(params, config)
-        response = @internal_client.post("/v1/labels", params, config)
+        response = @internal_client.post('/v1/labels', params, config)
         label_api_result = response.body
         mash_result = Hashie::Mash.new(label_api_result)
 
@@ -160,7 +161,7 @@ module ShipEngine
         if mash_result.shipment_cost
           shipment_cost = CreateFromShipmentDetails::Response::MonetaryValue.new(
             currency: mash_result.shipment_cost.currency,
-            amount: mash_result.shipment_cost.amount,
+            amount: mash_result.shipment_cost.amount
           )
         end
 
@@ -168,7 +169,7 @@ module ShipEngine
         if mash_result.insurance_cost
           insurance_cost = CreateFromShipmentDetails::Response::MonetaryValue.new(
             currency: mash_result.insurance_cost.currency,
-            amount: mash_result.insurance_cost.amount,
+            amount: mash_result.insurance_cost.amount
           )
         end
 
@@ -201,16 +202,16 @@ module ShipEngine
         packages = mash_result.packages.map do |package|
           weight = CreateFromShipmentDetails::Response::Weight.new(
             value: package.weight.value,
-            unit: package.weight.unit,
+            unit: package.weight.unit
           )
 
           dimensions = nil
           if package.dimensions
             dimensions = CreateFromShipmentDetails::Response::Dimensions.new(
               unit: package.dimensions.unit,
-              length: package.dimensions["length"],
+              length: package.dimensions['length'],
               width: package.dimensions.width,
-              height: package.dimensions.height,
+              height: package.dimensions.height
             )
           end
 
@@ -218,7 +219,7 @@ module ShipEngine
           if package.insured_value
             insured_value = CreateFromShipmentDetails::Response::MonetaryValue.new(
               currency: package.insured_value.currency,
-              amount: package.insured_value.amount,
+              amount: package.insured_value.amount
             )
           end
 
@@ -233,11 +234,11 @@ module ShipEngine
 
           CreateFromShipmentDetails::Response::Package.new(
             package_code: package.package_code,
-            weight: weight,
-            dimensions: dimensions,
-            insured_value: insured_value,
+            weight:,
+            dimensions:,
+            insured_value:,
             tracking_number: package.tracking_number,
-            label_messages: label_messages,
+            label_messages:,
             external_package_id: package.external_package_id
           )
         end
@@ -248,8 +249,8 @@ module ShipEngine
           shipment_id: mash_result.shipment_id,
           ship_date: mash_result.ship_date,
           created_at: mash_result.created_at,
-          shipment_cost: shipment_cost,
-          insurance_cost: insurance_cost,
+          shipment_cost:,
+          insurance_cost:,
           tracking_number: mash_result.tracking_number,
           is_return_label: mash_result.is_return_label,
           rma_number: mash_result.rma_number,
@@ -268,10 +269,10 @@ module ShipEngine
           label_image_id: mash_result.label_image_id,
           carrier_code: mash_result.carrier_code,
           tracking_status: mash_result.tracking_status,
-          label_download: label_download,
-          form_download: form_download,
-          insurance_claim: insurance_claim,
-          packages: packages
+          label_download:,
+          form_download:,
+          insurance_claim:,
+          packages:
         )
       end
 
@@ -288,7 +289,7 @@ module ShipEngine
 
         VoidLabel::Response.new(
           approved: mash_result.approved,
-          message: mash_result["message"]
+          message: mash_result['message']
         )
       end
     end

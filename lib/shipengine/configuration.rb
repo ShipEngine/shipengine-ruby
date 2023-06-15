@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module ShipEngine
   class Configuration
     attr_accessor :api_key, :retries, :base_url, :timeout, :page_size
@@ -32,11 +33,11 @@ module ShipEngine
     protected
 
     def validate
-      Utils::Validate.str("A ShipEngine API key", @api_key)
-      Utils::Validate.str("Base URL", @base_url)
-      Utils::Validate.non_neg_int("Retries", @retries)
-      Utils::Validate.positive_int("Timeout", @timeout)
-      Utils::Validate.positive_int("Page size", @page_size)
+      Utils::Validate.str('A ShipEngine API key', @api_key)
+      Utils::Validate.str('Base URL', @base_url)
+      Utils::Validate.non_neg_int('Retries', @retries)
+      Utils::Validate.positive_int('Timeout', @timeout)
+      Utils::Validate.positive_int('Page size', @page_size)
     end
   end
 end

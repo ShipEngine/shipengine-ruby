@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "test_helper"
+require 'test_helper'
 
 #
 # <Description>
@@ -79,241 +79,241 @@ def assert_option(expected, actual_option)
   assert_equal(expected[:description], actual_option.description) if expected.key?(:description)
 end
 
-describe "List Carrier Accounts: Functional" do
+describe 'List Carrier Accounts: Functional' do
   after do
     WebMock.reset!
   end
-  client = ::ShipEngine::Client.new("TEST_ycvJAgX6tLB1Awm9WGJmD8mpZ8wXiQ20WhqFowCk32s")
+  client = ShipEngine::Client.new('TEST_ycvJAgX6tLB1Awm9WGJmD8mpZ8wXiQ20WhqFowCk32s')
 
-  it "handles unauthorized errors" do
-    stub = stub_request(:get, "https://api.shipengine.com/v1/carriers")
-      .to_return(status: 401, body: {
-        "request_id" => "cdc19c7b-eec7-4730-8814-462623a62ddb",
-        "errors" => [{
-          "error_source" => "shipengine",
-          "error_type" => "security",
-          "error_code" => "unauthorized",
-          "message" => "The API key is invalid. Please see https://www.shipengine.com/docs/auth",
-        }],
-      }.to_json)
+  it 'handles unauthorized errors' do
+    stub = stub_request(:get, 'https://api.shipengine.com/v1/carriers')
+           .to_return(status: 401, body: {
+             'request_id' => 'cdc19c7b-eec7-4730-8814-462623a62ddb',
+             'errors' => [{
+               'error_source' => 'shipengine',
+               'error_type' => 'security',
+               'error_code' => 'unauthorized',
+               'message' => 'The API key is invalid. Please see https://www.shipengine.com/docs/auth'
+             }]
+           }.to_json)
 
     expected_err = {
-      source: "shipengine",
-      type: "security",
-      code: "unauthorized",
-      message: "The API key is invalid. Please see https://www.shipengine.com/docs/auth",
+      source: 'shipengine',
+      type: 'security',
+      code: 'unauthorized',
+      message: 'The API key is invalid. Please see https://www.shipengine.com/docs/auth'
     }
 
-    assert_raises_shipengine(::ShipEngine::Exceptions::ShipEngineError, expected_err) do
+    assert_raises_shipengine(ShipEngine::Exceptions::ShipEngineError, expected_err) do
       client.list_carriers
       assert_requested(stub, times: 1)
     end
   end
 
-  it "handles a successful response with multiple carriers" do
-    stub = stub_request(:get, "https://api.shipengine.com/v1/carriers")
-      .to_return(status: 200, body: {
-        "carriers": [
-          {
-            "carrier_id": "se-28529731",
-            "carrier_code": "se-28529731",
-            "account_number": "account_570827",
-            "requires_funded_amount": true,
-            "balance": 3799.52,
-            "nickname": "ShipEngine Account - Stamps.com",
-            "friendly_name": "Stamps.com",
-            "primary": true,
-            "has_multi_package_supporting_services": true,
-            "supports_label_messages": true,
-            "services": [
-              {
-                "carrier_id": "se-28529731",
-                "carrier_code": "se-28529731",
-                "service_code": "usps_media_mail",
-                "name": "USPS First Class Mail",
-                "domestic": true,
-                "international": true,
-                "is_multi_package_supported": true,
-              },
-            ],
-            "packages": [
-              {
-                "package_id": "se-28529731",
-                "package_code": "small_flat_rate_box",
-                "name": "laptop_box",
-                "dimensions": {
-                  "unit": "inch",
-                  "length": 1,
-                  "width": 1,
-                  "height": 1,
-                },
-                "description": "Packaging for laptops",
-              },
-            ],
-            "options": [
-              {
-                "name": "contains_alcohol",
-                "default_value": "false",
-                "description": "string",
-              },
-            ],
-          },
-          {
-            "carrier_id": "se-test",
-            "carrier_code": "se-testing",
-            "account_number": "account_117",
-            "requires_funded_amount": true,
-            "balance": 3799.12,
-            "nickname": "ShipEngine Account 2",
-            "friendly_name": "Stamps.com 2",
-            "primary": false,
-            "has_multi_package_supporting_services": false,
-            "supports_label_messages": false,
-            "services": [
-              {
-                "carrier_id": "se-test",
-                "carrier_code": "se-test",
-                "service_code": "usps_media_mail+test",
-                "name": "USPS First Class Mail test",
-                "domestic": false,
-                "international": false,
-                "is_multi_package_supported": false,
-              },
-            ],
-            "packages": [
-              {
-                "package_id": "se-28529731",
-                "package_code": "+small_flat_rate_box",
-                "name": "laptop_box+test",
-                "dimensions": {
-                  "unit": "centimeters",
-                  "length": 4,
-                  "width": 1,
-                  "height": 1,
-                },
-                "description": "Packaging for laptops",
-              },
-            ],
-            "options": [
-              {
-                "name": "contains_alcohol",
-                "default_value": "false",
-                "description": "string",
-              },
-            ],
-          },
-        ],
-        "request_id": "aa3d8e8e-462b-4476-9618-72db7f7b7009",
-        "errors": [
-          {
-            "error_source": "carrier",
-            "error_type": "account_status",
-            "error_code": "auto_fund_not_supported",
-            "message": "Body of request cannot be null.",
-          },
-        ],
-      }.to_json)
+  it 'handles a successful response with multiple carriers' do
+    stub = stub_request(:get, 'https://api.shipengine.com/v1/carriers')
+           .to_return(status: 200, body: {
+             carriers: [
+               {
+                 carrier_id: 'se-28529731',
+                 carrier_code: 'se-28529731',
+                 account_number: 'account_570827',
+                 requires_funded_amount: true,
+                 balance: 3799.52,
+                 nickname: 'ShipEngine Account - Stamps.com',
+                 friendly_name: 'Stamps.com',
+                 primary: true,
+                 has_multi_package_supporting_services: true,
+                 supports_label_messages: true,
+                 services: [
+                   {
+                     carrier_id: 'se-28529731',
+                     carrier_code: 'se-28529731',
+                     service_code: 'usps_media_mail',
+                     name: 'USPS First Class Mail',
+                     domestic: true,
+                     international: true,
+                     is_multi_package_supported: true
+                   }
+                 ],
+                 packages: [
+                   {
+                     package_id: 'se-28529731',
+                     package_code: 'small_flat_rate_box',
+                     name: 'laptop_box',
+                     dimensions: {
+                       unit: 'inch',
+                       length: 1,
+                       width: 1,
+                       height: 1
+                     },
+                     description: 'Packaging for laptops'
+                   }
+                 ],
+                 options: [
+                   {
+                     name: 'contains_alcohol',
+                     default_value: 'false',
+                     description: 'string'
+                   }
+                 ]
+               },
+               {
+                 carrier_id: 'se-test',
+                 carrier_code: 'se-testing',
+                 account_number: 'account_117',
+                 requires_funded_amount: true,
+                 balance: 3799.12,
+                 nickname: 'ShipEngine Account 2',
+                 friendly_name: 'Stamps.com 2',
+                 primary: false,
+                 has_multi_package_supporting_services: false,
+                 supports_label_messages: false,
+                 services: [
+                   {
+                     carrier_id: 'se-test',
+                     carrier_code: 'se-test',
+                     service_code: 'usps_media_mail+test',
+                     name: 'USPS First Class Mail test',
+                     domestic: false,
+                     international: false,
+                     is_multi_package_supported: false
+                   }
+                 ],
+                 packages: [
+                   {
+                     package_id: 'se-28529731',
+                     package_code: '+small_flat_rate_box',
+                     name: 'laptop_box+test',
+                     dimensions: {
+                       unit: 'centimeters',
+                       length: 4,
+                       width: 1,
+                       height: 1
+                     },
+                     description: 'Packaging for laptops'
+                   }
+                 ],
+                 options: [
+                   {
+                     name: 'contains_alcohol',
+                     default_value: 'false',
+                     description: 'string'
+                   }
+                 ]
+               }
+             ],
+             request_id: 'aa3d8e8e-462b-4476-9618-72db7f7b7009',
+             errors: [
+               {
+                 error_source: 'carrier',
+                 error_type: 'account_status',
+                 error_code: 'auto_fund_not_supported',
+                 message: 'Body of request cannot be null.'
+               }
+             ]
+           }.to_json)
 
     expected = {
       carriers: [
         {
-          carrier_id: "se-28529731",
-          carrier_code: "se-28529731",
-          account_number: "account_570827",
+          carrier_id: 'se-28529731',
+          carrier_code: 'se-28529731',
+          account_number: 'account_570827',
           requires_funded_amount: true,
           balance: 3799.52,
-          nickname: "ShipEngine Account - Stamps.com",
-          friendly_name: "Stamps.com",
+          nickname: 'ShipEngine Account - Stamps.com',
+          friendly_name: 'Stamps.com',
           primary: true,
           has_multi_package_supporting_services: true,
           supports_label_messages: true,
           services: [
             {
-              carrier_id: "se-28529731",
-              carrier_code: "se-28529731",
-              service_code: "usps_media_mail",
-              name: "USPS First Class Mail",
+              carrier_id: 'se-28529731',
+              carrier_code: 'se-28529731',
+              service_code: 'usps_media_mail',
+              name: 'USPS First Class Mail',
               domestic: true,
               international: true,
-              is_multi_package_supported: true,
-            },
+              is_multi_package_supported: true
+            }
           ],
           packages: [
             {
-              package_id: "se-28529731",
-              package_code: "small_flat_rate_box",
-              name: "laptop_box",
+              package_id: 'se-28529731',
+              package_code: 'small_flat_rate_box',
+              name: 'laptop_box',
               dimensions: {
-                unit: "inch",
+                unit: 'inch',
                 length: 1,
                 width: 1,
-                height: 1,
+                height: 1
               },
-              description: "Packaging for laptops",
-            },
+              description: 'Packaging for laptops'
+            }
           ],
           options: [
             {
-              name: "contains_alcohol",
-              default_value: "false",
-              description: "string",
-            },
-          ],
+              name: 'contains_alcohol',
+              default_value: 'false',
+              description: 'string'
+            }
+          ]
         },
         {
-          carrier_id: "se-test",
-          carrier_code: "se-testing",
-          account_number: "account_117",
+          carrier_id: 'se-test',
+          carrier_code: 'se-testing',
+          account_number: 'account_117',
           requires_funded_amount: true,
           balance: 3799.12,
-          nickname: "ShipEngine Account 2",
-          friendly_name: "Stamps.com 2",
+          nickname: 'ShipEngine Account 2',
+          friendly_name: 'Stamps.com 2',
           primary: false,
           has_multi_package_supporting_services: false,
           supports_label_messages: false,
           services: [
             {
-              carrier_id: "se-test",
-              carrier_code: "se-test",
-              service_code: "usps_media_mail+test",
-              name: "USPS First Class Mail test",
+              carrier_id: 'se-test',
+              carrier_code: 'se-test',
+              service_code: 'usps_media_mail+test',
+              name: 'USPS First Class Mail test',
               domestic: false,
               international: false,
-              is_multi_package_supported: false,
-            },
+              is_multi_package_supported: false
+            }
           ],
           packages: [
             {
-              package_id: "se-28529731",
-              package_code: "+small_flat_rate_box",
-              name: "laptop_box+test",
+              package_id: 'se-28529731',
+              package_code: '+small_flat_rate_box',
+              name: 'laptop_box+test',
               dimensions: {
-                unit: "centimeters",
+                unit: 'centimeters',
                 length: 4,
                 width: 1,
-                height: 1,
+                height: 1
               },
-              description: "Packaging for laptops",
-            },
+              description: 'Packaging for laptops'
+            }
           ],
           options: [
             {
-              name: "contains_alcohol",
-              default_value: "false",
-              description: "string",
-            },
-          ],
-        },
+              name: 'contains_alcohol',
+              default_value: 'false',
+              description: 'string'
+            }
+          ]
+        }
       ],
-      request_id: "aa3d8e8e-462b-4476-9618-72db7f7b7009",
+      request_id: 'aa3d8e8e-462b-4476-9618-72db7f7b7009',
       errors: [
         {
-          error_source: "carrier",
-          error_type: "account_status",
-          error_code: "auto_fund_not_supported",
-          message: "Body of request cannot be null.",
-        },
-      ],
+          error_source: 'carrier',
+          error_type: 'account_status',
+          error_code: 'auto_fund_not_supported',
+          message: 'Body of request cannot be null.'
+        }
+      ]
     }
 
     actual_response = client.list_carriers

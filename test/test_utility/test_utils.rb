@@ -1,5 +1,6 @@
 # frozen_string_literal: true
-require "shipengine"
+
+require 'shipengine'
 
 module TestUtils
   # @param spy [Spy] - spy from "Spy" library

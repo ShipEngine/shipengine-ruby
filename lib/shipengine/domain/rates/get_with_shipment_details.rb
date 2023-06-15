@@ -1,14 +1,40 @@
 # frozen_string_literal: true
+
 module ShipEngine
   module Domain
     class Rates
       module GetWithShipmentDetails
         class Response
-          attr_reader :shipment_id, :carrier_id, :service_code, :external_order_id, :items, :tax_identifiers, :external_shipment_id, :ship_date, :created_at, :modified_at, :shipment_status, :ship_to, :ship_from, :warehouse_id, :return_to, :confirmation, :customs, :advanced_options, :origin_type,
-            :insurance_provider, :tags, :order_source_code, :packages, :total_weight, :rate_response
+          attr_reader :shipment_id,
+                      :carrier_id,
+                      :service_code,
+                      :external_order_id,
+                      :items,
+                      :tax_identifiers,
+                      :external_shipment_id,
+                      :ship_date,
+                      :created_at,
+                      :modified_at,
+                      :shipment_status,
+                      :ship_to,
+                      :ship_from,
+                      :warehouse_id,
+                      :return_to,
+                      :confirmation,
+                      :customs,
+                      :advanced_options,
+                      :origin_type,
+                      :insurance_provider,
+                      :tags,
+                      :order_source_code,
+                      :packages,
+                      :total_weight,
+                      :rate_response
 
+          # rubocop:todo Metrics/ParameterLists
           def initialize(shipment_id:, carrier_id:, service_code:, external_order_id:, items:, tax_identifiers:, external_shipment_id:, ship_date:, created_at:, modified_at:, shipment_status:, ship_to:, ship_from:, warehouse_id:, return_to:, confirmation:, customs:, advanced_options:, origin_type:,
-            insurance_provider:, tags:, order_source_code:, packages:, total_weight:, rate_response:)
+                         insurance_provider:, tags:, order_source_code:, packages:, total_weight:, rate_response:)
+            # rubocop:enable Metrics/ParameterLists
             @shipment_id = shipment_id
             @carrier_id = carrier_id
             @service_code = service_code
@@ -39,7 +65,7 @@ module ShipEngine
           class Item
             attr_reader :name, :sales_order_id, :sales_order_item_id, :quantity, :sku, :external_order_id, :external_order_item_id, :asin, :order_source_code
 
-            def initialize(name:, sales_order_id:, sales_order_item_id:, quantity:, sku:, external_order_id:, external_order_item_id:, asin:, order_source_code:)
+            def initialize(name:, sales_order_id:, sales_order_item_id:, quantity:, sku:, external_order_id:, external_order_item_id:, asin:, order_source_code:) # rubocop:todo Metrics/ParameterLists
               @name = name
               @sales_order_id = sales_order_id
               @sales_order_item_id = sales_order_item_id
@@ -66,7 +92,7 @@ module ShipEngine
           class Address
             attr_reader :name, :phone, :company_name, :address_line1, :address_line2, :address_line3, :city_locality, :state_province, :postal_code, :country_code, :address_residential_indicator
 
-            def initialize(name:, phone:, company_name:, address_line1:, address_line2:, address_line3:, city_locality:, state_province:, postal_code:, country_code:, address_residential_indicator:)
+            def initialize(name:, phone:, company_name:, address_line1:, address_line2:, address_line3:, city_locality:, state_province:, postal_code:, country_code:, address_residential_indicator:) # rubocop:todo Metrics/ParameterLists
               @name = name
               @phone = phone
               @company_name = company_name
@@ -93,7 +119,7 @@ module ShipEngine
             class CustomsItem
               attr_reader :customs_item_id, :description, :quantity, :value, :harmonized_tariff_code, :country_of_origin, :unit_of_measure, :sku, :sku_description
 
-              def initialize(customs_item_id:, description:, quantity:, value:, harmonized_tariff_code:, country_of_origin:, unit_of_measure:, sku:, sku_description:)
+              def initialize(customs_item_id:, description:, quantity:, value:, harmonized_tariff_code:, country_of_origin:, unit_of_measure:, sku:, sku_description:) # rubocop:todo Metrics/ParameterLists
                 @customs_item_id = customs_item_id
                 @description = description
                 @quantity = quantity
@@ -142,11 +168,29 @@ module ShipEngine
           end
 
           class AdvancedOptions
-            attr_reader :bill_to_account, :bill_to_country_code, :bill_to_party, :bill_to_postal_code, :contains_alcohol, :delivered_duty_paid, :dry_ice, :dry_ice_weight, :non_machinable, :saturday_delivery, :use_ups_ground_freight_pricing, :freight_class, :custom_field1, :custom_field2,
-              :custom_field3, :origin_type, :shipper_release, :collect_on_delivery
+            attr_reader :bill_to_account,
+                        :bill_to_country_code,
+                        :bill_to_party,
+                        :bill_to_postal_code,
+                        :contains_alcohol,
+                        :delivered_duty_paid,
+                        :dry_ice,
+                        :dry_ice_weight,
+                        :non_machinable,
+                        :saturday_delivery,
+                        :use_ups_ground_freight_pricing,
+                        :freight_class,
+                        :custom_field1,
+                        :custom_field2,
+                        :custom_field3,
+                        :origin_type,
+                        :shipper_release,
+                        :collect_on_delivery
 
+            # rubocop:todo Metrics/ParameterLists
             def initialize(bill_to_account:, bill_to_country_code:, bill_to_party:, bill_to_postal_code:, contains_alcohol:, delivered_duty_paid:, dry_ice:, dry_ice_weight:, non_machinable:, saturday_delivery:, use_ups_ground_freight_pricing:, freight_class:, custom_field1:, custom_field2:,
-              custom_field3:, origin_type:, shipper_release:, collect_on_delivery:)
+                           custom_field3:, origin_type:, shipper_release:, collect_on_delivery:)
+              # rubocop:enable Metrics/ParameterLists
               @bill_to_account = bill_to_account
               @bill_to_country_code = bill_to_country_code
               @bill_to_party = bill_to_party
@@ -188,7 +232,7 @@ module ShipEngine
           class Package
             attr_reader :package_code, :weight, :dimensions, :insured_value, :tracking_number, :label_messages, :external_package_id
 
-            def initialize(package_code:, weight:, dimensions:, insured_value:, tracking_number:, label_messages:, external_package_id:)
+            def initialize(package_code:, weight:, dimensions:, insured_value:, tracking_number:, label_messages:, external_package_id:) # rubocop:todo Metrics/ParameterLists
               @package_code = package_code
               @weight = weight
               @dimensions = dimensions
@@ -212,7 +256,7 @@ module ShipEngine
           class RateResponse
             attr_reader :rates, :invalid_rates, :rate_request_id, :shipment_id, :created_at, :status, :errors
 
-            def initialize(rates:, invalid_rates:, rate_request_id:, shipment_id:, created_at:, status:, errors:)
+            def initialize(rates:, invalid_rates:, rate_request_id:, shipment_id:, created_at:, status:, errors:) # rubocop:todo Metrics/ParameterLists
               @rates = rates
               @invalid_rates = invalid_rates
               @rate_request_id = rate_request_id
@@ -223,11 +267,36 @@ module ShipEngine
             end
 
             class Rate
-              attr_reader :rate_id, :rate_type, :carrier_id, :shipping_amount, :insurance_amount, :confirmation_amount, :other_amount, :tax_amount, :zone, :package_type, :delivery_days, :guaranteed_service, :estimated_delivery_date, :carrier_delivery_days, :ship_date, :negotiated_rate,
-                :service_type, :service_code, :trackable, :carrier_code, :carrier_nickname, :carrier_friendly_name, :validation_status, :warning_messages, :error_messages
+              attr_reader :rate_id,
+                          :rate_type,
+                          :carrier_id,
+                          :shipping_amount,
+                          :insurance_amount,
+                          :confirmation_amount,
+                          :other_amount,
+                          :tax_amount,
+                          :zone,
+                          :package_type,
+                          :delivery_days,
+                          :guaranteed_service,
+                          :estimated_delivery_date,
+                          :carrier_delivery_days,
+                          :ship_date,
+                          :negotiated_rate,
+                          :service_type,
+                          :service_code,
+                          :trackable,
+                          :carrier_code,
+                          :carrier_nickname,
+                          :carrier_friendly_name,
+                          :validation_status,
+                          :warning_messages,
+                          :error_messages
 
+              # rubocop:todo Metrics/ParameterLists
               def initialize(rate_id:, rate_type:, carrier_id:, shipping_amount:, insurance_amount:, confirmation_amount:, other_amount:, tax_amount:, zone:, package_type:, delivery_days:, guaranteed_service:, estimated_delivery_date:, carrier_delivery_days:, ship_date:, negotiated_rate:,
-                service_type:, service_code:, trackable:, carrier_code:, carrier_nickname:, carrier_friendly_name:, validation_status:, warning_messages:, error_messages:)
+                             service_type:, service_code:, trackable:, carrier_code:, carrier_nickname:, carrier_friendly_name:, validation_status:, warning_messages:, error_messages:)
+                # rubocop:enable Metrics/ParameterLists
                 @rate_id = rate_id
                 @rate_type = rate_type
                 @carrier_id = carrier_id

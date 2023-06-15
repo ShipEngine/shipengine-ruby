@@ -1,12 +1,13 @@
 # frozen_string_literal: true
-require "hashie"
-require_relative "tracking/track_using_label_id"
-require_relative "tracking/track_using_carrier_code_and_tracking_number"
+
+require 'hashie'
+require_relative 'tracking/track_using_label_id'
+require_relative 'tracking/track_using_carrier_code_and_tracking_number'
 
 module ShipEngine
   module Domain
     class Tracking
-      require "shipengine/constants"
+      require 'shipengine/constants'
 
       # @param [ShipEngine::InternalClient] internal_client
       def initialize(internal_client)
@@ -51,7 +52,7 @@ module ShipEngine
           estimated_delivery_date: mash_result.estimated_delivery_date,
           actual_delivery_date: mash_result.actual_delivery_date,
           exception_description: mash_result.exception_description,
-          events: events
+          events:
         )
       end
 
@@ -63,7 +64,7 @@ module ShipEngine
       #
       # @see https://shipengine.github.io/shipengine-openapi/#operation/validate_address
       def track_using_carrier_code_and_tracking_number(carrier_code, tracking_number, config)
-        response = @internal_client.get("/v1/tracking", { carrier_code: carrier_code, tracking_number: tracking_number }, config)
+        response = @internal_client.get('/v1/tracking', { carrier_code:, tracking_number: }, config)
         tracking_api_result = response.body
         mash_result = Hashie::Mash.new(tracking_api_result)
 
@@ -94,7 +95,7 @@ module ShipEngine
           estimated_delivery_date: mash_result.estimated_delivery_date,
           actual_delivery_date: mash_result.actual_delivery_date,
           exception_description: mash_result.exception_description,
-          events: events
+          events:
         )
       end
     end

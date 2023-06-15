@@ -1,14 +1,44 @@
 # frozen_string_literal: true
+
 module ShipEngine
   module Domain
     class Labels
       module CreateFromRate
         class Response
-          attr_reader :label_id, :status, :shipment_id, :ship_date, :created_at, :shipment_cost, :insurance_cost, :tracking_number, :is_return_label, :rma_number, :is_international, :batch_id, :carrier_id, :charge_event, :service_code, :package_code, :voided, :voided_at, :label_format,
-            :display_scheme, :label_layout, :trackable, :label_image_id, :carrier_code, :tracking_status, :label_download, :form_download, :insurance_claim, :packages
+          attr_reader :label_id,
+                      :status,
+                      :shipment_id,
+                      :ship_date,
+                      :created_at,
+                      :shipment_cost,
+                      :insurance_cost,
+                      :tracking_number,
+                      :is_return_label,
+                      :rma_number,
+                      :is_international,
+                      :batch_id,
+                      :carrier_id,
+                      :charge_event,
+                      :service_code,
+                      :package_code,
+                      :voided,
+                      :voided_at,
+                      :label_format,
+                      :display_scheme,
+                      :label_layout,
+                      :trackable,
+                      :label_image_id,
+                      :carrier_code,
+                      :tracking_status,
+                      :label_download,
+                      :form_download,
+                      :insurance_claim,
+                      :packages
 
+          # rubocop:todo Metrics/ParameterLists
           def initialize(label_id:, status:, shipment_id:, ship_date:, created_at:, shipment_cost:, insurance_cost:, tracking_number:, is_return_label:, rma_number:, is_international:, batch_id:, carrier_id:, charge_event:, service_code:, package_code:, voided:, voided_at:, label_format:,
-            display_scheme:, label_layout:, trackable:, label_image_id:, carrier_code:, tracking_status:, label_download:, form_download:, insurance_claim:, packages:)
+                         display_scheme:, label_layout:, trackable:, label_image_id:, carrier_code:, tracking_status:, label_download:, form_download:, insurance_claim:, packages:)
+            # rubocop:enable Metrics/ParameterLists
             @label_id = label_id
             @status = status
             @shipment_id = shipment_id
@@ -52,7 +82,7 @@ module ShipEngine
           class Package
             attr_reader :package_code, :weight, :dimensions, :insured_value, :tracking_number, :label_messages, :external_package_id
 
-            def initialize(package_code:, weight:, dimensions:, insured_value:, tracking_number:, label_messages:, external_package_id:)
+            def initialize(package_code:, weight:, dimensions:, insured_value:, tracking_number:, label_messages:, external_package_id:) # rubocop:todo Metrics/ParameterLists
               @package_code = package_code
               @weight = weight
               @dimensions = dimensions

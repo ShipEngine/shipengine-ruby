@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "shipengine/exceptions"
+require 'shipengine/exceptions'
 
 module ShipEngine
   module Utils
@@ -14,7 +14,7 @@ module ShipEngine
 
         def not_nil_or_empty_str(field, value)
           not_nil(field, value)
-          return unless value == ""
+          return unless value == ''
 
           raise Exceptions.create_required_error(field)
         end
