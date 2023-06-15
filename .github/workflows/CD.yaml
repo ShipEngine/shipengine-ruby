@@ -15,7 +15,7 @@ jobs:
           release-type: ruby
           package-name: shipengine
           bump-minor-pre-major: true
-          version-file: "lib/release/please/demo/version.rb"
+          version-file: "lib/shipengine/version.rb"
 
       # Checkout code if release was created
       - uses: actions/checkout@v2
