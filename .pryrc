@@ -1,13 +1,14 @@
 # rubocop:disable
 
 # frozen_string_literal: true
+
 # === EDITOR ===
-Pry.editor = "vi"
+Pry.editor = 'vi'
 
 # === COLORS ===
-unless ENV["PRY_BW"]
+unless ENV['PRY_BW']
   Pry.color = true
-  Pry.config.theme = "railscasts"
+  Pry.config.theme = 'railscasts'
 end
 
 # === Listing config ===
@@ -25,7 +26,7 @@ Pry.config.ls.private_method_color = :bright_black
 # awesome_print gem: great syntax colorized printing
 # look at ~/.aprc for more settings for awesome_print
 begin
-  require "awesome_print"
+  require 'awesome_print'
   # The following line enables awesome_print for all pry output,
   # and it also enables paging
   Pry.config.print = proc { |output, value| Pry::Helpers::BaseHelpers.stagger_output("=> #{value.ai}", output) }
@@ -35,7 +36,7 @@ begin
     Formatter.prepend(Module.new do
       def awesome_self(object, type)
         if type == :string && @options[:string_limit] && object.inspect.to_s.length > @options[:string_limit]
-          colorize(object.inspect.to_s[0..@options[:string_limit]] + "...", type)
+          colorize("#{object.inspect.to_s[0..@options[:string_limit]]}...", type)
         else
           super(object, type)
         end
@@ -46,11 +47,11 @@ begin
   AwesomePrint.defaults = {
     string_limit: 80,
     indent: 2,
-    multiline: true,
+    multiline: true
   }
   AwesomePrint.pry!
 rescue err
-  puts "gem install awesome_print  # <-- highly recommended"
+  puts 'gem install awesome_print  # <-- highly recommended'
 end
 
 # rubocop:enable

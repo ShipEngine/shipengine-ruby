@@ -1,15 +1,15 @@
 # frozen_string_literal: true
 
 # for client class
-require "shipengine/internal_client"
-require "shipengine/domain"
-require "shipengine/configuration"
+require 'shipengine/internal_client'
+require 'shipengine/domain'
+require 'shipengine/configuration'
 
 # just for exporting
-require "shipengine/utils/validate"
-require "shipengine/version"
-require "shipengine/constants"
-require "observer"
+require 'shipengine/utils/validate'
+require 'shipengine/version'
+require 'shipengine/constants'
+require 'observer'
 
 module ShipEngine
   class Client
@@ -17,11 +17,11 @@ module ShipEngine
 
     def initialize(api_key, retries: nil, timeout: nil, page_size: nil, base_url: nil)
       @configuration = Configuration.new(
-        api_key: api_key,
-        retries: retries,
-        base_url: base_url,
-        timeout: timeout,
-        page_size: page_size
+        api_key:,
+        retries:,
+        base_url:,
+        timeout:,
+        page_size:
       )
 
       @internal_client = ShipEngine::InternalClient.new(@configuration)
@@ -64,7 +64,7 @@ module ShipEngine
     #
     # @see https://shipengine.github.io/shipengine-openapi/#operation/list_carriers
     def list_carriers(config: {})
-      @carriers.list_carriers(config: config)
+      @carriers.list_carriers(config:)
     end
 
     # Create label from Rate Id

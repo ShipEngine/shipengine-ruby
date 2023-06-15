@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module ShipEngine
   module Domain
     class Addresses
@@ -19,8 +20,17 @@ module ShipEngine
         end
 
         class Request
-          attr_reader :address_line1, :address_line2, :address_line3, :name, :company_name, :phone, :city_locality, :state_province, :postal_code,
-            :country_code, :address_residential_indicator
+          attr_reader :address_line1,
+                      :address_line2,
+                      :address_line3,
+                      :name,
+                      :company_name,
+                      :phone,
+                      :city_locality,
+                      :state_province,
+                      :postal_code,
+                      :country_code,
+                      :address_residential_indicator
 
           # @param [String] address_line1 - e.g. ["123 FAKE ST."]
           # @param [String?] address_line2 - e.g. ["123 FAKE ST."]
@@ -33,8 +43,8 @@ module ShipEngine
           # @param [String?] city_locality - e.g. "AUSTIN"
           # @param [String?] state_province - e.g. "TX"
           # @param [String?] address_residential_indicator
-          def initialize(address_line1:, address_line2:, address_line3:, name:, company_name:, phone:, city_locality:, state_province:, postal_code:,
-            country_code:, address_residential_indicator:)
+          def initialize(address_line1:, address_line2:, address_line3:, name:, company_name:, phone:, city_locality:, state_province:, postal_code:, # rubocop:todo Metrics/ParameterLists
+                         country_code:, address_residential_indicator:)
 
             @name = name
             @company_name = company_name
@@ -51,8 +61,17 @@ module ShipEngine
         end
 
         class Address
-          attr_reader :address_line1, :address_line2, :address_line3, :name, :company_name, :phone, :city_locality, :state_province, :postal_code,
-            :country_code, :address_residential_indicator
+          attr_reader :address_line1,
+                      :address_line2,
+                      :address_line3,
+                      :name,
+                      :company_name,
+                      :phone,
+                      :city_locality,
+                      :state_province,
+                      :postal_code,
+                      :country_code,
+                      :address_residential_indicator
 
           # @param [String] address_line1 - e.g. ["123 FAKE ST."]
           # @param [String?] address_line2 - e.g. ["123 FAKE ST."]
@@ -65,8 +84,8 @@ module ShipEngine
           # @param [String?] city_locality - e.g. "AUSTIN"
           # @param [String?] state_province - e.g. "TX"
           # @param [String?] address_residential_indicator
-          def initialize(address_line1:, address_line2:, address_line3:, name:, company_name:, phone:, city_locality:, state_province:, postal_code:,
-            country_code:, address_residential_indicator:)
+          def initialize(address_line1:, address_line2:, address_line3:, name:, company_name:, phone:, city_locality:, state_province:, postal_code:, # rubocop:todo Metrics/ParameterLists
+                         country_code:, address_residential_indicator:)
 
             @name = name
             @company_name = company_name

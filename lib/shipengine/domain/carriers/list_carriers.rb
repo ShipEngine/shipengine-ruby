@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module ShipEngine
   module Domain
     class Carriers
@@ -47,7 +48,7 @@ module ShipEngine
           # @param [Array<Carrier::Service>] services
           # @param [Array<Carrier::Package>] packages
           # @param [Array<Carrier::Option>] options
-          def initialize(carrier_id:, carrier_code:, account_number:, requires_funded_amount:, balance:, nickname:, friendly_name:, primary:, has_multi_package_supporting_services:, supports_label_messages:, services:, packages:, options:)
+          def initialize(carrier_id:, carrier_code:, account_number:, requires_funded_amount:, balance:, nickname:, friendly_name:, primary:, has_multi_package_supporting_services:, supports_label_messages:, services:, packages:, options:) # rubocop:todo Metrics/ParameterLists
             @carrier_id = carrier_id
             @carrier_code = carrier_code
             @account_number = account_number
@@ -74,7 +75,7 @@ module ShipEngine
             # @param [Boolean] international - e.g. true
             # @param [Boolean] is_multi_package_supported - e.g. true
 
-            def initialize(carrier_id:, carrier_code:, service_code:, name:, domestic:, international:, is_multi_package_supported:)
+            def initialize(carrier_id:, carrier_code:, service_code:, name:, domestic:, international:, is_multi_package_supported:) # rubocop:todo Metrics/ParameterLists
               @carrier_id = carrier_id
               @carrier_code = carrier_code
               @service_code = service_code

@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "hashie"
-require_relative "carriers/list_carriers"
-require "shipengine/constants"
+require 'hashie'
+require_relative 'carriers/list_carriers'
+require 'shipengine/constants'
 
 module ShipEngine
   module Domain
@@ -13,7 +13,7 @@ module ShipEngine
       end
 
       def list_carriers(config:)
-        response = @internal_client.get("/v1/carriers", {}, config)
+        response = @internal_client.get('/v1/carriers', {}, config)
         carriers_api_result = response.body
         mash_result = Hashie::Mash.new(carriers_api_result)
         carriers = mash_result.carriers.map do |carrier|
@@ -25,7 +25,7 @@ module ShipEngine
               name: service.name,
               domestic: service.domestic,
               international: service.international,
-              is_multi_package_supported: service.is_multi_package_supported,
+              is_multi_package_supported: service.is_multi_package_supported
             )
           end
 
@@ -34,16 +34,16 @@ module ShipEngine
             if package.dimensions
               dimensions = ListCarriers::Carrier::Package::Dimensions.new(
                 unit: package.dimensions.unit,
-                length: package.dimensions["length"],
+                length: package.dimensions['length'],
                 width: package.dimensions.width,
-                height: package.dimensions.height,
+                height: package.dimensions.height
               )
             end
             ListCarriers::Carrier::Package.new(
               package_id: package.package_id,
               package_code: package.package_code,
               name: package.name,
-              dimensions: dimensions,
+              dimensions:,
               description: package.description
             )
           end
@@ -67,9 +67,9 @@ module ShipEngine
             primary: carrier.primary,
             has_multi_package_supporting_services: carrier.has_multi_package_supporting_services,
             supports_label_messages: carrier.supports_label_messages,
-            services: services,
-            packages: packages,
-            options: options
+            services:,
+            packages:,
+            options:
           )
         end
 
@@ -78,14 +78,14 @@ module ShipEngine
             error_source: error.error_source,
             error_type: error.error_type,
             error_code: error.error_code,
-            message: error["message"]
+            message: error['message']
           )
         end
 
         ListCarriers::Response.new(
-          carriers: carriers,
+          carriers:,
           request_id: mash_result.request_id,
-          errors: errors
+          errors:
         )
       end
     end

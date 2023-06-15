@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "json"
+require 'json'
 
 module ShipEngine
   module Utils
@@ -20,7 +20,7 @@ module ShipEngine
       def to_hash
         hash = {}
         instance_variables.each do |n|
-          hash[n.to_s.delete("@")] = instance_variable_get(n)
+          hash[n.to_s.delete('@')] = instance_variable_get(n)
         end
         hash
       end

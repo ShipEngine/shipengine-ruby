@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "test_helper"
+require 'test_helper'
 
 #
 # <Description>
@@ -50,17 +50,17 @@ def assert_rates_response(expected, actual_response)
 end
 
 def assert_address(expected_address, response_address)
-  assert_equal(expected_address[:address_line1], response_address.address_line1, "-> address_line1") if expected_address.key?(:address_line1)
-  assert_equal(expected_address[:address_line2], response_address.address_line2, "-> address_line2") if expected_address.key?(:address_line2) && expected_address[:address_line2]
-  assert_equal(expected_address[:address_line3], response_address.address_line3, "-> address_line3") if expected_address.key?(:address_line3) && expected_address[:address_line3]
-  assert_equal(expected_address[:name], response_address.name, "-> name") if expected_address.key?(:name) && expected_address[:name]
-  assert_equal(expected_address[:company_name], response_address.company_name, "-> company_name") if expected_address.key?(:company_name) && expected_address[:company_name]
-  assert_equal(expected_address[:phone], response_address.phone, "-> phone") if expected_address.key?(:phone) && expected_address[:phone]
-  assert_equal(expected_address[:city_locality], response_address.city_locality, "-> city_locality") if expected_address.key?(:city_locality) && expected_address[:city_locality]
-  assert_equal(expected_address[:state_province], response_address.state_province, "-> state_province") if expected_address.key?(:state_province) && expected_address[:state_province]
-  assert_equal(expected_address[:postal_code], response_address.postal_code, "-> postal_code") if expected_address.key?(:postal_code) && expected_address[:postal_code]
-  assert_equal(expected_address[:country_code], response_address.country_code, "-> country_code") if expected_address.key?(:country_code) && expected_address[:country_code]
-  assert_equal(expected_address[:address_residential_indicator], response_address.address_residential_indicator, "-> address_residential_indicator") if expected_address.key?(:address_residential_indicator) && expected_address[:address_residential_indicator]
+  assert_equal(expected_address[:address_line1], response_address.address_line1, '-> address_line1') if expected_address.key?(:address_line1)
+  assert_equal(expected_address[:address_line2], response_address.address_line2, '-> address_line2') if expected_address.key?(:address_line2) && expected_address[:address_line2]
+  assert_equal(expected_address[:address_line3], response_address.address_line3, '-> address_line3') if expected_address.key?(:address_line3) && expected_address[:address_line3]
+  assert_equal(expected_address[:name], response_address.name, '-> name') if expected_address.key?(:name) && expected_address[:name]
+  assert_equal(expected_address[:company_name], response_address.company_name, '-> company_name') if expected_address.key?(:company_name) && expected_address[:company_name]
+  assert_equal(expected_address[:phone], response_address.phone, '-> phone') if expected_address.key?(:phone) && expected_address[:phone]
+  assert_equal(expected_address[:city_locality], response_address.city_locality, '-> city_locality') if expected_address.key?(:city_locality) && expected_address[:city_locality]
+  assert_equal(expected_address[:state_province], response_address.state_province, '-> state_province') if expected_address.key?(:state_province) && expected_address[:state_province]
+  assert_equal(expected_address[:postal_code], response_address.postal_code, '-> postal_code') if expected_address.key?(:postal_code) && expected_address[:postal_code]
+  assert_equal(expected_address[:country_code], response_address.country_code, '-> country_code') if expected_address.key?(:country_code) && expected_address[:country_code]
+  assert_equal(expected_address[:address_residential_indicator], response_address.address_residential_indicator, '-> address_residential_indicator') if expected_address.key?(:address_residential_indicator) && expected_address[:address_residential_indicator]
 end
 
 def assert_advanced_options(expected, actual_advanced_options)
@@ -218,352 +218,352 @@ def assert_error(expected, actual_error)
   assert_equal(expected[:message], actual_error.message) if expected.key?(:message)
 end
 
-describe "Get rate with shipment details: Functional test" do
+describe 'Get rate with shipment details: Functional test' do
   after do
     WebMock.reset!
   end
 
-  client = ::ShipEngine::Client.new("TEST_ycvJAgX6tLB1Awm9WGJmD8mpZ8wXiQ20WhqFowCk32s")
+  client = ShipEngine::Client.new('TEST_ycvJAgX6tLB1Awm9WGJmD8mpZ8wXiQ20WhqFowCk32s')
 
-  it "handles unauthorized errors" do
-    stub = stub_request(:post, "https://api.shipengine.com/v1/rates")
-      .to_return(status: 401, body: {
-        "request_id" => "cdc19c7b-eec7-4730-8814-462623a62ddb",
-        "errors" => [{
-          "error_source" => "shipengine",
-          "error_type" => "security",
-          "error_code" => "unauthorized",
-          "message" => "The API key is invalid. Please see https://www.shipengine.com/docs/auth",
-        }],
-      }.to_json)
+  it 'handles unauthorized errors' do
+    stub = stub_request(:post, 'https://api.shipengine.com/v1/rates')
+           .to_return(status: 401, body: {
+             'request_id' => 'cdc19c7b-eec7-4730-8814-462623a62ddb',
+             'errors' => [{
+               'error_source' => 'shipengine',
+               'error_type' => 'security',
+               'error_code' => 'unauthorized',
+               'message' => 'The API key is invalid. Please see https://www.shipengine.com/docs/auth'
+             }]
+           }.to_json)
 
     expected_err = {
-      source: "shipengine",
-      type: "security",
-      code: "unauthorized",
-      message: "The API key is invalid. Please see https://www.shipengine.com/docs/auth",
+      source: 'shipengine',
+      type: 'security',
+      code: 'unauthorized',
+      message: 'The API key is invalid. Please see https://www.shipengine.com/docs/auth'
     }
 
-    assert_raises_shipengine(::ShipEngine::Exceptions::ShipEngineError, expected_err) do
+    assert_raises_shipengine(ShipEngine::Exceptions::ShipEngineError, expected_err) do
       client.get_rates_with_shipment_details({
-        rate_options: {
-          carrier_ids: [
-            "se-123890",
-          ],
-        },
-        shipment: {
-          validate_address: "no_validation",
-          ship_to: {
-            name: "Amanda Miller",
-            phone: "555-555-5555",
-            address_line1: "525 S Winchester Blvd",
-            city_locality: "San Jose",
-            state_province: "CA",
-            postal_code: "95128",
-            country_code: "US",
-            address_residential_indicator: "yes",
-          },
-          ship_from: {
-            company_name: "Example Corp.",
-            name: "John Doe",
-            phone: "111-111-1111",
-            address_line1: "4009 Marathon Blvd",
-            address_line2: "Suite 300",
-            city_locality: "Austin",
-            state_province: "TX",
-            postal_code: "78756",
-            country_code: "US",
-            address_residential_indicator: "no",
-          },
-          packages: [
-            {
-              weight: {
-                value: 1.0,
-                unit: "ounce",
-              },
-            },
-          ],
-        },
-      })
+                                               rate_options: {
+                                                 carrier_ids: [
+                                                   'se-123890'
+                                                 ]
+                                               },
+                                               shipment: {
+                                                 validate_address: 'no_validation',
+                                                 ship_to: {
+                                                   name: 'Amanda Miller',
+                                                   phone: '555-555-5555',
+                                                   address_line1: '525 S Winchester Blvd',
+                                                   city_locality: 'San Jose',
+                                                   state_province: 'CA',
+                                                   postal_code: '95128',
+                                                   country_code: 'US',
+                                                   address_residential_indicator: 'yes'
+                                                 },
+                                                 ship_from: {
+                                                   company_name: 'Example Corp.',
+                                                   name: 'John Doe',
+                                                   phone: '111-111-1111',
+                                                   address_line1: '4009 Marathon Blvd',
+                                                   address_line2: 'Suite 300',
+                                                   city_locality: 'Austin',
+                                                   state_province: 'TX',
+                                                   postal_code: '78756',
+                                                   country_code: 'US',
+                                                   address_residential_indicator: 'no'
+                                                 },
+                                                 packages: [
+                                                   {
+                                                     weight: {
+                                                       value: 1.0,
+                                                       unit: 'ounce'
+                                                     }
+                                                   }
+                                                 ]
+                                               }
+                                             })
       assert_requested(stub, times: 1)
     end
   end
 
-  it "handles a successful response for get_rates_with_shipment_details" do
-    stub = stub_request(:post, "https://api.shipengine.com/v1/rates")
-      .to_return(status: 200, body: {
-        "shipment_id": "se-28529731",
-        "carrier_id": "se-28529731",
-        "service_code": "usps_first_class_mail",
-        "external_order_id": "string",
-        "items": [],
-        "tax_identifiers": [
-          {
-            "taxable_entity_type": "shipper",
-            "identifier_type": "vat",
-            "issuing_authority": "string",
-            "value": "string",
-          },
-        ],
-        "external_shipment_id": "string",
-        "ship_date": "2018-09-23T00:00:00.000Z",
-        "created_at": "2018-09-23T15:00:00.000Z",
-        "modified_at": "2018-09-23T15:00:00.000Z",
-        "shipment_status": "pending",
-        "ship_to": {
-          "name": "John Doe",
-          "phone": "+1 204-253-9411 ext. 123",
-          "company_name": "The Home Depot",
-          "address_line1": "1999 Bishop Grandin Blvd.",
-          "address_line2": "Unit 408",
-          "address_line3": "Building #7",
-          "city_locality": "Winnipeg",
-          "state_province": "Manitoba",
-          "postal_code": "78756-3717",
-          "country_code": "CA",
-          "address_residential_indicator": "no",
-        },
-        "ship_from": {
-          "name": "John Doe",
-          "phone": "+1 204-253-9411 ext. 123",
-          "company_name": "The Home Depot",
-          "address_line1": "1999 Bishop Grandin Blvd.",
-          "address_line2": "Unit 408",
-          "address_line3": "Building #7",
-          "city_locality": "Winnipeg",
-          "state_province": "Manitoba",
-          "postal_code": "78756-3717",
-          "country_code": "CA",
-          "address_residential_indicator": "no",
-        },
-        "warehouse_id": "se-28529731",
-        "return_to": {
-          "name": "John Doe",
-          "phone": "+1 204-253-9411 ext. 123",
-          "company_name": "The Home Depot",
-          "address_line1": "1999 Bishop Grandin Blvd.",
-          "address_line2": "Unit 408",
-          "address_line3": "Building #7",
-          "city_locality": "Winnipeg",
-          "state_province": "Manitoba",
-          "postal_code": "78756-3717",
-          "country_code": "CA",
-          "address_residential_indicator": "no",
-        },
-        "confirmation": "none",
-        "customs": {
-          "contents": "merchandise",
-          "non_delivery": "return_to_sender",
-          "customs_items": [],
-        },
-        "advanced_options": {
-          "bill_to_account": nil,
-          "bill_to_country_code": "CA",
-          "bill_to_party": "recipient",
-          "bill_to_postal_code": nil,
-          "contains_alcohol": false,
-          "delivered_duty_paid": false,
-          "dry_ice": false,
-          "dry_ice_weight": {
-            "value": 0,
-            "unit": "pound",
-          },
-          "non_machinable": false,
-          "saturday_delivery": false,
-          "use_ups_ground_freight_pricing": nil,
-          "freight_class": 77.5,
-          "custom_field1": nil,
-          "custom_field2": nil,
-          "custom_field3": nil,
-          "origin_type": "pickup",
-          "shipper_release": nil,
-          "collect_on_delivery": {
-            "payment_type": "any",
-            "payment_amount": {
-              "currency": "usd",
-              "amount": 0,
-            },
-          },
-        },
-        "origin_type": "pickup",
-        "insurance_provider": "none",
-        "tags": [],
-        "order_source_code": "amazon_ca",
-        "packages": [
-          {
-            "package_code": "small_flat_rate_box",
-            "weight": {
-              "value": 0,
-              "unit": "pound",
-            },
-            "dimensions": {
-              "unit": "inch",
-              "length": 0,
-              "width": 0,
-              "height": 0,
-            },
-            "insured_value": {
-              "0": {
-                "currency": "usd",
-                "amount": 0,
-              },
-              "currency": "usd",
-              "amount": 0,
-            },
-            "tracking_number": "1Z932R800392060079",
-            "label_messages": {
-              "reference1": nil,
-              "reference2": nil,
-              "reference3": nil,
-            },
-            "external_package_id": "string",
-          },
-        ],
-        "total_weight": {
-          "value": 0,
-          "unit": "pound",
-        },
-        "rate_response": {
-          "rates": [
-            {
-              "rate_id": "se-28529731",
-              "rate_type": "check",
-              "carrier_id": "se-28529731",
-              "shipping_amount": {
-                "currency": "usd",
-                "amount": 0,
-              },
-              "insurance_amount": {
-                "currency": "usd",
-                "amount": 0,
-              },
-              "confirmation_amount": {
-                "currency": "usd",
-                "amount": 0,
-              },
-              "other_amount": {
-                "currency": "usd",
-                "amount": 0,
-              },
-              "tax_amount": {
-                "currency": "usd",
-                "amount": 0,
-              },
-              "zone": 6,
-              "package_type": "package",
-              "delivery_days": 5,
-              "guaranteed_service": true,
-              "estimated_delivery_date": "2018-09-23T00:00:00.000Z",
-              "carrier_delivery_days": "string",
-              "ship_date": "2021-07-23T14:49:13Z",
-              "negotiated_rate": true,
-              "service_type": "string",
-              "service_code": "string",
-              "trackable": true,
-              "carrier_code": "string",
-              "carrier_nickname": "string",
-              "carrier_friendly_name": "string",
-              "validation_status": "valid",
-              "warning_messages": [
-                "string",
-              ],
-              "error_messages": [
-                "string",
-              ],
-            },
-          ],
-          "invalid_rates": [],
-          "rate_request_id": "se-28529731",
-          "shipment_id": "se-28529731",
-          "created_at": "se-28529731",
-          "status": "working",
-          "errors": [
-            {
-              "error_source": "carrier",
-              "error_type": "account_status",
-              "error_code": "auto_fund_not_supported",
-              "message": "Body of request cannot be nil.",
-            },
-          ],
-        },
-      }.to_json)
+  it 'handles a successful response for get_rates_with_shipment_details' do
+    stub = stub_request(:post, 'https://api.shipengine.com/v1/rates')
+           .to_return(status: 200, body: {
+             shipment_id: 'se-28529731',
+             carrier_id: 'se-28529731',
+             service_code: 'usps_first_class_mail',
+             external_order_id: 'string',
+             items: [],
+             tax_identifiers: [
+               {
+                 taxable_entity_type: 'shipper',
+                 identifier_type: 'vat',
+                 issuing_authority: 'string',
+                 value: 'string'
+               }
+             ],
+             external_shipment_id: 'string',
+             ship_date: '2018-09-23T00:00:00.000Z',
+             created_at: '2018-09-23T15:00:00.000Z',
+             modified_at: '2018-09-23T15:00:00.000Z',
+             shipment_status: 'pending',
+             ship_to: {
+               name: 'John Doe',
+               phone: '+1 204-253-9411 ext. 123',
+               company_name: 'The Home Depot',
+               address_line1: '1999 Bishop Grandin Blvd.',
+               address_line2: 'Unit 408',
+               address_line3: 'Building #7',
+               city_locality: 'Winnipeg',
+               state_province: 'Manitoba',
+               postal_code: '78756-3717',
+               country_code: 'CA',
+               address_residential_indicator: 'no'
+             },
+             ship_from: {
+               name: 'John Doe',
+               phone: '+1 204-253-9411 ext. 123',
+               company_name: 'The Home Depot',
+               address_line1: '1999 Bishop Grandin Blvd.',
+               address_line2: 'Unit 408',
+               address_line3: 'Building #7',
+               city_locality: 'Winnipeg',
+               state_province: 'Manitoba',
+               postal_code: '78756-3717',
+               country_code: 'CA',
+               address_residential_indicator: 'no'
+             },
+             warehouse_id: 'se-28529731',
+             return_to: {
+               name: 'John Doe',
+               phone: '+1 204-253-9411 ext. 123',
+               company_name: 'The Home Depot',
+               address_line1: '1999 Bishop Grandin Blvd.',
+               address_line2: 'Unit 408',
+               address_line3: 'Building #7',
+               city_locality: 'Winnipeg',
+               state_province: 'Manitoba',
+               postal_code: '78756-3717',
+               country_code: 'CA',
+               address_residential_indicator: 'no'
+             },
+             confirmation: 'none',
+             customs: {
+               contents: 'merchandise',
+               non_delivery: 'return_to_sender',
+               customs_items: []
+             },
+             advanced_options: {
+               bill_to_account: nil,
+               bill_to_country_code: 'CA',
+               bill_to_party: 'recipient',
+               bill_to_postal_code: nil,
+               contains_alcohol: false,
+               delivered_duty_paid: false,
+               dry_ice: false,
+               dry_ice_weight: {
+                 value: 0,
+                 unit: 'pound'
+               },
+               non_machinable: false,
+               saturday_delivery: false,
+               use_ups_ground_freight_pricing: nil,
+               freight_class: 77.5,
+               custom_field1: nil,
+               custom_field2: nil,
+               custom_field3: nil,
+               origin_type: 'pickup',
+               shipper_release: nil,
+               collect_on_delivery: {
+                 payment_type: 'any',
+                 payment_amount: {
+                   currency: 'usd',
+                   amount: 0
+                 }
+               }
+             },
+             origin_type: 'pickup',
+             insurance_provider: 'none',
+             tags: [],
+             order_source_code: 'amazon_ca',
+             packages: [
+               {
+                 package_code: 'small_flat_rate_box',
+                 weight: {
+                   value: 0,
+                   unit: 'pound'
+                 },
+                 dimensions: {
+                   unit: 'inch',
+                   length: 0,
+                   width: 0,
+                   height: 0
+                 },
+                 insured_value: {
+                   '0': {
+                     currency: 'usd',
+                     amount: 0
+                   },
+                   currency: 'usd',
+                   amount: 0
+                 },
+                 tracking_number: '1Z932R800392060079',
+                 label_messages: {
+                   reference1: nil,
+                   reference2: nil,
+                   reference3: nil
+                 },
+                 external_package_id: 'string'
+               }
+             ],
+             total_weight: {
+               value: 0,
+               unit: 'pound'
+             },
+             rate_response: {
+               rates: [
+                 {
+                   rate_id: 'se-28529731',
+                   rate_type: 'check',
+                   carrier_id: 'se-28529731',
+                   shipping_amount: {
+                     currency: 'usd',
+                     amount: 0
+                   },
+                   insurance_amount: {
+                     currency: 'usd',
+                     amount: 0
+                   },
+                   confirmation_amount: {
+                     currency: 'usd',
+                     amount: 0
+                   },
+                   other_amount: {
+                     currency: 'usd',
+                     amount: 0
+                   },
+                   tax_amount: {
+                     currency: 'usd',
+                     amount: 0
+                   },
+                   zone: 6,
+                   package_type: 'package',
+                   delivery_days: 5,
+                   guaranteed_service: true,
+                   estimated_delivery_date: '2018-09-23T00:00:00.000Z',
+                   carrier_delivery_days: 'string',
+                   ship_date: '2021-07-23T14:49:13Z',
+                   negotiated_rate: true,
+                   service_type: 'string',
+                   service_code: 'string',
+                   trackable: true,
+                   carrier_code: 'string',
+                   carrier_nickname: 'string',
+                   carrier_friendly_name: 'string',
+                   validation_status: 'valid',
+                   warning_messages: [
+                     'string'
+                   ],
+                   error_messages: [
+                     'string'
+                   ]
+                 }
+               ],
+               invalid_rates: [],
+               rate_request_id: 'se-28529731',
+               shipment_id: 'se-28529731',
+               created_at: 'se-28529731',
+               status: 'working',
+               errors: [
+                 {
+                   error_source: 'carrier',
+                   error_type: 'account_status',
+                   error_code: 'auto_fund_not_supported',
+                   message: 'Body of request cannot be nil.'
+                 }
+               ]
+             }
+           }.to_json)
 
     expected = {
-      shipment_id: "se-28529731",
-      carrier_id: "se-28529731",
-      service_code: "usps_first_class_mail",
-      external_order_id: "string",
+      shipment_id: 'se-28529731',
+      carrier_id: 'se-28529731',
+      service_code: 'usps_first_class_mail',
+      external_order_id: 'string',
       items: [],
       tax_identifiers: [
         {
-          taxable_entity_type: "shipper",
-          identifier_type: "vat",
-          issuing_authority: "string",
-          value: "string",
-        },
+          taxable_entity_type: 'shipper',
+          identifier_type: 'vat',
+          issuing_authority: 'string',
+          value: 'string'
+        }
       ],
-      external_shipment_id: "string",
-      ship_date: "2018-09-23T00:00:00.000Z",
-      created_at: "2018-09-23T15:00:00.000Z",
-      modified_at: "2018-09-23T15:00:00.000Z",
-      shipment_status: "pending",
+      external_shipment_id: 'string',
+      ship_date: '2018-09-23T00:00:00.000Z',
+      created_at: '2018-09-23T15:00:00.000Z',
+      modified_at: '2018-09-23T15:00:00.000Z',
+      shipment_status: 'pending',
       ship_to: {
-        name: "John Doe",
-        phone: "+1 204-253-9411 ext. 123",
-        company_name: "The Home Depot",
-        address_line1: "1999 Bishop Grandin Blvd.",
-        address_line2: "Unit 408",
-        address_line3: "Building #7",
-        city_locality: "Winnipeg",
-        state_province: "Manitoba",
-        postal_code: "78756-3717",
-        country_code: "CA",
-        address_residential_indicator: "no",
+        name: 'John Doe',
+        phone: '+1 204-253-9411 ext. 123',
+        company_name: 'The Home Depot',
+        address_line1: '1999 Bishop Grandin Blvd.',
+        address_line2: 'Unit 408',
+        address_line3: 'Building #7',
+        city_locality: 'Winnipeg',
+        state_province: 'Manitoba',
+        postal_code: '78756-3717',
+        country_code: 'CA',
+        address_residential_indicator: 'no'
       },
       ship_from: {
-        name: "John Doe",
-        phone: "+1 204-253-9411 ext. 123",
-        company_name: "The Home Depot",
-        address_line1: "1999 Bishop Grandin Blvd.",
-        address_line2: "Unit 408",
-        address_line3: "Building #7",
-        city_locality: "Winnipeg",
-        state_province: "Manitoba",
-        postal_code: "78756-3717",
-        country_code: "CA",
-        address_residential_indicator: "no",
+        name: 'John Doe',
+        phone: '+1 204-253-9411 ext. 123',
+        company_name: 'The Home Depot',
+        address_line1: '1999 Bishop Grandin Blvd.',
+        address_line2: 'Unit 408',
+        address_line3: 'Building #7',
+        city_locality: 'Winnipeg',
+        state_province: 'Manitoba',
+        postal_code: '78756-3717',
+        country_code: 'CA',
+        address_residential_indicator: 'no'
       },
-      warehouse_id: "se-28529731",
+      warehouse_id: 'se-28529731',
       return_to: {
-        name: "John Doe",
-        phone: "+1 204-253-9411 ext. 123",
-        company_name: "The Home Depot",
-        address_line1: "1999 Bishop Grandin Blvd.",
-        address_line2: "Unit 408",
-        address_line3: "Building #7",
-        city_locality: "Winnipeg",
-        state_province: "Manitoba",
-        postal_code: "78756-3717",
-        country_code: "CA",
-        address_residential_indicator: "no",
+        name: 'John Doe',
+        phone: '+1 204-253-9411 ext. 123',
+        company_name: 'The Home Depot',
+        address_line1: '1999 Bishop Grandin Blvd.',
+        address_line2: 'Unit 408',
+        address_line3: 'Building #7',
+        city_locality: 'Winnipeg',
+        state_province: 'Manitoba',
+        postal_code: '78756-3717',
+        country_code: 'CA',
+        address_residential_indicator: 'no'
       },
-      confirmation: "none",
+      confirmation: 'none',
       customs: {
-        contents: "merchandise",
-        non_delivery: "return_to_sender",
-        customs_items: [],
+        contents: 'merchandise',
+        non_delivery: 'return_to_sender',
+        customs_items: []
       },
       advanced_options: {
         bill_to_account: nil,
-        bill_to_country_code: "CA",
-        bill_to_party: "recipient",
+        bill_to_country_code: 'CA',
+        bill_to_party: 'recipient',
         bill_to_postal_code: nil,
         contains_alcohol: false,
         delivered_duty_paid: false,
         dry_ice: false,
         dry_ice_weight: {
           value: 0,
-          unit: "pound",
+          unit: 'pound'
         },
         non_machinable: false,
         saturday_delivery: false,
@@ -572,155 +572,155 @@ describe "Get rate with shipment details: Functional test" do
         custom_field1: nil,
         custom_field2: nil,
         custom_field3: nil,
-        origin_type: "pickup",
+        origin_type: 'pickup',
         shipper_release: nil,
         collect_on_delivery: {
-          payment_type: "any",
+          payment_type: 'any',
           payment_amount: {
-            currency: "usd",
-            amount: 0,
-          },
-        },
+            currency: 'usd',
+            amount: 0
+          }
+        }
       },
-      origin_type: "pickup",
-      insurance_provider: "none",
+      origin_type: 'pickup',
+      insurance_provider: 'none',
       tags: [],
-      order_source_code: "amazon_ca",
+      order_source_code: 'amazon_ca',
       packages: [
         {
-          package_code: "small_flat_rate_box",
+          package_code: 'small_flat_rate_box',
           weight: {
             value: 0,
-            unit: "pound",
+            unit: 'pound'
           },
           dimensions: {
-            unit: "inch",
+            unit: 'inch',
             length: 0,
             width: 0,
-            height: 0,
+            height: 0
           },
           insured_value: {
-            currency: "usd",
-            amount: 0,
+            currency: 'usd',
+            amount: 0
           },
-          tracking_number: "1Z932R800392060079",
+          tracking_number: '1Z932R800392060079',
           label_messages: {
             reference1: nil,
             reference2: nil,
-            reference3: nil,
+            reference3: nil
           },
-          external_package_id: "string",
-        },
+          external_package_id: 'string'
+        }
       ],
       total_weight: {
         value: 0,
-        unit: "pound",
+        unit: 'pound'
       },
       rate_response: {
         rates: [
           {
-            rate_id: "se-28529731",
-            rate_type: "check",
-            carrier_id: "se-28529731",
+            rate_id: 'se-28529731',
+            rate_type: 'check',
+            carrier_id: 'se-28529731',
             shipping_amount: {
-              currency: "usd",
-              amount: 0,
+              currency: 'usd',
+              amount: 0
             },
             insurance_amount: {
-              currency: "usd",
-              amount: 0,
+              currency: 'usd',
+              amount: 0
             },
             confirmation_amount: {
-              currency: "usd",
-              amount: 0,
+              currency: 'usd',
+              amount: 0
             },
             other_amount: {
-              currency: "usd",
-              amount: 0,
+              currency: 'usd',
+              amount: 0
             },
             tax_amount: {
-              currency: "usd",
-              amount: 0,
+              currency: 'usd',
+              amount: 0
             },
             zone: 6,
-            package_type: "package",
+            package_type: 'package',
             delivery_days: 5,
             guaranteed_service: true,
-            estimated_delivery_date: "2018-09-23T00:00:00.000Z",
-            carrier_delivery_days: "string",
-            ship_date: "2021-07-23T14:49:13Z",
+            estimated_delivery_date: '2018-09-23T00:00:00.000Z',
+            carrier_delivery_days: 'string',
+            ship_date: '2021-07-23T14:49:13Z',
             negotiated_rate: true,
-            service_type: "string",
-            service_code: "string",
+            service_type: 'string',
+            service_code: 'string',
             trackable: true,
-            carrier_code: "string",
-            carrier_nickname: "string",
-            carrier_friendly_name: "string",
-            validation_status: "valid",
+            carrier_code: 'string',
+            carrier_nickname: 'string',
+            carrier_friendly_name: 'string',
+            validation_status: 'valid',
             warning_messages: [
-              "string",
+              'string'
             ],
             error_messages: [
-              "string",
-            ],
-          },
+              'string'
+            ]
+          }
         ],
         invalid_rates: [],
-        rate_request_id: "se-28529731",
-        shipment_id: "se-28529731",
-        created_at: "se-28529731",
-        status: "working",
+        rate_request_id: 'se-28529731',
+        shipment_id: 'se-28529731',
+        created_at: 'se-28529731',
+        status: 'working',
         errors: [
           {
-            error_source: "carrier",
-            error_type: "account_status",
-            error_code: "auto_fund_not_supported",
-            message: "Body of request cannot be nil.",
-          },
-        ],
-      },
+            error_source: 'carrier',
+            error_type: 'account_status',
+            error_code: 'auto_fund_not_supported',
+            message: 'Body of request cannot be nil.'
+          }
+        ]
+      }
     }
 
     actual_response = client.get_rates_with_shipment_details({
-      rate_options: {
-        carrier_ids: [
-          "se-123890",
-        ],
-      },
-      shipment: {
-        validate_address: "no_validation",
-        ship_to: {
-          name: "Amanda Miller",
-          phone: "555-555-5555",
-          address_line1: "525 S Winchester Blvd",
-          city_locality: "San Jose",
-          state_province: "CA",
-          postal_code: "95128",
-          country_code: "US",
-          address_residential_indicator: "yes",
-        },
-        ship_from: {
-          company_name: "Example Corp.",
-          name: "John Doe",
-          phone: "111-111-1111",
-          address_line1: "4009 Marathon Blvd",
-          address_line2: "Suite 300",
-          city_locality: "Austin",
-          state_province: "TX",
-          postal_code: "78756",
-          country_code: "US",
-          address_residential_indicator: "no",
-        },
-        packages: [
-          {
-            weight: {
-              value: 1.0,
-              unit: "ounce",
-            },
-          },
-        ],
-      },
-    })
+                                                               rate_options: {
+                                                                 carrier_ids: [
+                                                                   'se-123890'
+                                                                 ]
+                                                               },
+                                                               shipment: {
+                                                                 validate_address: 'no_validation',
+                                                                 ship_to: {
+                                                                   name: 'Amanda Miller',
+                                                                   phone: '555-555-5555',
+                                                                   address_line1: '525 S Winchester Blvd',
+                                                                   city_locality: 'San Jose',
+                                                                   state_province: 'CA',
+                                                                   postal_code: '95128',
+                                                                   country_code: 'US',
+                                                                   address_residential_indicator: 'yes'
+                                                                 },
+                                                                 ship_from: {
+                                                                   company_name: 'Example Corp.',
+                                                                   name: 'John Doe',
+                                                                   phone: '111-111-1111',
+                                                                   address_line1: '4009 Marathon Blvd',
+                                                                   address_line2: 'Suite 300',
+                                                                   city_locality: 'Austin',
+                                                                   state_province: 'TX',
+                                                                   postal_code: '78756',
+                                                                   country_code: 'US',
+                                                                   address_residential_indicator: 'no'
+                                                                 },
+                                                                 packages: [
+                                                                   {
+                                                                     weight: {
+                                                                       value: 1.0,
+                                                                       unit: 'ounce'
+                                                                     }
+                                                                   }
+                                                                 ]
+                                                               }
+                                                             })
 
     assert_rates_response(expected, actual_response)
     assert_requested(stub, times: 1)

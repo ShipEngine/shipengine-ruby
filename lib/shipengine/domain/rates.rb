@@ -1,11 +1,12 @@
 # frozen_string_literal: true
-require "hashie"
-require_relative "rates/get_with_shipment_details"
+
+require 'hashie'
+require_relative 'rates/get_with_shipment_details'
 
 module ShipEngine
   module Domain
-    class Rates
-      require "shipengine/constants"
+    class Rates # rubocop:todo Metrics/ClassLength
+      require 'shipengine/constants'
 
       # @param [ShipEngine::InternalClient] internal_client
       def initialize(internal_client)
@@ -19,7 +20,7 @@ module ShipEngine
       #
       # @see https://shipengine.github.io/shipengine-openapi/#operation/validate_address
       def get_rates_with_shipment_details(shipment_details, config)
-        response = @internal_client.post("/v1/rates", shipment_details, config)
+        response = @internal_client.post('/v1/rates', shipment_details, config)
         rates_api_result = response.body
         mash_result = Hashie::Mash.new(rates_api_result)
 
@@ -58,16 +59,16 @@ module ShipEngine
         packages = mash_result.packages.map do |package|
           weight = GetWithShipmentDetails::Response::Weight.new(
             value: package.weight.value,
-            unit: package.weight.unit,
+            unit: package.weight.unit
           )
 
           dimensions = nil
           if package.dimensions
             dimensions = GetWithShipmentDetails::Response::Dimensions.new(
               unit: package.dimensions.unit,
-              length: package.dimensions["length"],
+              length: package.dimensions['length'],
               width: package.dimensions.width,
-              height: package.dimensions.height,
+              height: package.dimensions.height
             )
           end
 
@@ -75,7 +76,7 @@ module ShipEngine
           if package.insured_value
             insured_value = GetWithShipmentDetails::Response::MonetaryValue.new(
               currency: package.insured_value.currency,
-              amount: package.insured_value.amount,
+              amount: package.insured_value.amount
             )
           end
 
@@ -90,11 +91,11 @@ module ShipEngine
 
           GetWithShipmentDetails::Response::Package.new(
             package_code: package.package_code,
-            weight: weight,
-            dimensions: dimensions,
-            insured_value: insured_value,
+            weight:,
+            dimensions:,
+            insured_value:,
             tracking_number: package.tracking_number,
-            label_messages: label_messages,
+            label_messages:,
             external_package_id: package.external_package_id
           )
         end
@@ -106,7 +107,7 @@ module ShipEngine
             if customs_item.value
               value = GetWithShipmentDetails::Response::MonetaryValue.new(
                 currency: customs_item.value.currency,
-                amount: customs_item.value.amount,
+                amount: customs_item.value.amount
               )
             end
 
@@ -114,7 +115,7 @@ module ShipEngine
               customs_item_id: customs_item.customs_item_id,
               description: customs_item.description,
               quantity: customs_item.quantity,
-              value: value,
+              value:,
               harmonized_tariff_code: customs_item.harmonized_tariff_code,
               country_of_origin: customs_item.country_of_origin,
               unit_of_measure: customs_item.unit_of_measure,
@@ -126,7 +127,7 @@ module ShipEngine
           customs = GetWithShipmentDetails::Response::Customs.new(
             contents: mash_result.customs.contents,
             non_delivery: mash_result.customs.non_delivery,
-            customs_items: customs_items
+            customs_items:
           )
         end
 
@@ -176,7 +177,7 @@ module ShipEngine
         if mash_result.advanced_options.dry_ice_weight
           dry_ice_weight = GetWithShipmentDetails::Response::Weight.new(
             value: mash_result.advanced_options.dry_ice_weight.value,
-            unit: mash_result.advanced_options.dry_ice_weight.unit,
+            unit: mash_result.advanced_options.dry_ice_weight.unit
           )
         end
 
@@ -187,13 +188,13 @@ module ShipEngine
           if mash_result.advanced_options.collect_on_delivery.payment_amount
             payment_amount = GetWithShipmentDetails::Response::MonetaryValue.new(
               currency: mash_result.advanced_options.collect_on_delivery.payment_amount.currency,
-              amount: mash_result.advanced_options.collect_on_delivery.payment_amount.amount,
+              amount: mash_result.advanced_options.collect_on_delivery.payment_amount.amount
             )
           end
 
           collect_on_delivery = GetWithShipmentDetails::Response::AdvancedOptions::CollectOnDelivery.new(
             payment_type: mash_result.advanced_options.collect_on_delivery.payment_type,
-            payment_amount: payment_amount
+            payment_amount:
           )
         end
 
@@ -205,7 +206,7 @@ module ShipEngine
           contains_alcohol: mash_result.advanced_options.contains_alcohol,
           delivered_duty_paid: mash_result.advanced_options.delivered_duty_paid,
           dry_ice: mash_result.advanced_options.dry_ice,
-          dry_ice_weight: dry_ice_weight,
+          dry_ice_weight:,
           non_machinable: mash_result.advanced_options.non_machinable,
           saturday_delivery: mash_result.advanced_options.saturday_delivery,
           use_ups_ground_freight_pricing: mash_result.advanced_options.use_ups_ground_freight_pricing,
@@ -215,14 +216,14 @@ module ShipEngine
           custom_field3: mash_result.advanced_options.custom_field3,
           origin_type: mash_result.advanced_options.origin_type,
           shipper_release: mash_result.advanced_options.shipper_release,
-          collect_on_delivery: collect_on_delivery
+          collect_on_delivery:
         )
 
         total_weight = nil
         if mash_result.total_weight
           total_weight = GetWithShipmentDetails::Response::Weight.new(
             value: mash_result.total_weight.value,
-            unit: mash_result.total_weight.unit,
+            unit: mash_result.total_weight.unit
           )
         end
 
@@ -231,7 +232,7 @@ module ShipEngine
           if rate.tax_amount
             tax_amount = GetWithShipmentDetails::Response::MonetaryValue.new(
               currency: rate.tax_amount.currency,
-              amount: rate.tax_amount.amount,
+              amount: rate.tax_amount.amount
             )
           end
 
@@ -241,21 +242,21 @@ module ShipEngine
             carrier_id: rate.carrier_id,
             shipping_amount: GetWithShipmentDetails::Response::MonetaryValue.new(
               currency: rate.shipping_amount.currency,
-              amount: rate.shipping_amount.amount,
+              amount: rate.shipping_amount.amount
             ),
             insurance_amount: GetWithShipmentDetails::Response::MonetaryValue.new(
               currency: rate.insurance_amount.currency,
-              amount: rate.insurance_amount.amount,
+              amount: rate.insurance_amount.amount
             ),
             confirmation_amount: GetWithShipmentDetails::Response::MonetaryValue.new(
               currency: rate.confirmation_amount.currency,
-              amount: rate.confirmation_amount.amount,
+              amount: rate.confirmation_amount.amount
             ),
             other_amount: GetWithShipmentDetails::Response::MonetaryValue.new(
               currency: rate.other_amount.currency,
-              amount: rate.other_amount.amount,
+              amount: rate.other_amount.amount
             ),
-            tax_amount: tax_amount,
+            tax_amount:,
             zone: rate.zone,
             package_type: rate.package_type,
             delivery_days: rate.delivery_days,
@@ -281,7 +282,7 @@ module ShipEngine
           if rate.tax_amount
             tax_amount = GetWithShipmentDetails::Response::MonetaryValue.new(
               currency: rate.tax_amount.currency,
-              amount: rate.tax_amount.amount,
+              amount: rate.tax_amount.amount
             )
           end
 
@@ -291,21 +292,21 @@ module ShipEngine
             carrier_id: rate.carrier_id,
             shipping_amount: GetWithShipmentDetails::Response::MonetaryValue.new(
               currency: rate.shipping_amount.currency,
-              amount: rate.shipping_amount.amount,
+              amount: rate.shipping_amount.amount
             ),
             insurance_amount: GetWithShipmentDetails::Response::MonetaryValue.new(
               currency: rate.insurance_amount.currency,
-              amount: rate.insurance_amount.amount,
+              amount: rate.insurance_amount.amount
             ),
             confirmation_amount: GetWithShipmentDetails::Response::MonetaryValue.new(
               currency: rate.confirmation_amount.currency,
-              amount: rate.confirmation_amount.amount,
+              amount: rate.confirmation_amount.amount
             ),
             other_amount: GetWithShipmentDetails::Response::MonetaryValue.new(
               currency: rate.other_amount.currency,
-              amount: rate.other_amount.amount,
+              amount: rate.other_amount.amount
             ),
-            tax_amount: tax_amount,
+            tax_amount:,
             zone: rate.zone,
             package_type: rate.package_type,
             delivery_days: rate.delivery_days,
@@ -331,18 +332,18 @@ module ShipEngine
             error_source: error.error_source,
             error_type: error.error_type,
             error_code: error.error_code,
-            message: error["message"]
+            message: error['message']
           )
         end
 
         rate_response = GetWithShipmentDetails::Response::RateResponse.new(
-          rates: rates,
-          invalid_rates: invalid_rates,
+          rates:,
+          invalid_rates:,
           rate_request_id: mash_result.rate_response.rate_request_id,
           shipment_id: mash_result.rate_response.shipment_id,
           created_at: mash_result.rate_response.created_at,
           status: mash_result.rate_response.status,
-          errors: errors
+          errors:
         )
 
         GetWithShipmentDetails::Response.new(
@@ -350,27 +351,27 @@ module ShipEngine
           carrier_id: mash_result.carrier_id,
           service_code: mash_result.service_code,
           external_order_id: mash_result.external_order_id,
-          items: items,
-          tax_identifiers: tax_identifiers,
+          items:,
+          tax_identifiers:,
           external_shipment_id: mash_result.external_shipment_id,
           ship_date: mash_result.ship_date,
           created_at: mash_result.created_at,
           modified_at: mash_result.modified_at,
           shipment_status: mash_result.shipment_status,
-          ship_to: ship_to,
-          ship_from: ship_from,
+          ship_to:,
+          ship_from:,
           warehouse_id: mash_result.warehouse_id,
-          return_to: return_to,
+          return_to:,
           confirmation: mash_result.confirmation,
-          customs: customs,
-          advanced_options: advanced_options,
+          customs:,
+          advanced_options:,
           origin_type: mash_result.origin_type,
           insurance_provider: mash_result.insurance_provider,
-          tags: tags,
+          tags:,
           order_source_code: mash_result.order_source_code,
-          packages: packages,
-          total_weight: total_weight,
-          rate_response: rate_response,
+          packages:,
+          total_weight:,
+          rate_response:
         )
       end
     end
