@@ -12,7 +12,7 @@ on:
 
 jobs:
   ci:
-    name: Lint & Test
+    name: Build, Lint, and Test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
