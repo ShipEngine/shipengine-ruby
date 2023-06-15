@@ -1,4 +1,4 @@
-name: CD
+name: Continuous Deployment
 
 on:
   push:
@@ -9,37 +9,39 @@ jobs:
   release-please:
     runs-on: ubuntu-latest
     steps:
-      - uses: GoogleCloudPlatform/release-please-action@v2
+      - name: Release Please
         id: release
+        uses: GoogleCloudPlatform/release-please-action@v2
         with:
           release-type: ruby
           package-name: shipengine
           bump-minor-pre-major: true
-          version-file: "lib/release/please/demo/version.rb"
+          version-file: lib/shipengine/version.rb
 
-      # Checkout code if release was created
-      - uses: actions/checkout@v2
-        if: ${{ steps.release.outputs.release_created }}
-
-      # Setup ruby if a release was created
-      - uses: ruby/setup-ruby@v1
+      - name: Checkout Repository
+        uses: actions/checkout@v3
         with:
-          ruby-version: 3.0.0
+          fetch-depth: 0
         if: ${{ steps.release.outputs.release_created }}
 
-      # Bundle install
-      - run: bundle install
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
         if: ${{ steps.release.outputs.release_created }}
 
-      # Publish
-      - name: publish gem
+      - name: Install project dependencies
+        run: bundle install
+        if: ${{ steps.release.outputs.release_created }}
+
+      - name: Publish ShipEngine Gem
+        if: ${{ steps.release.outputs.release_created }}
         run: |
           mkdir -p $HOME/.gem
           touch $HOME/.gem/credentials
           chmod 0600 $HOME/.gem/credentials
-          printf -- "---\n:rubygems_api_key: ${GEM_HOST_API_KEY}\n" > $HOME/.gem/credentials
-          gem build *.gemspec
-          gem push *.gem
-        env:
-          GEM_HOST_API_KEY: "${{secrets.RUBYGEMS_API_KEY}}"
-        if: ${{ steps.release.outputs.release_created }}
+
+          cat <<EOF >$HOME/.gem/credentials
+          ---
+          :rubygems_api_key: ${{ secrets.RUBYGEMS_API_KEY }}
+          EOF
+
+          rake release
