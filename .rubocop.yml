@@ -1,6 +1,3 @@
-inherit_gem:
-  rubocop-shopify: rubocop.yml
-
 AllCops:
   NewCops: enable # https://docs.rubocop.org/rubocop/1.11/versioning.html#pending-cops
   SuggestExtensions: false
