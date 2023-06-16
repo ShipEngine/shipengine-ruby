@@ -10,7 +10,7 @@ The Official Ruby SDK for [ShipEngine API](https://shipengine.com) offering low-
 Quick Start
 ===========
 
-Install ShipEngine via [RubyGems](https://rubygems.org/)
+Install the ShipEngine SDK Gem via [RubyGems](https://rubygems.org/gems/shipengine_sdk)
 ```bash
 gem install shipengine_sdk
 ```
