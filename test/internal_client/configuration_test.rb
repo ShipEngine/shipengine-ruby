@@ -15,7 +15,7 @@ describe 'Configuration' do
       client = ShipEngine::Client.new('foo')
 
       # the global configuration should not be mutated
-      assert_equal 30_000, client.configuration.timeout
+      assert_equal 60_000, client.configuration.timeout
       assert_equal 50, client.configuration.page_size
     end
     it 'the global config should not be mutated if overridden at method call time' do
