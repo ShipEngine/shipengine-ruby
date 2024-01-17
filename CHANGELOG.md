@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.4](https://github.com/ShipEngine/shipengine-ruby/compare/v1.0.3...v1.0.4) (2024-01-17)
+
+
+### Bug Fixes
+
+* change default timeout to 60s ([81bfe73](https://github.com/ShipEngine/shipengine-ruby/commit/81bfe73feb0abc8a87aedb15e9b3935dd33d4da9))
+
 ## [1.0.3](https://github.com/ShipEngine/shipengine-ruby/compare/v1.0.2...v1.0.3) (2023-06-16)
 
 
