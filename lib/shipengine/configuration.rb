@@ -8,7 +8,7 @@ module ShipEngine
       @api_key = api_key
       @base_url = base_url || Constants.base_url
       @retries = retries || 1
-      @timeout = timeout || 30_000
+      @timeout = timeout || 60_000
       @page_size = page_size || 50
       validate
     end

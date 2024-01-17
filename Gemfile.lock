@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    shipengine_sdk (1.0.3)
+    shipengine_sdk (1.0.4)
       faraday (>= 1.4)
       faraday_middleware (>= 1.0)
       hashie (>= 3.4)
