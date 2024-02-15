@@ -40,7 +40,7 @@ require "shipengine"
 
 api_key = ENV["SHIPENGINE_API_KEY"]
 
-shipengine = ShipEngine.new(api_key)
+shipengine = ShipEngine::Client.new(api_key)
 ```
 
 Contributing
