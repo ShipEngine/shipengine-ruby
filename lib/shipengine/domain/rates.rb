@@ -216,7 +216,10 @@ module ShipEngine
           custom_field3: mash_result.advanced_options.custom_field3,
           origin_type: mash_result.advanced_options.origin_type,
           shipper_release: mash_result.advanced_options.shipper_release,
-          collect_on_delivery:
+          collect_on_delivery:,
+          license_number: mash_result.advanced_options.license_number,
+          invoice_number: mash_result.advanced_options.invoice_number,
+          certificate_number: mash_result.advanced_options.certificate_number
         )
 
         total_weight = nil
