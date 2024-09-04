@@ -185,11 +185,14 @@ module ShipEngine
                         :custom_field3,
                         :origin_type,
                         :shipper_release,
-                        :collect_on_delivery
-
+                        :collect_on_delivery,
+                        :license_number,
+                        :invoice_number,
+                        :certificate_number
+                        
             # rubocop:todo Metrics/ParameterLists
             def initialize(bill_to_account:, bill_to_country_code:, bill_to_party:, bill_to_postal_code:, contains_alcohol:, delivered_duty_paid:, dry_ice:, dry_ice_weight:, non_machinable:, saturday_delivery:, use_ups_ground_freight_pricing:, freight_class:, custom_field1:, custom_field2:,
-                           custom_field3:, origin_type:, shipper_release:, collect_on_delivery:)
+                           custom_field3:, origin_type:, shipper_release:, collect_on_delivery:, license_number:, invoice_number:, certificate_number:)
               # rubocop:enable Metrics/ParameterLists
               @bill_to_account = bill_to_account
               @bill_to_country_code = bill_to_country_code
@@ -209,6 +212,9 @@ module ShipEngine
               @origin_type = origin_type
               @shipper_release = shipper_release
               @collect_on_delivery = collect_on_delivery
+              @license_number = license_number
+              @invoice_number = invoice_number
+              @certificate_number = certificate_number
             end
 
             class CollectOnDelivery
