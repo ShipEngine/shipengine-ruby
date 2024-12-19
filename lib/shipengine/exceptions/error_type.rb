@@ -42,7 +42,11 @@ module ShipEngine
         # that has not yet been assigned a specific error_type. If you receive
         # persistent system errors, then please contact our support or check our API
         # status page to see if there's a known issue.
-        SYSTEM: 'system'
+        SYSTEM: 'system',
+        # General wallet error type.
+        WALLET: 'wallet',
+        # General funding sources error type.
+        FUNDING_SOURCES: 'funding_sources'
       }.freeze
     end
   end

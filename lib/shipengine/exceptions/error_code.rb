@@ -247,7 +247,17 @@ module ShipEngine
         ## ShipEngine only allows you to have one webhook of each type. If you would
         ## like to replace a webhook with a new one please delete the old one fir.
         #   #/
-        WEBHOOK_EVENT_TYPE_CONFLICT: 'webhook_event_type_conflict'
+        WEBHOOK_EVENT_TYPE_CONFLICT: 'webhook_event_type_conflict',
+
+        ##
+        ## Funding source isnt properly configured and can't be used.
+        #   #/
+        FUNDING_SOURCE_MISSING_CONFIGURATION: 'funding_source_missing_configuration',
+
+        ##
+        ## There was an unexpected problem with a funding source.
+        #   #/
+        FUNDING_SOURCE_ERROR: 'funding_source_error'
       }.freeze
     end
   end
